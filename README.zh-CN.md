@@ -29,6 +29,7 @@ pnpm dev
 pnpm typecheck
 pnpm lint
 pnpm build
+pnpm build:local
 ```
 
 构建产物为 `dist/danbooru-masonry.user.js`。
