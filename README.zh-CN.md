@@ -14,10 +14,6 @@ Danbooru Masonry 是一个 Danbooru 浏览增强 userscript。它会在 `/posts`
 
 - `https://danbooru.donmai.us/posts*`
 - `https://danbooru.donmai.us/`
-- `http://localhost:3000/posts*`
-- `http://localhost:3000/`
-- `http://127.0.0.1:3000/posts*`
-- `http://127.0.0.1:3000/`
 
 ## 安装
 

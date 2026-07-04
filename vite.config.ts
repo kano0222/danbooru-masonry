@@ -19,10 +19,6 @@ export default defineConfig({
         match: [
           'https://danbooru.donmai.us/',
           'https://danbooru.donmai.us/posts*',
-          'http://localhost:3000/',
-          'http://localhost:3000/posts*',
-          'http://127.0.0.1:3000/',
-          'http://127.0.0.1:3000/posts*',
         ],
         grant: ['GM_openInTab'],
         connect: ['danbooru.donmai.us', 'cdn.jsdelivr.net'],

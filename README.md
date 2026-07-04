@@ -8,16 +8,12 @@ Danbooru Masonry is a userscript that adds an opt-in masonry browsing mode to Da
 - Tag search and Danbooru autocomplete.
 - Optional Chinese tag translations loaded from jsDelivr with a short timeout.
 - Image/video viewer with keyboard navigation, wheel navigation, original-size zoom, dragging, source link, post link, and favorite toggle.
-- Adapter layer for official Danbooru and local Danbooru development mirrors.
+- Adapter layer for official Danbooru.
 
 ## Supported Sites
 
 - `https://danbooru.donmai.us/posts*`
 - `https://danbooru.donmai.us/`
-- `http://localhost:3000/posts*`
-- `http://localhost:3000/`
-- `http://127.0.0.1:3000/posts*`
-- `http://127.0.0.1:3000/`
 
 ## Install
 
@@ -65,5 +61,4 @@ This project references the engineering organization of `nhentai-helper` and `ya
 - Source button opens the source.
 - Post button opens the official post page.
 - Favorite/unfavorite works when logged in; logged-out failures are visible on the button.
-- Local `localhost:3000/posts` still works for debugging.
 - `pnpm build` generates `dist/danbooru-masonry.user.js`.
