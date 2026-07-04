@@ -9,10 +9,10 @@
     "build": "vite build && node scripts/postbuild.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "format": "prettier --write .",
     "release": "pnpm lint && pnpm typecheck && pnpm build && node scripts/release.mjs"
   },
-  "dependencies": {},
   "devDependencies": {
     "@eslint/js": "^9.30.1",
     "eslint": "^9.30.1",
@@ -21,7 +21,8 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.35.1",
     "vite": "^7.0.0",
-    "vite-plugin-monkey": "^7.1.0"
+    "vite-plugin-monkey": "^7.1.0",
+    "vitest": "^4.1.9"
   },
   "packageManager": "pnpm@9.15.9"
 }
