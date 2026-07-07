@@ -14,7 +14,7 @@ function normalizeAutocompleteItem(raw: unknown): AutocompleteItem {
   const item = (raw || {}) as Record<string, unknown>;
   return {
     value: String(item.value || item.name || item.label || item.tag || '').trim(),
-    count: String(item.post_count ?? item.postCount ?? item.count ?? ''),
+    count: '',
     category: String(item.category_name || item.category || item.type || ''),
   };
 }

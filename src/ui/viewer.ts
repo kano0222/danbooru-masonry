@@ -2,6 +2,7 @@ export const viewerElementIds = {
   root: 'dmh-viewer',
   image: 'dmh-viewer-img',
   video: 'dmh-viewer-video',
+  loading: 'dmh-viewer-loading',
   info: 'dmh-viewer-info',
   favorite: 'dmh-favorite',
   zoom: 'dmh-zoom-toggle',

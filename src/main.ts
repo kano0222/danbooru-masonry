@@ -6,10 +6,13 @@ import { installLaunchButton, renderShell } from './ui/shell';
 import { renderPosts } from './ui/cards';
 import {
   applyAutocompleteTag,
+  applySelectedAutocomplete,
   closeAutocomplete,
+  moveAutocompleteSelection,
+  openAutocomplete,
   scheduleAutocomplete,
 } from './ui/autocomplete';
-import { layoutMasonry, scheduleLayoutMasonry, shouldFillViewport, shouldLoadMore } from './core/masonry';
+import { layoutMasonry, scheduleLayoutMasonry, shouldLoadMore } from './core/masonry';
 import { resetSearch } from './core/search';
 import { installShortcuts } from './core/shortcuts';
 import {
@@ -50,6 +53,7 @@ async function startMasonry(state: AppState): Promise<void> {
     installStyles();
     renderShell(state);
     bindShellEvents(state);
+    observeMasonryLayout(state);
     state.started = true;
     await loadNextPage(state);
   } catch (error) {
@@ -73,18 +77,60 @@ function bindShellEvents(state: AppState): void {
     void loadNextPage(state);
   });
   byId('dmh-exit')?.addEventListener('click', () => location.reload());
-  byId<HTMLInputElement>('dmh-tags')?.addEventListener('input', (event) =>
-    scheduleAutocomplete(state, (event.target as HTMLInputElement).value),
-  );
+  const tagsInput = byId<HTMLInputElement>('dmh-tags');
+  tagsInput?.addEventListener('input', (event) => {
+    scheduleAutocomplete(state, (event.target as HTMLInputElement).value);
+  });
+  tagsInput?.addEventListener('focus', (event) => {
+    openAutocomplete(state, (event.target as HTMLInputElement).value);
+  });
+  tagsInput?.addEventListener('click', (event) => {
+    openAutocomplete(state, (event.target as HTMLInputElement).value);
+  });
   byId<HTMLInputElement>('dmh-tags')?.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && byId('dmh-ac')?.classList.contains('dmh-open')) {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const autocompleteOpen = byId('dmh-ac')?.classList.contains('dmh-open');
+    if (autocompleteOpen && event.key === 'ArrowDown') {
+      event.preventDefault();
+      moveAutocompleteSelection(state, 1);
+      return;
+    }
+    if (autocompleteOpen && event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveAutocompleteSelection(state, -1);
+      return;
+    }
+    if (autocompleteOpen && event.key === 'Enter' && applySelectedAutocomplete(state)) {
+      event.preventDefault();
+      return;
+    }
+    if (event.key === 'Escape' && autocompleteOpen) {
       closeAutocomplete(state);
       event.stopPropagation();
     }
   });
+  byId<HTMLInputElement>('dmh-page')?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      jumpToSearchPage(state);
+      return;
+    }
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const direction = event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? -1 : 1;
+    turnSearchPage(state, direction);
+  });
+  byId<HTMLInputElement>('dmh-page')?.addEventListener('input', (event) => {
+    const input = event.currentTarget as HTMLInputElement;
+    input.value = input.value.replace(/\D+/g, '') || '1';
+  });
   byId('dmh-ac')?.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-tag]');
     if (button) applyAutocompleteTag(state, button.dataset.tag || '');
+  });
+  document.addEventListener('pointerdown', (event) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dmh-search-form')) closeAutocomplete(state);
   });
   byId('dmh-viewer')?.addEventListener('click', (event) => {
     if ((event.target as HTMLElement).id === 'dmh-viewer') closeViewer(state);
@@ -117,9 +163,20 @@ function bindShellEvents(state: AppState): void {
   byId('dmh-zoom-toggle')?.addEventListener('click', (event) => toggleZoomMode(state, event));
   byId('dmh-open-post')?.addEventListener('click', () => openCurrentPost(state));
   byId('dmh-open-source')?.addEventListener('click', () => openCurrentSource(state));
+  let lastScrollY = window.scrollY;
   window.addEventListener('scroll', () => {
-    if (state.started && shouldLoadMore()) void loadNextPage(state);
+    const scrollY = window.scrollY;
+    const scrollingDown = scrollY > lastScrollY;
+    lastScrollY = scrollY;
+    if (state.started && scrollingDown && shouldLoadMore()) void loadNextPage(state);
   });
+  window.addEventListener(
+    'wheel',
+    (event) => {
+      if (state.started && event.deltaY > 0 && shouldLoadMore()) void loadNextPage(state);
+    },
+    { passive: true },
+  );
   window.addEventListener('resize', () => scheduleLayoutMasonry(state));
   installShortcuts(state);
 }
@@ -150,6 +207,7 @@ async function loadNextPage(state: AppState): Promise<void> {
     renderPosts(state, posts, startIndex, (index) => showViewer(state, index));
     layoutMasonry(state);
     state.page = page + 1;
+    setPageInputValue(page);
     updatePageParam(state, page);
     setText('dmh-status', `已加载 ${state.posts.length} 张`);
   } catch (error) {
@@ -160,9 +218,6 @@ async function loadNextPage(state: AppState): Promise<void> {
   } finally {
     if (requestToken === state.requestToken) {
       state.loading = false;
-      requestAnimationFrame(() => {
-        if (state.started && !state.loading && !state.done && shouldFillViewport()) void loadNextPage(state);
-      });
     }
   }
 }
@@ -170,6 +225,50 @@ async function loadNextPage(state: AppState): Promise<void> {
 function updatePageParam(state: AppState, page: number): void {
   const url = new URL(state.adapter.getPostsPageUrl(state.tags, page));
   history.replaceState(null, '', url.toString());
+}
+
+function getSearchPageInput(): number {
+  const page = Number(byId<HTMLInputElement>('dmh-page')?.value || '1');
+  return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+}
+
+function turnSearchPage(state: AppState, direction: 1 | -1): void {
+  const currentPage = getSearchPageInput();
+  const nextPage = Math.max(1, currentPage + direction);
+  if (nextPage === currentPage) return;
+  setPageInputValue(nextPage);
+  loadSearchPage(state, nextPage);
+}
+
+function jumpToSearchPage(state: AppState): void {
+  loadSearchPage(state, getSearchPageInput());
+}
+
+function loadSearchPage(state: AppState, page: number): void {
+  closeAutocomplete(state);
+  resetSearch(state, state.tags, page);
+  void loadNextPage(state);
+}
+
+function observeMasonryLayout(state: AppState): void {
+  if (!('ResizeObserver' in window)) return;
+  const grid = byId('dmh-grid');
+  if (!grid) return;
+  state.layoutObserver?.disconnect();
+  let lastWidth = grid.clientWidth;
+  state.layoutObserver = new ResizeObserver((entries) => {
+    const width = entries[0]?.contentRect.width ?? grid.clientWidth;
+    if (Math.abs(width - lastWidth) < 0.5) return;
+    lastWidth = width;
+    scheduleLayoutMasonry(state);
+  });
+  state.layoutObserver.observe(grid);
+}
+
+function setPageInputValue(page: number): void {
+  const pageInput = byId<HTMLInputElement>('dmh-page');
+  if (!pageInput) return;
+  pageInput.value = String(page);
 }
 
 function translateOriginalPageTags(state: AppState): void {

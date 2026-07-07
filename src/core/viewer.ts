@@ -11,11 +11,13 @@ export function showViewer(state: AppState, index: number): void {
   const viewer = byId('dmh-viewer');
   const img = byId<HTMLImageElement>('dmh-viewer-img');
   const video = byId<HTMLVideoElement>('dmh-viewer-video');
+  const loading = byId('dmh-viewer-loading');
   const info = byId('dmh-viewer-info');
-  if (!viewer || !img || !video || !info) return;
+  if (!viewer || !img || !video || !loading || !info) return;
 
   setZoomMode(state, false);
   if (post.isVideo) {
+    hideImageLoading(loading);
     img.hidden = true;
     img.src = '';
     video.hidden = false;
@@ -29,8 +31,27 @@ export function showViewer(state: AppState, index: number): void {
     video.removeAttribute('src');
     video.removeAttribute('poster');
     video.load();
-    img.hidden = false;
-    img.src = post.viewerUrl || post.fileUrl || post.previewUrl || '';
+    const imageUrl = post.viewerUrl || post.fileUrl || post.previewUrl || '';
+    img.hidden = true;
+    showImageLoading(loading);
+    const showIfCurrentImage = () => {
+      if (img.src !== imageUrl && img.currentSrc !== imageUrl) return;
+      if (!img.naturalWidth) {
+        showImageError(loading);
+        return;
+      }
+      img.hidden = false;
+      hideImageLoading(loading);
+    };
+    const showErrorIfCurrentImage = () => {
+      if (img.src !== imageUrl && img.currentSrc !== imageUrl) return;
+      img.hidden = true;
+      showImageError(loading);
+    };
+    img.onload = showIfCurrentImage;
+    img.onerror = showErrorIfCurrentImage;
+    img.src = imageUrl;
+    if (img.complete && img.naturalWidth) window.requestAnimationFrame(showIfCurrentImage);
   }
 
   info.innerHTML = renderViewerInfo(state, post);
@@ -42,6 +63,7 @@ export function showViewer(state: AppState, index: number): void {
   updateFavoriteButton(state, post);
   void refreshFavoriteState(state, post);
   setButtonEnabled('dmh-open-source', isHttpUrl(post.source));
+  updateButtonTooltip('dmh-open-source', `来源 ${post.source || ''}`.trim());
   updateZoomMode(state);
   updateViewerChromeVisibility(state);
   viewer.classList.add('dmh-open');
@@ -53,10 +75,14 @@ export function closeViewer(state: AppState): void {
   const viewer = byId('dmh-viewer');
   const img = byId<HTMLImageElement>('dmh-viewer-img');
   const video = byId<HTMLVideoElement>('dmh-viewer-video');
-  if (!viewer || !img || !video) return;
+  const loading = byId('dmh-viewer-loading');
+  if (!viewer || !img || !video || !loading) return;
   viewer.classList.remove('dmh-open');
   viewer.setAttribute('aria-hidden', 'true');
   setZoomMode(state, false);
+  hideImageLoading(loading);
+  img.onload = null;
+  img.onerror = null;
   img.src = '';
   video.pause();
   video.hidden = true;
@@ -85,8 +111,10 @@ export async function favoriteCurrentPost(state: AppState): Promise<void> {
     updateFavoriteButton(state, post);
   } catch (error) {
     console.warn('[Danbooru Masonry] favorite toggle failed:', error);
-    const message = error instanceof Error ? error.message : '';
-    updateFavoriteButton(state, post, message || (isFavorited ? '取消收藏失败' : '收藏失败'));
+    const errorMessage = error instanceof Error ? error.message : String(error || '');
+    const message = `\u6536\u85cf\u5931\u8d25: ${errorMessage || '\u672a\u68c0\u6d4b\u5230danbooru\u7684\u767b\u9646\u72b6\u6001'}`;
+    showSnackbar(message);
+    updateFavoriteButton(state, post, message);
     window.setTimeout(() => {
       if (state.posts[state.viewerIndex]?.id === post.id) updateFavoriteButton(state, post);
     }, 1600);
@@ -207,7 +235,7 @@ function updateZoomMode(state: AppState): void {
   }
   if (button) {
     button.classList.toggle('dmh-active', state.zoomMode);
-    button.title = state.zoomMode ? '退出原图模式' : '查看大图';
+    updateButtonTooltip('dmh-zoom-toggle', state.zoomMode ? '退出原图模式' : '查看大图');
     button.hidden = state.posts[state.viewerIndex]?.isVideo || false;
   }
   updateZoomTransform(state);
@@ -243,8 +271,10 @@ function updateFavoriteButton(state: AppState, post: Post, title = '收藏'): vo
   const favorited = state.favoritePostIds.has(post.id) || post.favorited;
   button.classList.toggle('dmh-favorited', favorited);
   button.disabled = state.favoriteLoading;
-  button.title = title === '收藏' && favorited ? '取消收藏' : title;
-  button.setAttribute('aria-label', button.title);
+  const label = normalizeFavoriteLabel(title, favorited);
+  button.dataset.dmhTooltip = label;
+  button.setAttribute('aria-label', label);
+  button.removeAttribute('title');
 }
 
 async function refreshFavoriteState(state: AppState, post: Post): Promise<void> {
@@ -269,6 +299,51 @@ function setButtonEnabled(id: string, enabled: boolean): void {
   if (!button) return;
   button.hidden = !enabled;
   button.disabled = !enabled;
+}
+
+function updateButtonTooltip(id: string, label: string): void {
+  const button = byId<HTMLButtonElement>(id);
+  if (!button) return;
+  button.removeAttribute('title');
+  button.dataset.dmhTooltip = label;
+  button.setAttribute('aria-label', label);
+}
+
+function normalizeFavoriteLabel(title: string, favorited: boolean): string {
+  if (title.includes('失败')) return title;
+  if (title.includes('中')) return title;
+  return favorited ? '取消收藏' : '收藏';
+}
+
+function showSnackbar(message: string): void {
+  const snackbar = byId('dmh-snackbar');
+  if (!snackbar) return;
+  snackbar.textContent = message;
+  snackbar.classList.add('dmh-open');
+  window.clearTimeout(Number(snackbar.dataset.timer || 0));
+  const timer = window.setTimeout(() => snackbar.classList.remove('dmh-open'), 2600);
+  snackbar.dataset.timer = String(timer);
+}
+
+function showImageLoading(loading: HTMLElement): void {
+  loading.hidden = false;
+  loading.setAttribute('aria-hidden', 'false');
+  byId('dmh-viewer-progress')?.removeAttribute('hidden');
+  byId('dmh-viewer-error')?.setAttribute('hidden', '');
+}
+
+function hideImageLoading(loading: HTMLElement): void {
+  loading.hidden = true;
+  loading.setAttribute('aria-hidden', 'true');
+  byId('dmh-viewer-progress')?.removeAttribute('hidden');
+  byId('dmh-viewer-error')?.setAttribute('hidden', '');
+}
+
+function showImageError(loading: HTMLElement): void {
+  loading.hidden = false;
+  loading.setAttribute('aria-hidden', 'false');
+  byId('dmh-viewer-progress')?.setAttribute('hidden', '');
+  byId('dmh-viewer-error')?.removeAttribute('hidden');
 }
 
 function renderViewerInfo(state: AppState, post: Post): string {

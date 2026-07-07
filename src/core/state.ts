@@ -12,8 +12,10 @@ export interface AppState {
   starting: boolean;
   requestToken: number;
   resizeRaf: number;
+  layoutObserver: ResizeObserver | null;
   autocompleteTimer: number;
   autocompleteToken: number;
+  autocompleteIndex: number;
   viewerIndex: number;
   viewerChromeHidden: boolean;
   zoomMode: boolean;
@@ -44,8 +46,10 @@ export function createState(adapter: BooruAdapter): AppState {
     starting: false,
     requestToken: 0,
     resizeRaf: 0,
+    layoutObserver: null,
     autocompleteTimer: 0,
     autocompleteToken: 0,
+    autocompleteIndex: -1,
     viewerIndex: -1,
     viewerChromeHidden: false,
     zoomMode: false,

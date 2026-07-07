@@ -7,21 +7,21 @@ export const CARD_GAP = 12;
 export function layoutMasonry(state: AppState): void {
   const grid = document.getElementById('dmh-grid');
   if (!grid) return;
-  const availableWidth = Math.max(0, document.documentElement.clientWidth - 24);
+  const availableWidth = Math.max(0, grid.clientWidth);
   const columnCount = Math.max(1, Math.floor((availableWidth + CARD_GAP) / (CARD_WIDTH + CARD_GAP)));
-  const layoutWidth = columnCount * CARD_WIDTH + (columnCount - 1) * CARD_GAP;
+  const layoutWidth = availableWidth;
+  const columnWidth = Math.max(80, (layoutWidth - (columnCount - 1) * CARD_GAP) / columnCount);
   const columnHeights = Array.from({ length: columnCount }, () => 0);
   const cards = grid.querySelectorAll<HTMLElement>('.dmh-card');
-
-  grid.style.width = `${layoutWidth}px`;
 
   for (const card of cards) {
     const post = state.posts[Number(card.dataset.index)];
     if (!post) continue;
     const columnIndex = findShortestColumn(columnHeights);
-    const left = columnIndex * (CARD_WIDTH + CARD_GAP);
+    const left = columnIndex * (columnWidth + CARD_GAP);
     const top = columnHeights[columnIndex];
-    const height = getCardHeight(post.width, post.height);
+    const height = getCardHeight(post.width, post.height, columnWidth);
+    card.style.width = `${columnWidth}px`;
     card.style.left = `${left}px`;
     card.style.top = `${top}px`;
     card.style.height = `${height}px`;
@@ -54,7 +54,7 @@ function findShortestColumn(columnHeights: number[]): number {
   return shortestIndex;
 }
 
-function getCardHeight(width: number, height: number): number {
-  if (!width || !height) return CARD_WIDTH;
-  return Math.max(80, Math.round((CARD_WIDTH * height) / width));
+function getCardHeight(width: number, height: number, cardWidth: number): number {
+  if (!width || !height) return cardWidth;
+  return Math.max(80, Math.round((cardWidth * height) / width));
 }

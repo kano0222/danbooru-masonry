@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "vite build --watch --mode development",
     "build": "vite build && node scripts/postbuild.mjs",
-    "build:local": "vite build --mode local-mirror && node scripts/postbuild.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

@@ -1,67 +1,31 @@
 # Danbooru Masonry
 
-Danbooru Masonry is a userscript that adds an opt-in masonry browsing mode to Danbooru. It keeps the original `/posts` page intact until you click **Masonry mode**.
-
-## Features
-
-- Masonry grid with infinite scroll, default 220px cards, and shortest-column layout.
-- Tag search and Danbooru autocomplete.
-- Optional Chinese tag translations loaded from jsDelivr with a short timeout.
-- Image/video viewer with keyboard navigation, wheel navigation, original-size zoom, dragging, source link, post link, and favorite toggle.
-- Adapter layer for official Danbooru, with an optional local mirror build.
-
-## Supported Sites
-
-- `https://danbooru.donmai.us/posts*`
-- `https://danbooru.donmai.us/`
+[中文说明](https://github.com/kano0222/danbooru-masonry/blob/main/README.zh-CN.md)
+Adds masonry browsing, tag translation, immersive image viewing, and several helper features to Danbooru. This project is based on [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry), simplified and adapted for Danbooru.
 
 ## Install
 
 1. Install Tampermonkey or Violentmonkey.
-2. Build or download `dist/danbooru-masonry.user.js`.
-3. Open the `.user.js` file URL in the browser and confirm installation.
+2. Get or build `dist/danbooru-masonry.js`.
+3. Open the built userscript file in your browser and confirm installation.
 
-For GitHub Releases, publish `dist/danbooru-masonry.user.js` as the install/update asset.
+## Features
 
-## Development
-
-```bash
-pnpm install
-pnpm dev
-pnpm typecheck
-pnpm lint
-pnpm build
-pnpm build:local
-```
-
-`pnpm build` writes the official Danbooru userscript to `dist/danbooru-masonry.user.js`.
-`pnpm build:local` writes a local mirror variant that also matches `localhost:3000` and `127.0.0.1:3000`.
+- Danbooru masonry mode with shortest-column layout, infinite scroll, and automatic relayout.
+- Toolbar with tag search, page jumping, Danbooru autocomplete, keyboard selection, and common order/rating suggestions.
+- Optional Chinese tag translation with graceful fallback when translation data fails to load or times out.
+- Immersive viewer for image/video preview, previous/next navigation, wheel navigation, Esc close, original-size zoom, and drag-to-pan.
+- Viewer actions for opening the post page, opening source links, Pixiv source normalization, and favorite helper actions when logged in.
 
 ## Notes
 
-Official Danbooru API requests use same-origin cookies and `Accept: application/json`. If Danbooru returns HTML instead of JSON, the script reports a likely login, permission, redirect, Cloudflare, or interception problem.
+- Danbooru API requests use same-origin cookies and `Accept: application/json`. If HTML is returned, it usually means login, permission, redirect, Cloudflare/site interception, or API behavior has changed.
+- Favorite state is determined by querying favorites for the current logged-in user.
+- Favorite actions depend on the official page's `meta[name="csrf-token"]`, same-origin login cookie, and current user data on the page. Failures are shown as `收藏失败: ...`.
+- Chinese tag translation is loaded from jsDelivr with a 2500ms timeout. Failure does not affect the main browsing features.
 
-Favorites use Danbooru's same-origin favorites endpoints and the page CSRF token. If no logged-in user is detected, the button shows `未检测到登录状态`.
+## License
 
-Tag translation is best-effort. If the jsDelivr request fails or times out after 2500ms, browsing continues without Chinese labels.
+This project is open source under the [MIT License](https://github.com/kano0222/danbooru-masonry/blob/main/LICENSE).
 
-This project references the engineering organization of `nhentai-helper` and `yandere-masonry`, but does not copy their code. It is MIT licensed.
-
-## Manual Test Checklist
-
-- Official Danbooru `/posts` page shows the **Masonry mode** button.
-- Official Danbooru `/` page shows the **Masonry mode** button.
-- Clicking it does not white-screen.
-- Default posts load.
-- Searching a tag loads matching results.
-- Infinite scroll loads the next page.
-- Autocomplete returns candidates.
-- Chinese tag translation failure does not block browsing.
-- Clicking a card opens the viewer.
-- Left/right navigation, wheel navigation, and Esc close work.
-- Original-size zoom and dragging work.
-- Source button opens the source.
-- Post button opens the official post page.
-- Favorite/unfavorite works when logged in; logged-out failures are visible on the button.
-- `pnpm build:local` supports local `localhost:3000/posts` debugging.
-- `pnpm build` generates `dist/danbooru-masonry.user.js`.
+Copyright © 2026 kano0222
