@@ -18,6 +18,7 @@ export default defineConfig({
         },
         namespace: 'danbooru-masonry',
         version: '0.1.0',
+        license: 'MIT',
         description: {
           '': '为 Danbooru 添加瀑布流浏览、标签翻译和沉浸式图片查看体验。',
           zh: '为 Danbooru 添加瀑布流浏览、标签翻译和沉浸式图片查看体验。',

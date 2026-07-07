@@ -6,17 +6,25 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
 
 ## Install
 
-1. Install Tampermonkey or Violentmonkey.
-2. Get or build `dist/danbooru-masonry.js`.
-3. Open the built userscript file in your browser and confirm installation.
+[Install from Greasy Fork](https://greasyfork.org/scripts/585986) (login is required because the script is marked as adult content)
+
+[Install from Sleazy Fork](https://sleazyfork.org/scripts/585986) (login is not required)
+
+[Install from GitHub Release](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.js)
 
 ## Features
 
-- Danbooru masonry mode with shortest-column layout, infinite scroll, and automatic relayout.
-- Toolbar with tag search, page jumping, Danbooru autocomplete, keyboard selection, and common order/rating suggestions.
-- Optional Chinese tag translation with graceful fallback when translation data fails to load or times out.
-- Immersive viewer for image/video preview, previous/next navigation, wheel navigation, Esc close, original-size zoom, and drag-to-pan.
-- Viewer actions for opening the post page, opening source links, Pixiv source normalization, and favorite helper actions when logged in.
+- Adds a masonry mode entry in the upper-right corner, with automatic Chinese tag translation on the left side.
+
+![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
+
+- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout. The top toolbar provides tag search, page jumping with arrow keys, and tag autocomplete. Hovering over a thumbnail shows the image size.
+
+![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
+
+- The immersive viewer supports image/video preview, previous/next navigation, wheel navigation, Esc close, original-size zoom, and drag-to-pan. Clicking a tag in the upper-left corner opens the corresponding search page. The upper-right buttons, from left to right, open the source link, favorite the post (requires Danbooru login), zoom, open the post detail page, and exit.
+
+![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
 
 ## Notes
 
