@@ -24,6 +24,14 @@
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
 
+### 镜像站支持
+
+该脚本支持基于[danbooru](https://github.com/danbooru/danbooru)的图库镜像站
+
+如脚本没有在你使用的域名上运行，可自行将网址加入 *用户匹配*（脚本编辑-设置-包括/排除-用户匹配-添加）
+
+![userMatches](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/userMatches.png)
+
 ## 注意事项
 
 - Danbooru API 请求使用同源 cookie 和 `Accept: application/json`。如果返回 HTML，通常代表未登录、权限不足、被重定向、Cloudflare/站点拦截，或接口行为变化。

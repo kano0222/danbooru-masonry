@@ -26,6 +26,14 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
 
+### Mirror Site Support
+
+This script supports gallery mirror sites based on [Danbooru](https://github.com/danbooru/danbooru).
+
+If the script does not run on the domain you use, you can add the site URL to *User matches* yourself: script editor - Settings - Includes/Excludes - User matches - Add.
+
+![userMatches](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/userMatches.png)
+
 ## Notes
 
 - Danbooru API requests use same-origin cookies and `Accept: application/json`. If HTML is returned, it usually means login, permission, redirect, Cloudflare/site interception, or API behavior has changed.
