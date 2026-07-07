@@ -1,6 +1,7 @@
 # Danbooru Masonry
 
 [中文说明](https://github.com/kano0222/danbooru-masonry/blob/main/README.zh-CN.md)
+
 Adds masonry browsing, tag translation, immersive image viewing, and several helper features to Danbooru. This project is based on [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry), simplified and adapted for Danbooru.
 
 ## Install
