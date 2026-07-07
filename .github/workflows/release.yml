@@ -5,6 +5,13 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to upload assets to, for example v0.1.1'
+        required: true
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -24,3 +31,8 @@ jobs:
         with:
           name: danbooru-masonry-userscript
           path: dist/danbooru-masonry.user.js
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          files: dist/danbooru-masonry.user.js
+          fail_on_unmatched_files: true
