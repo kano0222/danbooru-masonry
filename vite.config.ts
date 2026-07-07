@@ -11,12 +11,19 @@ export default defineConfig({
     monkey({
       entry: 'src/userscript.ts',
       userscript: {
-        name: 'Danbooru Masonry',
+        name: {
+          '': 'Danbooru 瀑布流浏览',
+          zh: 'Danbooru 瀑布流浏览',
+          en: 'Danbooru Masonry',
+        },
         namespace: 'danbooru-masonry',
         version: '0.1.1',
         license: 'MIT',
-        description:
-          'Adds masonry browsing, tag translation, and an immersive image viewing experience to Danbooru.',
+        description: {
+          '': '为 Danbooru 添加瀑布流浏览、标签翻译和沉浸式图片查看体验。',
+          zh: '为 Danbooru 添加瀑布流浏览、标签翻译和沉浸式图片查看体验。',
+          en: 'Adds masonry browsing, tag translation, and an immersive image viewing experience to Danbooru.',
+        },
         source: 'https://github.com/kano0222/danbooru-masonry',
         match: [
           'https://danbooru.donmai.us/',
