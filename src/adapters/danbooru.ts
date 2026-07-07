@@ -7,7 +7,8 @@ import type { AutocompleteItem, BooruAdapter, GetPostsParams, Post } from './typ
 
 export class DanbooruAdapter implements BooruAdapter {
   siteName = 'Danbooru';
-  origin = 'https://danbooru.donmai.us';
+
+  constructor(public origin = 'https://danbooru.donmai.us') {}
 
   isMatch(location: Location): boolean {
     return (

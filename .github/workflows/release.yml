@@ -23,4 +23,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: danbooru-masonry-userscript
-          path: dist/danbooru-masonry.js
+          path: dist/danbooru-masonry.user.js

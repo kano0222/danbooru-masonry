@@ -10,7 +10,7 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
 
 [Install from Sleazy Fork](https://sleazyfork.org/scripts/585986) (login is not required)
 
-[Install from GitHub Release](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.js)
+[Install from GitHub Release](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.user.js)
 
 ## Features
 

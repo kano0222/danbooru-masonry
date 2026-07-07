@@ -8,7 +8,7 @@
 
 [从 Sleazy Fork 安装](https://sleazyfork.org/scripts/585986)（不需要登录）
 
-[从 GitHub Release 安装](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.js)
+[从 GitHub Release 安装](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.user.js)
 
 ## 主要功能
 

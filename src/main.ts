@@ -165,6 +165,7 @@ function bindShellEvents(state: AppState): void {
   byId('dmh-open-source')?.addEventListener('click', () => openCurrentSource(state));
   let lastScrollY = window.scrollY;
   window.addEventListener('scroll', () => {
+    if (isViewerOpen()) return;
     const scrollY = window.scrollY;
     const scrollingDown = scrollY > lastScrollY;
     lastScrollY = scrollY;
@@ -173,6 +174,7 @@ function bindShellEvents(state: AppState): void {
   window.addEventListener(
     'wheel',
     (event) => {
+      if (isViewerOpen()) return;
       if (state.started && event.deltaY > 0 && shouldLoadMore()) void loadNextPage(state);
     },
     { passive: true },
@@ -303,4 +305,8 @@ function canShowLaunchButton(currentLocation: Location): boolean {
     currentLocation.pathname === '/posts' ||
     currentLocation.pathname === '/posts/'
   );
+}
+
+function isViewerOpen(): boolean {
+  return byId('dmh-viewer')?.classList.contains('dmh-open') || false;
 }

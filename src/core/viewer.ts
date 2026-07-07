@@ -201,6 +201,7 @@ export function onViewerWheel(state: AppState, event: WheelEvent): void {
   const isOpen = byId('dmh-viewer')?.classList.contains('dmh-open');
   if (!isOpen || !event.deltaY) return;
   event.preventDefault();
+  event.stopPropagation();
   if (state.zoomMode) {
     zoomViewerImage(state, event);
     return;
