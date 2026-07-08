@@ -26,6 +26,7 @@ import {
   onZoomPointerMove,
   openCurrentPost,
   openCurrentSource,
+  showAdjacentViewerPost,
   showViewer,
   toggleZoomMode,
 } from './core/viewer';
@@ -33,6 +34,7 @@ import { byId, setText } from './utils/dom';
 
 export function boot(adapter: BooruAdapter): void {
   const state = createState(adapter);
+  state.loadMore = () => loadNextPage(state);
   void state.translations.load().then(() => translateOriginalPageTags(state));
   if (canShowLaunchButton(location)) {
     installLaunchButton(() => void startMasonry(state));
@@ -157,8 +159,8 @@ function bindShellEvents(state: AppState): void {
   });
   byId('dmh-viewer-video')?.addEventListener('click', (event) => onViewerMediaClick(state, event));
   byId('dmh-close')?.addEventListener('click', () => closeViewer(state));
-  byId('dmh-prev')?.addEventListener('click', () => showViewer(state, state.viewerIndex - 1));
-  byId('dmh-next')?.addEventListener('click', () => showViewer(state, state.viewerIndex + 1));
+  byId('dmh-prev')?.addEventListener('click', () => void showAdjacentViewerPost(state, -1));
+  byId('dmh-next')?.addEventListener('click', () => void showAdjacentViewerPost(state, 1));
   byId('dmh-favorite')?.addEventListener('click', () => void favoriteCurrentPost(state));
   byId('dmh-zoom-toggle')?.addEventListener('click', (event) => toggleZoomMode(state, event));
   byId('dmh-open-post')?.addEventListener('click', () => openCurrentPost(state));

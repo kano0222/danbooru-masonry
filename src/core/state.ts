@@ -10,6 +10,7 @@ export interface AppState {
   done: boolean;
   started: boolean;
   starting: boolean;
+  loadMore: (() => Promise<void>) | null;
   requestToken: number;
   resizeRaf: number;
   layoutObserver: ResizeObserver | null;
@@ -31,6 +32,8 @@ export interface AppState {
   lastViewerWheelAt: number;
   favoriteLoading: boolean;
   favoritePostIds: Set<string>;
+  favoriteStateCache: Map<string, boolean>;
+  favoriteStateLoading: Set<string>;
   translations: TagTranslationStore;
 }
 
@@ -44,6 +47,7 @@ export function createState(adapter: BooruAdapter): AppState {
     done: false,
     started: false,
     starting: false,
+    loadMore: null,
     requestToken: 0,
     resizeRaf: 0,
     layoutObserver: null,
@@ -65,6 +69,8 @@ export function createState(adapter: BooruAdapter): AppState {
     lastViewerWheelAt: 0,
     favoriteLoading: false,
     favoritePostIds: new Set(),
+    favoriteStateCache: new Map(),
+    favoriteStateLoading: new Set(),
     translations: new TagTranslationStore(),
   };
 }

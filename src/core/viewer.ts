@@ -32,30 +32,46 @@ export function showViewer(state: AppState, index: number): void {
     video.removeAttribute('poster');
     video.load();
     const imageUrl = post.viewerUrl || post.fileUrl || post.previewUrl || '';
-    img.hidden = true;
+    const placeholderUrl = getViewerPlaceholderUrl(post, imageUrl);
+    if (placeholderUrl) {
+      img.onload = null;
+      img.onerror = null;
+      img.src = placeholderUrl;
+      img.hidden = false;
+    } else {
+      img.hidden = true;
+      img.removeAttribute('src');
+    }
     showImageLoading(loading);
+    const fullImage = new Image();
     const showIfCurrentImage = () => {
-      if (img.src !== imageUrl && img.currentSrc !== imageUrl) return;
-      if (!img.naturalWidth) {
+      if (state.posts[state.viewerIndex]?.id !== post.id) return;
+      if (!fullImage.naturalWidth) {
         showImageError(loading);
         return;
       }
+      img.onload = null;
+      img.onerror = null;
+      img.src = imageUrl;
       img.hidden = false;
       hideImageLoading(loading);
     };
     const showErrorIfCurrentImage = () => {
-      if (img.src !== imageUrl && img.currentSrc !== imageUrl) return;
-      img.hidden = true;
+      if (state.posts[state.viewerIndex]?.id !== post.id) return;
+      if (!placeholderUrl) img.hidden = true;
       showImageError(loading);
     };
-    img.onload = showIfCurrentImage;
-    img.onerror = showErrorIfCurrentImage;
-    img.src = imageUrl;
-    if (img.complete && img.naturalWidth) window.requestAnimationFrame(showIfCurrentImage);
+    fullImage.onload = showIfCurrentImage;
+    fullImage.onerror = showErrorIfCurrentImage;
+    fullImage.src = imageUrl;
+    if (fullImage.complete && fullImage.naturalWidth) window.requestAnimationFrame(showIfCurrentImage);
   }
 
   info.innerHTML = renderViewerInfo(state, post);
-  if (post.favorited) {
+  const cachedFavoriteState = state.favoriteStateCache.get(post.id);
+  if (cachedFavoriteState !== undefined) {
+    applyFavoriteState(state, post, cachedFavoriteState);
+  } else if (post.favorited) {
     state.favoritePostIds.add(post.id);
   } else {
     state.favoritePostIds.delete(post.id);
@@ -92,6 +108,20 @@ export function closeViewer(state: AppState): void {
   document.body.classList.remove('dmh-no-scroll');
 }
 
+export async function showAdjacentViewerPost(state: AppState, direction: 1 | -1): Promise<void> {
+  const nextIndex = state.viewerIndex + direction;
+  if (nextIndex >= 0 && nextIndex < state.posts.length) {
+    showViewer(state, nextIndex);
+    return;
+  }
+  if (direction < 0 || nextIndex < 0 || state.done || state.loading || !state.loadMore) return;
+  const previousLength = state.posts.length;
+  await state.loadMore();
+  if (state.posts.length > previousLength && nextIndex < state.posts.length) {
+    showViewer(state, nextIndex);
+  }
+}
+
 export async function favoriteCurrentPost(state: AppState): Promise<void> {
   const post = state.posts[state.viewerIndex];
   if (!post || state.favoriteLoading) return;
@@ -102,10 +132,12 @@ export async function favoriteCurrentPost(state: AppState): Promise<void> {
     if (isFavorited) {
       await state.adapter.deleteFavorite(post.id);
       state.favoritePostIds.delete(post.id);
+      state.favoriteStateCache.set(post.id, false);
       post.favorited = false;
     } else {
       await state.adapter.createFavorite(post.id);
       state.favoritePostIds.add(post.id);
+      state.favoriteStateCache.set(post.id, true);
       post.favorited = true;
     }
     updateFavoriteButton(state, post);
@@ -209,15 +241,15 @@ export function onViewerWheel(state: AppState, event: WheelEvent): void {
   const now = Date.now();
   if (now - state.lastViewerWheelAt < 300) return;
   state.lastViewerWheelAt = now;
-  showViewer(state, state.viewerIndex + (event.deltaY > 0 ? 1 : -1));
+  void showAdjacentViewerPost(state, event.deltaY > 0 ? 1 : -1);
 }
 
 export function onViewerKeydown(state: AppState, event: KeyboardEvent): void {
   const isOpen = byId('dmh-viewer')?.classList.contains('dmh-open');
   if (!isOpen) return;
   if (event.key === 'Escape') closeViewer(state);
-  if (event.key === 'ArrowLeft') showViewer(state, state.viewerIndex - 1);
-  if (event.key === 'ArrowRight') showViewer(state, state.viewerIndex + 1);
+  if (event.key === 'ArrowLeft') void showAdjacentViewerPost(state, -1);
+  if (event.key === 'ArrowRight') void showAdjacentViewerPost(state, 1);
   if (event.key.toLowerCase() === 'e' && !state.posts[state.viewerIndex]?.isVideo) toggleZoomMode(state);
 }
 
@@ -280,19 +312,33 @@ function updateFavoriteButton(state: AppState, post: Post, title = '收藏'): vo
 
 async function refreshFavoriteState(state: AppState, post: Post): Promise<void> {
   if (!state.adapter.isFavorited) return;
+  const cached = state.favoriteStateCache.get(post.id);
+  if (cached !== undefined) {
+    applyFavoriteState(state, post, cached);
+    return;
+  }
+  if (state.favoriteStateLoading.has(post.id)) return;
+  state.favoriteStateLoading.add(post.id);
   try {
     const favorited = await state.adapter.isFavorited(post.id);
+    state.favoriteStateCache.set(post.id, favorited);
     if (state.posts[state.viewerIndex]?.id !== post.id) return;
-    post.favorited = favorited;
-    if (favorited) {
-      state.favoritePostIds.add(post.id);
-    } else {
-      state.favoritePostIds.delete(post.id);
-    }
-    updateFavoriteButton(state, post);
+    applyFavoriteState(state, post, favorited);
   } catch (error) {
     console.warn('[Danbooru Masonry] favorite state check failed:', error);
+  } finally {
+    state.favoriteStateLoading.delete(post.id);
   }
+}
+
+function applyFavoriteState(state: AppState, post: Post, favorited: boolean): void {
+  post.favorited = favorited;
+  if (favorited) {
+    state.favoritePostIds.add(post.id);
+  } else {
+    state.favoritePostIds.delete(post.id);
+  }
+  updateFavoriteButton(state, post);
 }
 
 function setButtonEnabled(id: string, enabled: boolean): void {
@@ -345,6 +391,14 @@ function showImageError(loading: HTMLElement): void {
   loading.setAttribute('aria-hidden', 'false');
   byId('dmh-viewer-progress')?.setAttribute('hidden', '');
   byId('dmh-viewer-error')?.removeAttribute('hidden');
+}
+
+function getViewerPlaceholderUrl(post: Post, imageUrl: string): string {
+  return (
+    [post.sampleUrl, post.largeUrl, post.listUrl, post.previewUrl].find(
+      (url) => url && url !== imageUrl,
+    ) || ''
+  );
 }
 
 function renderViewerInfo(state: AppState, post: Post): string {

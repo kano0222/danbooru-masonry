@@ -86,10 +86,11 @@ export function installStyles(): void {
     .dmh-viewer-nav:hover { background: #8ecbff; color: #034f9f; transform: translateY(-50%) scale(1.06); box-shadow: 0 4px 12px rgba(9,105,218,.24); }
     .dmh-viewer-prev { left: 22px; }
     .dmh-viewer-next { right: 22px; }
-    .dmh-viewer-info { position: absolute; top: 14px; left: 14px; z-index: 3; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; max-width: min(360px, 36vw); max-height: 44vh; overflow: auto; opacity: 1; transform: translateY(0); transition: opacity .18s ease, transform .18s ease; pointer-events: none; }
+    .dmh-viewer-info { position: absolute; top: 14px; left: 14px; z-index: 3; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; max-width: min(360px, 36vw); max-height: 44vh; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; opacity: 1; transform: translateY(0); transition: opacity .18s ease, transform .18s ease; pointer-events: none; }
+    .dmh-viewer-info::-webkit-scrollbar { display: none; width: 0; height: 0; }
     .dmh-viewer.dmh-chrome-hidden .dmh-viewer-info { opacity: 0; transform: translateY(-6px); pointer-events: none; }
     .dmh-viewer.dmh-chrome-hidden .dmh-viewer-actions, .dmh-viewer.dmh-chrome-hidden .dmh-viewer-nav { opacity: 0; pointer-events: none; }
-    .dmh-info-pill { display: inline-flex; align-items: center; max-width: 100%; height: 24px; padding: 0 10px; border: 1px solid transparent; border-radius: 999px; font-size: 12px; font-weight: bold; line-height: 24px; text-decoration: none; pointer-events: auto; user-select: none; }
+    .dmh-info-pill { display: block; max-width: 100%; height: 24px; padding: 0 10px; overflow: hidden; border: 1px solid transparent; border-radius: 999px; font-size: 12px; font-weight: bold; line-height: 24px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; pointer-events: auto; user-select: none; }
     .dmh-info-pill:hover { text-decoration: none; }
     .dmh-pill-id, .dmh-pill-id:visited { background: #bfe3ff; color: #0969da; }
     .dmh-pill-artist, .dmh-pill-artist:visited { color: rgb(201, 112, 0); background-color: rgb(255, 220, 176); border-color: rgb(255, 220, 176); }
