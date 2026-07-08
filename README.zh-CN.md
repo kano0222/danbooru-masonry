@@ -12,15 +12,15 @@
 
 ## 主要功能
 
-- 在右上角增加瀑布流模式入口，左侧标签自动翻译。
+- 在 Danbooru 页面右上角增加瀑布流模式入口，原页面左侧标签会自动显示中文翻译。
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- 瀑布流支持最短列布局、下拉加载和布局自动重排。顶栏提供标签搜索、页码跳转（可以使用方向键）、标签自动补全。鼠标移到缩略图上会显示图片大小。
+- 瀑布流支持最短列布局、下拉加载和布局自动重排。顶栏提供标签搜索、页码跳转、方向键翻页和标签自动补全；鼠标移到缩略图上会显示图片尺寸。
 
 ![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
 
-- 沉浸式 viewer 支持图片/视频预览、左右切换、滚轮切换、Esc 关闭、原图缩放和拖拽查看。点击左上角标签会打开对应搜索页，右上角按钮从左到右是打开来源链接、收藏（需登录danbooru）、放大查看、打开详情页、退出
+- 沉浸式 viewer 支持图片/视频预览、左右切换、滚轮切换、Esc 关闭、原图缩放和拖拽查看。点击左上角标签会打开对应搜索页，右上角按钮从左到右是打开来源链接、收藏（需登录danbooru）、放大查看、打开详情页、下载（默认原图，文件名按主流来源生成）、退出
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
 

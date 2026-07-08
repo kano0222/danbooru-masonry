@@ -14,15 +14,15 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
 
 ## Features
 
-- Adds a masonry mode entry in the upper-right corner, with automatic Chinese tag translation on the left side.
+- Adds a masonry mode entry in the upper-right corner of Danbooru pages. Tags in the original left sidebar are automatically shown with Chinese translations.
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout. The top toolbar provides tag search, page jumping with arrow keys, and tag autocomplete. Hovering over a thumbnail shows the image size.
+- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout. The top toolbar provides tag search, page jumping, arrow-key page navigation, and tag autocomplete; hovering over a thumbnail shows the image size.
 
 ![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
 
-- The immersive viewer supports image/video preview, previous/next navigation, wheel navigation, Esc close, original-size zoom, and drag-to-pan. Clicking a tag in the upper-left corner opens the corresponding search page. The upper-right buttons, from left to right, open the source link, favorite the post (requires Danbooru login), zoom, open the post detail page, and exit.
+- The immersive viewer supports image/video preview, previous/next navigation, wheel navigation, Esc close, original-size zoom, and drag-to-pan. Clicking a tag in the upper-left corner opens the corresponding search page. The upper-right buttons, from left to right, open the source link, favorite the post (requires Danbooru login), zoom, open the post detail page, download the original file with a source-aware filename, and exit.
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
 
