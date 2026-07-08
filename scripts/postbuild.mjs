@@ -29,7 +29,11 @@ const header = `// ==UserScript==\n\
 // @match        https://danbooru.donmai.us/posts*\n\
 // @connect      danbooru.donmai.us\n\
 // @connect      cdn.jsdelivr.net\n\
+// @connect      cdn.donmai.us\n\
+// @connect      pbs.twimg.com\n\
+// @connect      i.pximg.net\n\
 // @grant        GM_openInTab\n\
+// @grant        GM_download\n\
 // @run-at       document-end\n\
 // ==/UserScript==\n\n`;
 writeFileSync(output, header + body, 'utf8');

@@ -26,6 +26,7 @@ import {
   onZoomPointerMove,
   openCurrentPost,
   openCurrentSource,
+  downloadCurrentPost,
   showAdjacentViewerPost,
   showViewer,
   toggleZoomMode,
@@ -164,6 +165,7 @@ function bindShellEvents(state: AppState): void {
   byId('dmh-favorite')?.addEventListener('click', () => void favoriteCurrentPost(state));
   byId('dmh-zoom-toggle')?.addEventListener('click', (event) => toggleZoomMode(state, event));
   byId('dmh-open-post')?.addEventListener('click', () => openCurrentPost(state));
+  byId('dmh-download')?.addEventListener('click', () => downloadCurrentPost(state));
   byId('dmh-open-source')?.addEventListener('click', () => openCurrentSource(state));
   let lastScrollY = window.scrollY;
   window.addEventListener('scroll', () => {

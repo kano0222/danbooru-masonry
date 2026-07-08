@@ -1,5 +1,6 @@
 import type { Post } from '../adapters/types';
 import type { AppState } from './state';
+import type { DanbooruRawPost } from '../types/danbooru';
 import { escapeAttr, escapeHtml } from '../utils/escape';
 import { byId, openInTab } from '../utils/dom';
 import { isHttpUrl } from '../utils/url';
@@ -164,6 +165,27 @@ export function openCurrentPost(state: AppState): void {
 export function openCurrentSource(state: AppState): void {
   const post = state.posts[state.viewerIndex];
   if (post?.source && isHttpUrl(post.source)) openInTab(post.source);
+}
+
+export function downloadCurrentPost(state: AppState): void {
+  const post = state.posts[state.viewerIndex];
+  const url = post?.fileUrl || post?.viewerUrl || '';
+  if (!post || !isHttpUrl(url)) return;
+  const name = buildDownloadFilename(post);
+  try {
+    GM_download({
+      url,
+      name,
+      onerror: (error) => {
+        if (isDownloadCanceled(error)) return;
+        console.warn('[Danbooru Masonry] download failed:', error);
+        showSnackbar('下载失败');
+      },
+    });
+  } catch (error) {
+    console.warn('[Danbooru Masonry] download failed:', error);
+    showSnackbar('下载失败');
+  }
 }
 
 export function onViewerMediaClick(state: AppState, event: Event): void {
@@ -399,6 +421,208 @@ function getViewerPlaceholderUrl(post: Post, imageUrl: string): string {
       (url) => url && url !== imageUrl,
     ) || ''
   );
+}
+
+function buildDownloadFilename(post: Post): string {
+  const raw = (post.raw || {}) as DanbooruRawPost;
+  const rawSource = typeof raw.source === 'string' ? raw.source : '';
+  const source = rawSource || post.source || '';
+  const sourceUrl = parseUrl(source);
+  const normalizedSourceUrl = parseUrl(post.source || source);
+  const extension = sanitizeFilenamePart(post.fileExt || extensionFromUrl(post.fileUrl) || 'jpg');
+  const artist = sanitizeFilenamePart(firstTag(raw.tag_string_artist) || post.tagGroups.artist[0] || 'unknown');
+  const pixivId = String(raw.pixiv_id || extractPixivId(sourceUrl, source) || '').trim();
+
+  if (pixivId) {
+    const sourceFile = sourceUrl ? lastPathSegment(sourceUrl) : '';
+    const pixivPart = sanitizeFilenamePart(sourceFile.replace(/\.[^.]+$/, '') || pixivId);
+    return formatDownloadFilename('pixiv', artist, pixivPart, extension);
+  }
+
+  if (normalizedSourceUrl && isFanboxSource(normalizedSourceUrl)) {
+    const author = sanitizeFilenamePart(extractFanboxAuthor(normalizedSourceUrl) || artist);
+    const id = sanitizeFilenamePart(extractFanboxId(normalizedSourceUrl) || post.id);
+    return formatDownloadFilename('fanbox', author, id, extension);
+  }
+
+  if (sourceUrl && isFantiaSource(sourceUrl)) {
+    const id = sanitizeFilenamePart(extractFantiaId(sourceUrl) || post.id);
+    return formatDownloadFilename('fantia', artist, id, extension);
+  }
+
+  if (normalizedSourceUrl && isFantiaSource(normalizedSourceUrl)) {
+    const id = sanitizeFilenamePart(extractFantiaId(normalizedSourceUrl) || post.id);
+    return formatDownloadFilename('fantia', artist, id, extension);
+  }
+
+  if (sourceUrl && isPatreonSource(sourceUrl)) {
+    const id = sanitizeFilenamePart(extractPatreonId(sourceUrl) || post.id);
+    return formatDownloadFilename('patreon', artist, id, extension);
+  }
+
+  if (normalizedSourceUrl && isPatreonSource(normalizedSourceUrl)) {
+    const id = sanitizeFilenamePart(extractPatreonId(normalizedSourceUrl) || post.id);
+    return formatDownloadFilename('patreon', artist, id, extension);
+  }
+
+  if (sourceUrl && isWeiboSource(sourceUrl)) {
+    const userId = sanitizeFilenamePart(extractWeiboUserId(sourceUrl) || 'unknown');
+    const id = sanitizeFilenamePart(extractWeiboId(sourceUrl) || post.id);
+    return formatDownloadFilename('weibo', `${artist}(${userId})`, id, extension);
+  }
+
+  if (sourceUrl && isTwitterSource(sourceUrl)) {
+    const author = sanitizeFilenamePart(sourceUrl.pathname.split('/').filter(Boolean)[0] || 'unknown');
+    const id = sanitizeFilenamePart(extractTwitterStatusId(sourceUrl) || extractSourceId(sourceUrl) || post.id);
+    return formatDownloadFilename('twitter', author, id, extension);
+  }
+
+  if (sourceUrl && isBilibiliSource(sourceUrl)) {
+    const id = sanitizeFilenamePart(extractBilibiliId(sourceUrl) || extractSourceId(sourceUrl) || post.id);
+    return formatDownloadFilename('bilibili', artist, id, extension);
+  }
+
+  return formatDownloadFilename('danbooru', artist, sanitizeFilenamePart(post.id), extension);
+}
+
+function parseUrl(value: string): URL | null {
+  try {
+    return value ? new URL(value) : null;
+  } catch {
+    return null;
+  }
+}
+
+function firstTag(value: unknown): string {
+  return typeof value === 'string' ? value.split(/\s+/).filter(Boolean)[0] || '' : '';
+}
+
+function sanitizeFilenamePart(value: string): string {
+  return value
+    .trim()
+    .replace(/[<>:"/\\|?*]+/g, '_')
+    .replace(/[\n\r\t]+/g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 120) || 'unknown';
+}
+
+function formatDownloadFilename(platform: string, artist: string, id: string, extension: string): string {
+  return `${sanitizeFilenamePart(platform)}[${sanitizeFilenamePart(artist)}]_${sanitizeFilenamePart(id)}.${sanitizeFilenamePart(extension)}`;
+}
+
+function isDownloadCanceled(error: unknown): boolean {
+  const value =
+    error && typeof error === 'object' && 'error' in error
+      ? String((error as { error?: unknown }).error || '')
+      : String(error || '');
+  return /cancel|abort|not_succeeded/i.test(value);
+}
+
+function extensionFromUrl(value: string): string {
+  try {
+    const path = new URL(value).pathname;
+    return path.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase() || '';
+  } catch {
+    return value.match(/\.([a-z0-9]+)(?:\?|#|$)/i)?.[1]?.toLowerCase() || '';
+  }
+}
+
+function lastPathSegment(url: URL): string {
+  return decodeURIComponent(url.pathname.split('/').filter(Boolean).pop() || '');
+}
+
+function extractPixivId(url: URL | null, source: string): string {
+  if (url?.hostname.toLowerCase().includes('pixiv.net')) {
+    const artworkId = url.pathname.match(/\/(?:en\/)?artworks\/(\d+)/)?.[1];
+    const imageId = lastPathSegment(url).match(/^(\d+)_p\d+/)?.[1];
+    return artworkId || imageId || '';
+  }
+  return source.match(/(\d+)_p\d+/)?.[1] || '';
+}
+
+function isFanboxSource(url: URL): boolean {
+  const host = url.hostname.toLowerCase();
+  return host === 'fanbox.cc' || host.endsWith('.fanbox.cc') || host.includes('pixiv.net');
+}
+
+function extractFanboxAuthor(url: URL): string {
+  const host = url.hostname.toLowerCase();
+  if (host.endsWith('.fanbox.cc') && host !== 'www.fanbox.cc') return host.split('.')[0] || '';
+  const creator = url.searchParams.get('creatorId');
+  return creator || '';
+}
+
+function extractFanboxId(url: URL): string {
+  return url.pathname.match(/\/posts\/(\d+)/)?.[1] || '';
+}
+
+function isFantiaSource(url: URL): boolean {
+  const host = url.hostname.toLowerCase();
+  return host === 'fantia.jp' || host.endsWith('.fantia.jp');
+}
+
+function extractFantiaId(url: URL): string {
+  return (
+    url.pathname.match(/\/posts\/(\d+)/)?.[1] ||
+    url.pathname.match(/\/uploads\/post\/file\/(\d+)\//)?.[1] ||
+    ''
+  );
+}
+
+function isPatreonSource(url: URL): boolean {
+  const host = url.hostname.toLowerCase();
+  return host === 'patreon.com' || host.endsWith('.patreon.com') || host.endsWith('patreonusercontent.com');
+}
+
+function extractPatreonId(url: URL): string {
+  return url.pathname.match(/\/posts\/(\d+)/)?.[1] || url.pathname.match(/\/post\/(\d+)\//)?.[1] || '';
+}
+
+function isWeiboSource(url: URL): boolean {
+  const host = url.hostname.toLowerCase();
+  return host === 'weibo.com' || host === 'www.weibo.com' || host.endsWith('.weibo.com');
+}
+
+function extractWeiboUserId(url: URL): string {
+  return url.pathname.split('/').filter(Boolean)[0] || '';
+}
+
+function extractWeiboId(url: URL): string {
+  return url.pathname.split('/').filter(Boolean)[1] || '';
+}
+
+function isTwitterSource(url: URL): boolean {
+  const host = url.hostname.toLowerCase();
+  return host === 'x.com' || host === 'twitter.com' || host.endsWith('.twitter.com') || host.endsWith('.x.com');
+}
+
+function extractTwitterStatusId(url: URL): string {
+  return url.pathname.match(/\/status(?:es)?\/(\d+)/)?.[1] || '';
+}
+
+function isBilibiliSource(url: URL): boolean {
+  const host = url.hostname.toLowerCase();
+  return host === 'bilibili.com' || host.endsWith('.bilibili.com') || host === 'b23.tv';
+}
+
+function extractBilibiliId(url: URL): string {
+  const path = url.pathname;
+  return (
+    path.match(/\/video\/(BV[a-zA-Z0-9]+)/)?.[1] ||
+    path.match(/\/video\/av(\d+)/i)?.[1] ||
+    path.match(/\/opus\/(\d+)/)?.[1] ||
+    path.match(/\/dynamic\/(\d+)/)?.[1] ||
+    path.match(/\/read\/cv(\d+)/i)?.[1] ||
+    ''
+  );
+}
+
+function extractSourceId(url: URL): string {
+  const segments = url.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+  const last = segments.at(-1) || url.hostname;
+  return last.replace(/\.[^.]+$/, '');
 }
 
 function renderViewerInfo(state: AppState, post: Post): string {

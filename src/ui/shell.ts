@@ -39,6 +39,7 @@ export function renderShell(state: AppState): void {
           <button class="dmh-viewer-button" id="dmh-favorite" type="button" data-dmh-tooltip="收藏" aria-label="收藏">${icons.heart}</button>
           <button class="dmh-viewer-button" id="dmh-zoom-toggle" type="button" data-dmh-tooltip="查看大图" aria-label="查看大图">${icons.zoom}</button>
           <button class="dmh-viewer-button" id="dmh-open-post" type="button" data-dmh-tooltip="详情" aria-label="详情">${icons.info}</button>
+          <button class="dmh-viewer-button" id="dmh-download" type="button" data-dmh-tooltip="下载原图" aria-label="下载原图">${icons.download}</button>
           <button class="dmh-viewer-button" id="dmh-close" type="button" data-dmh-tooltip="关闭" aria-label="关闭">${icons.close}</button>
         </div>
         <button class="dmh-viewer-nav dmh-viewer-prev" id="dmh-prev" type="button" aria-label="上一张">${icons.prev}</button>

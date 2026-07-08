@@ -121,7 +121,8 @@ function normalizeSource(raw: DanbooruRawPost, origin: string): string {
 
   const source = absoluteUrl(raw.source || '', origin);
   const sourcePixivId = extractPixivId(source);
-  return sourcePixivId ? pixivArtworkUrl(sourcePixivId) : source;
+  if (sourcePixivId) return pixivArtworkUrl(sourcePixivId);
+  return normalizeKnownSourceUrl(source) || source;
 }
 
 function normalizePixivId(value: unknown): string {
@@ -153,6 +154,24 @@ function extractPixivId(source: string): string {
 
 function pixivArtworkUrl(id: string): string {
   return `https://www.pixiv.net/artworks/${id}`;
+}
+
+function normalizeKnownSourceUrl(source: string): string {
+  try {
+    const url = new URL(source);
+    const host = url.hostname.toLowerCase();
+    if (host.endsWith('patreonusercontent.com')) {
+      const postId = url.pathname.match(/\/post\/(\d+)\//)?.[1];
+      if (postId) return `https://www.patreon.com/posts/${postId}`;
+    }
+    if (host === 'c.fantia.jp') {
+      const postId = url.pathname.match(/\/uploads\/post\/file\/(\d+)\//)?.[1];
+      if (postId) return `https://fantia.jp/posts/${postId}`;
+    }
+  } catch {
+    return '';
+  }
+  return '';
 }
 
 function isPostFavorited(raw: DanbooruRawPost): boolean {
