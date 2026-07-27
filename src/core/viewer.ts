@@ -1,5 +1,10 @@
 import type { Post } from '../adapters/types';
-import type { AppState } from './state';
+import {
+  DEFAULT_DOWNLOAD_FILENAME_TEMPLATES,
+  type AppState,
+  type DownloadFilenamePlatform,
+  type DownloadFilenameTemplates,
+} from './state';
 import type { DanbooruRawPost } from '../types/danbooru';
 import { escapeAttr, escapeHtml } from '../utils/escape';
 import { byId, openInTab } from '../utils/dom';
@@ -32,7 +37,7 @@ export function showViewer(state: AppState, index: number): void {
     video.removeAttribute('src');
     video.removeAttribute('poster');
     video.load();
-    const imageUrl = post.viewerUrl || post.fileUrl || post.previewUrl || '';
+    const imageUrl = getViewerImageUrl(state, post);
     const placeholderUrl = getViewerPlaceholderUrl(post, imageUrl);
     if (placeholderUrl) {
       img.onload = null;
@@ -106,7 +111,9 @@ export function closeViewer(state: AppState): void {
   video.removeAttribute('src');
   video.removeAttribute('poster');
   video.load();
-  document.body.classList.remove('dmh-no-scroll');
+  if (!byId('dmh-settings-panel')?.classList.contains('dmh-open')) {
+    document.body.classList.remove('dmh-no-scroll');
+  }
 }
 
 export async function showAdjacentViewerPost(state: AppState, direction: 1 | -1): Promise<void> {
@@ -125,6 +132,10 @@ export async function showAdjacentViewerPost(state: AppState, direction: 1 | -1)
 
 export async function favoriteCurrentPost(state: AppState): Promise<void> {
   const post = state.posts[state.viewerIndex];
+  await favoritePost(state, post);
+}
+
+export async function favoritePost(state: AppState, post: Post | undefined): Promise<void> {
   if (!post || state.favoriteLoading) return;
   state.favoriteLoading = true;
   const isFavorited = state.favoritePostIds.has(post.id);
@@ -167,22 +178,40 @@ export function openCurrentSource(state: AppState): void {
   if (post?.source && isHttpUrl(post.source)) openInTab(post.source);
 }
 
-export function downloadCurrentPost(state: AppState): void {
+export function downloadCurrentPost(state: AppState, trigger?: HTMLElement): void {
   const post = state.posts[state.viewerIndex];
+  downloadPost(post, trigger, state.downloadFilenameTemplates);
+}
+
+export function downloadPost(
+  post: Post | undefined,
+  trigger?: HTMLElement,
+  filenameTemplates: DownloadFilenameTemplates = DEFAULT_DOWNLOAD_FILENAME_TEMPLATES,
+): void {
   const url = post?.fileUrl || post?.viewerUrl || '';
   if (!post || !isHttpUrl(url)) return;
-  const name = buildDownloadFilename(post);
+  if (trigger?.classList.contains('dmh-download-loading')) return;
+  const name = buildDownloadFilename(post, filenameTemplates);
+  setDownloadLoading(trigger, true);
   try {
     GM_download({
       url,
       name,
+      onload: () => setDownloadLoading(trigger, false),
       onerror: (error) => {
+        setDownloadLoading(trigger, false);
         if (isDownloadCanceled(error)) return;
         console.warn('[Danbooru Masonry] download failed:', error);
         showSnackbar('下载失败');
       },
+      ontimeout: () => {
+        setDownloadLoading(trigger, false);
+        console.warn('[Danbooru Masonry] download timed out');
+        showSnackbar('下载失败');
+      },
     });
   } catch (error) {
+    setDownloadLoading(trigger, false);
     console.warn('[Danbooru Masonry] download failed:', error);
     showSnackbar('下载失败');
   }
@@ -260,6 +289,7 @@ export function onViewerWheel(state: AppState, event: WheelEvent): void {
     zoomViewerImage(state, event);
     return;
   }
+  if (!state.viewerWheelNavigation) return;
   const now = Date.now();
   if (now - state.lastViewerWheelAt < 300) return;
   state.lastViewerWheelAt = now;
@@ -423,7 +453,32 @@ function getViewerPlaceholderUrl(post: Post, imageUrl: string): string {
   );
 }
 
-function buildDownloadFilename(post: Post): string {
+function getViewerImageUrl(state: AppState, post: Post): string {
+  if (state.viewerUseOriginal) return post.viewerUrl || post.fileUrl || post.sampleUrl || post.previewUrl || '';
+  return post.sampleUrl || post.largeUrl || post.listUrl || post.previewUrl || post.viewerUrl || post.fileUrl || '';
+}
+
+interface DownloadFilenameContext {
+  platform: DownloadFilenamePlatform;
+  artist: string;
+  username: string;
+  userid: string;
+  id: string;
+  postid: string;
+  original: string;
+  ext: string;
+}
+
+function buildDownloadFilename(post: Post, filenameTemplates: DownloadFilenameTemplates): string {
+  const context = buildDownloadFilenameContext(post);
+  const template =
+    filenameTemplates[context.platform] ||
+    DEFAULT_DOWNLOAD_FILENAME_TEMPLATES[context.platform] ||
+    DEFAULT_DOWNLOAD_FILENAME_TEMPLATES.danbooru;
+  return renderDownloadFilenameTemplate(template, context);
+}
+
+function buildDownloadFilenameContext(post: Post): DownloadFilenameContext {
   const raw = (post.raw || {}) as DanbooruRawPost;
   const rawSource = typeof raw.source === 'string' ? raw.source : '';
   const source = rawSource || post.source || '';
@@ -431,58 +486,59 @@ function buildDownloadFilename(post: Post): string {
   const normalizedSourceUrl = parseUrl(post.source || source);
   const extension = sanitizeFilenamePart(post.fileExt || extensionFromUrl(post.fileUrl) || 'jpg');
   const artist = sanitizeFilenamePart(firstTag(raw.tag_string_artist) || post.tagGroups.artist[0] || 'unknown');
+  const baseContext = createBaseFilenameContext(post, artist, extension, sourceUrl);
   const pixivId = String(raw.pixiv_id || extractPixivId(sourceUrl, source) || '').trim();
 
   if (pixivId) {
     const sourceFile = sourceUrl ? lastPathSegment(sourceUrl) : '';
     const pixivPart = sanitizeFilenamePart(sourceFile.replace(/\.[^.]+$/, '') || pixivId);
-    return formatDownloadFilename('pixiv', artist, pixivPart, extension);
+    return { ...baseContext, platform: 'pixiv', id: pixivId, original: pixivPart };
   }
 
   if (normalizedSourceUrl && isFanboxSource(normalizedSourceUrl)) {
     const author = sanitizeFilenamePart(extractFanboxAuthor(normalizedSourceUrl) || artist);
     const id = sanitizeFilenamePart(extractFanboxId(normalizedSourceUrl) || post.id);
-    return formatDownloadFilename('fanbox', author, id, extension);
+    return { ...baseContext, platform: 'fanbox', username: author, artist: author, id };
   }
 
   if (sourceUrl && isFantiaSource(sourceUrl)) {
     const id = sanitizeFilenamePart(extractFantiaId(sourceUrl) || post.id);
-    return formatDownloadFilename('fantia', artist, id, extension);
+    return { ...baseContext, platform: 'fantia', id };
   }
 
   if (normalizedSourceUrl && isFantiaSource(normalizedSourceUrl)) {
     const id = sanitizeFilenamePart(extractFantiaId(normalizedSourceUrl) || post.id);
-    return formatDownloadFilename('fantia', artist, id, extension);
+    return { ...baseContext, platform: 'fantia', id };
   }
 
   if (sourceUrl && isPatreonSource(sourceUrl)) {
     const id = sanitizeFilenamePart(extractPatreonId(sourceUrl) || post.id);
-    return formatDownloadFilename('patreon', artist, id, extension);
+    return { ...baseContext, platform: 'patreon', id };
   }
 
   if (normalizedSourceUrl && isPatreonSource(normalizedSourceUrl)) {
     const id = sanitizeFilenamePart(extractPatreonId(normalizedSourceUrl) || post.id);
-    return formatDownloadFilename('patreon', artist, id, extension);
+    return { ...baseContext, platform: 'patreon', id };
   }
 
   if (sourceUrl && isWeiboSource(sourceUrl)) {
     const userId = sanitizeFilenamePart(extractWeiboUserId(sourceUrl) || 'unknown');
     const id = sanitizeFilenamePart(extractWeiboId(sourceUrl) || post.id);
-    return formatDownloadFilename('weibo', `${artist}(${userId})`, id, extension);
+    return { ...baseContext, platform: 'weibo', userid: userId, id };
   }
 
   if (sourceUrl && isTwitterSource(sourceUrl)) {
     const author = sanitizeFilenamePart(sourceUrl.pathname.split('/').filter(Boolean)[0] || 'unknown');
     const id = sanitizeFilenamePart(extractTwitterStatusId(sourceUrl) || extractSourceId(sourceUrl) || post.id);
-    return formatDownloadFilename('twitter', author, id, extension);
+    return { ...baseContext, platform: 'twitter', username: author, id };
   }
 
   if (sourceUrl && isBilibiliSource(sourceUrl)) {
     const id = sanitizeFilenamePart(extractBilibiliId(sourceUrl) || extractSourceId(sourceUrl) || post.id);
-    return formatDownloadFilename('bilibili', artist, id, extension);
+    return { ...baseContext, platform: 'bilibili', id };
   }
 
-  return formatDownloadFilename('danbooru', artist, sanitizeFilenamePart(post.id), extension);
+  return baseContext;
 }
 
 function parseUrl(value: string): URL | null {
@@ -508,8 +564,52 @@ function sanitizeFilenamePart(value: string): string {
     .slice(0, 120) || 'unknown';
 }
 
-function formatDownloadFilename(platform: string, artist: string, id: string, extension: string): string {
-  return `${sanitizeFilenamePart(platform)}[${sanitizeFilenamePart(artist)}]_${sanitizeFilenamePart(id)}.${sanitizeFilenamePart(extension)}`;
+function sanitizeFilename(value: string): string {
+  return (
+    value
+      .trim()
+      .replace(/[<>:"/\\|?*]+/g, '_')
+      .replace(/[\n\r\t]+/g, '_')
+      .replace(/\s+/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^\.+/g, '')
+      .slice(0, 180) || 'danbooru'
+  );
+}
+
+function createBaseFilenameContext(
+  post: Post,
+  artist: string,
+  extension: string,
+  sourceUrl: URL | null,
+): DownloadFilenameContext {
+  const original = sanitizeFilenamePart(
+    stripExtension((sourceUrl && lastPathSegment(sourceUrl)) || lastPathSegmentFromUrl(post.fileUrl) || post.id),
+  );
+  return {
+    platform: 'danbooru',
+    artist,
+    username: artist,
+    userid: '',
+    id: sanitizeFilenamePart(post.id),
+    postid: sanitizeFilenamePart(post.id),
+    original,
+    ext: extension,
+  };
+}
+
+function renderDownloadFilenameTemplate(template: string, context: DownloadFilenameContext): string {
+  const rendered = template.replace(/\{([a-zA-Z]+)\}/g, (_, key: string) => {
+    if (!(key in context)) return '';
+    return sanitizeFilenameToken(String(context[key as keyof DownloadFilenameContext] ?? ''));
+  });
+  const filename = sanitizeFilename(rendered);
+  if (filename.match(/\.[a-z0-9]{2,5}$/i)) return filename;
+  return sanitizeFilename(`${filename}.${context.ext}`);
+}
+
+function sanitizeFilenameToken(value: string): string {
+  return value ? sanitizeFilenamePart(value) : '';
 }
 
 function isDownloadCanceled(error: unknown): boolean {
@@ -520,12 +620,34 @@ function isDownloadCanceled(error: unknown): boolean {
   return /cancel|abort|not_succeeded/i.test(value);
 }
 
+function setDownloadLoading(trigger: HTMLElement | undefined, loading: boolean): void {
+  if (!trigger) return;
+  trigger.classList.toggle('dmh-download-loading', loading);
+  if (loading) {
+    trigger.setAttribute('aria-busy', 'true');
+  } else {
+    trigger.removeAttribute('aria-busy');
+  }
+}
+
 function extensionFromUrl(value: string): string {
   try {
     const path = new URL(value).pathname;
     return path.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase() || '';
   } catch {
     return value.match(/\.([a-z0-9]+)(?:\?|#|$)/i)?.[1]?.toLowerCase() || '';
+  }
+}
+
+function stripExtension(value: string): string {
+  return value.replace(/\.[^.]+$/, '');
+}
+
+function lastPathSegmentFromUrl(value: string): string {
+  try {
+    return lastPathSegment(new URL(value));
+  } catch {
+    return decodeURIComponent(value.split('?')[0]?.split('/').filter(Boolean).pop() || '');
   }
 }
 

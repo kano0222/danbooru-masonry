@@ -23,30 +23,82 @@ export function installStyles(): void {
     .dmh-page-control:focus-within { border-color: #0969da; background: #fff; box-shadow: 0 0 0 3px rgba(9,105,218,.12); }
     .dmh-page-input { width: 42px; min-width: 42px; height: 26px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #24292f; text-align: center; font-weight: 700; outline: 0; appearance: textfield; }
     .dmh-page-input::-webkit-inner-spin-button, .dmh-page-input::-webkit-outer-spin-button { margin: 0; appearance: none; }
-    #dmh-app .dmh-search-form > button, #dmh-app .dmh-exit-button { height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #57606a; cursor: pointer; box-shadow: none; }
+    #dmh-app .dmh-search-form > button, #dmh-app .dmh-settings-button, #dmh-app .dmh-exit-button { height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #57606a; cursor: pointer; box-shadow: none; }
     #dmh-app .dmh-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 38px; min-width: 38px; padding: 0; }
     .dmh-icon-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; }
+    .dmh-settings-button svg { fill: currentColor; stroke: none; }
     #dmh-app [data-dmh-tooltip] { position: relative; }
     #dmh-app [data-dmh-tooltip]::after { content: attr(data-dmh-tooltip); position: absolute; top: calc(100% + 8px); left: 50%; z-index: 200; max-width: min(520px, 90vw); padding: 6px 10px; border-radius: 4px; background: rgba(33,33,33,.95); color: #fff; font-size: 12px; font-weight: 500; line-height: 1.35; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; pointer-events: none; transform: translate(-50%, -4px); transition: opacity .14s ease, transform .14s ease; }
     #dmh-app [data-dmh-tooltip]:hover::after, #dmh-app [data-dmh-tooltip]:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
-    #dmh-app .dmh-search-form > button:hover, #dmh-app .dmh-exit-button:hover { background: rgba(9,105,218,.08); color: #0969da; }
-    #dmh-app .dmh-search-form > button:focus-visible, #dmh-app .dmh-exit-button:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
+    #dmh-app .dmh-search-form > button:hover, #dmh-app .dmh-settings-button:hover, #dmh-app .dmh-exit-button:hover { background: rgba(9,105,218,.08); color: #0969da; }
+    #dmh-app .dmh-search-form > button:focus-visible, #dmh-app .dmh-settings-button:focus-visible, #dmh-app .dmh-exit-button:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
     .dmh-exit-button { flex: 0 0 auto; }
     .dmh-toolbar-actions { display: flex; align-items: center; justify-self: end; gap: 8px; min-width: 0; }
     .dmh-status { min-width: 112px; overflow: hidden; color: #57606a; font-size: 13px; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
     .dmh-grid { position: relative; width: calc(100% - 32px); margin: 68px 16px 12px; overflow: hidden; }
     .dmh-layout { display: block; }
     .dmh-sidebar { display: none; }
-    .dmh-card { position: absolute; width: ${CARD_WIDTH}px; overflow: hidden; border-radius: 6px; background: #d8dee4; box-shadow: 0 1px 2px rgba(27,31,36,.12); cursor: zoom-in; transition: left .18s ease, top .18s ease, width .18s ease; }
+    .dmh-card { position: absolute; width: ${CARD_WIDTH}px; overflow: hidden; border-radius: 6px; background: #d8dee4; box-shadow: 0 1px 2px rgba(27,31,36,.12); transition: left .18s ease, top .18s ease, width .18s ease; }
     .dmh-card img { display: block; width: 100%; height: 100%; object-fit: cover; background: #d8dee4; }
     .dmh-card-error { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: #f6f8fa; color: #57606a; text-align: center; }
     .dmh-card-error[hidden] { display: none; }
     .dmh-card-error svg { width: 42px; height: 42px; fill: currentColor; }
     .dmh-card-error span { font-size: 13px; font-weight: 700; color: #24292f; }
-    .dmh-card-meta { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 8px; padding: 5px 7px; color: #fff; font-size: 12px; background: linear-gradient(transparent, rgba(0,0,0,.68)); opacity: 0; transition: opacity .16s ease; }
-    .dmh-card:hover .dmh-card-meta { opacity: 1; }
+    .dmh-card-meta { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; gap: 8px; padding: 5px 7px; color: #fff; font-size: 12px; background: linear-gradient(rgba(0,0,0,.68), transparent); opacity: 0; transform: translateY(-100%); transition: opacity .16s ease, transform .16s ease; }
+    .dmh-card:hover .dmh-card-meta { opacity: 1; transform: translateY(0); }
+    #dmh-app[data-show-thumbnail-info="true"] .dmh-card-meta { opacity: 1; transform: translateY(0); }
+    .dmh-card-actions { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; justify-content: space-between; opacity: 1; pointer-events: none; }
+    #dmh-app[data-show-thumbnail-buttons="false"] .dmh-card-actions { display: none; }
+    #dmh-app .dmh-card-actions .dmh-card-action { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 35px; height: 35px; padding: 5px; border: 0; border-radius: 5px; background: #9ca3af !important; background-color: #9ca3af !important; backdrop-filter: blur(4px); color: #fff; cursor: pointer; box-shadow: none !important; filter: none; transform: none !important; transition: none !important; pointer-events: auto; }
+    #dmh-app .dmh-card-actions .dmh-card-action:hover, #dmh-app .dmh-card-actions .dmh-card-action:active, #dmh-app .dmh-card-actions .dmh-card-action:focus, #dmh-app .dmh-card-actions .dmh-card-action:focus-visible { background: #9ca3af !important; background-color: #9ca3af !important; color: #fff; outline: 0; box-shadow: none !important; filter: none; transform: none !important; transition: none !important; }
+    .dmh-card-actions .dmh-card-action svg { width: 25px; height: 25px; fill: currentColor; color: #fff; }
+    .dmh-card-actions .dmh-card-action svg[fill="none"] { fill: none; }
+    #dmh-app[data-card-size="small"] .dmh-card-actions .dmh-card-action { width: 30px; height: 30px; padding: 4px; }
+    #dmh-app[data-card-size="small"] .dmh-card-actions .dmh-card-action svg { width: 22px; height: 22px; }
+    #dmh-app[data-card-size="small"] .dmh-card-actions .dmh-card-action.dmh-download-loading::after { width: 14px; height: 14px; }
+    #dmh-app[data-card-size="big"] .dmh-card-actions .dmh-card-action { width: 40px; height: 40px; padding: 6px; }
+    #dmh-app[data-card-size="big"] .dmh-card-actions .dmh-card-action svg { width: 28px; height: 28px; }
+    #dmh-app[data-card-size="big"] .dmh-card-actions .dmh-card-action.dmh-download-loading::after { width: 18px; height: 18px; }
+    .dmh-card-action.dmh-favorited { color: rgb(255, 64, 96); }
+    #dmh-app .dmh-card-actions .dmh-card-action.dmh-download-loading svg { opacity: 0; }
+    #dmh-app .dmh-card-actions .dmh-card-action.dmh-download-loading::after { content: ''; position: absolute; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: dmh-download-spin .75s linear infinite; }
+    @keyframes dmh-download-spin { to { transform: rotate(360deg); } }
     .dmh-video-badge { position: absolute; top: 6px; right: 6px; padding: 2px 6px; color: #fff; font-size: 12px; border-radius: 4px; background: rgba(0,0,0,.62); }
     .dmh-message { padding: 24px; text-align: center; color: #57606a; }
+    .dmh-settings-overlay { position: fixed; inset: 0; z-index: 300; background: rgba(31,35,40,.32); opacity: 0; pointer-events: none; transition: opacity .22s ease; }
+    .dmh-settings-overlay.dmh-open { opacity: 1; pointer-events: auto; }
+    .dmh-settings-panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 301; width: min(360px, calc(100vw - 32px)); padding: 0; border-left: 1px solid #d8dee4; background: #fff; box-shadow: -8px 0 24px rgba(27,31,36,.18); opacity: 0; pointer-events: none; transform: translateX(100%); transition: transform .22s ease, opacity .22s ease; }
+    .dmh-settings-panel.dmh-open { opacity: 1; pointer-events: auto; transform: translateX(0); }
+    .dmh-settings-header { display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 16px; border-bottom: 1px solid #d8dee4; }
+    .dmh-settings-header h2 { margin: 0; font-size: 18px; font-weight: 700; line-height: 1; color: #24292f; }
+    .dmh-settings-close { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #57606a; cursor: pointer; }
+    .dmh-settings-close:hover { background: rgba(9,105,218,.08); color: #0969da; }
+    .dmh-settings-close:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
+    .dmh-settings-close svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
+    .dmh-settings-content { display: flex; flex-direction: column; gap: 22px; height: calc(100% - 56px); padding: 20px 18px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+    .dmh-settings-content::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    .dmh-setting-section { display: flex; flex-direction: column; gap: 10px; }
+    .dmh-setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; }
+    .dmh-setting-stack { display: flex; flex-direction: column; gap: 10px; }
+    .dmh-setting-label { color: #24292f; font-size: 13px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+    .dmh-setting-select { width: 148px; height: 34px; padding: 0 30px 0 10px; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; color: #24292f; font: 700 13px Arial, "Helvetica Neue", sans-serif; outline: 0; cursor: pointer; }
+    .dmh-setting-select option { font: 700 13px Arial, "Helvetica Neue", sans-serif; }
+    .dmh-setting-select:focus-visible { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.12); }
+    .dmh-setting-select-full { width: 100%; }
+    .dmh-setting-switch { display: inline-flex; flex: 0 0 auto; align-items: center; width: 48px; height: 28px; cursor: pointer; }
+    .dmh-setting-switch input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .dmh-setting-switch-track { position: relative; width: 48px; height: 28px; border-radius: 999px; background: #d0d7de; transition: background .18s ease, box-shadow .18s ease; }
+    .dmh-setting-switch-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(27,31,36,.22); transition: transform .18s ease; }
+    .dmh-setting-switch input:checked + .dmh-setting-switch-track { background: #0969da; }
+    .dmh-setting-switch input:checked + .dmh-setting-switch-track::after { transform: translateX(20px); }
+    .dmh-setting-switch input:focus-visible + .dmh-setting-switch-track { box-shadow: 0 0 0 3px rgba(9,105,218,.18); }
+    .dmh-download-template-list { display: flex; flex-direction: column; gap: 10px; }
+    .dmh-download-template-row { display: flex; flex-direction: column; gap: 5px; }
+    .dmh-download-template-label { color: #57606a; font-size: 12px; font-weight: 700; line-height: 1.2; }
+    .dmh-download-template-input { width: 100%; height: 34px; padding: 0 10px; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; color: #24292f; font: 600 12px Consolas, "Courier New", monospace; outline: 0; }
+    .dmh-download-template-input:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.12); }
+    .dmh-template-help { display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; color: #57606a; font-size: 12px; line-height: 1.45; }
+    .dmh-template-help code { color: #0969da; font: 700 12px Consolas, "Courier New", monospace; }
     .dmh-snackbar { position: fixed; top: 72px; left: 50%; z-index: 220; max-width: min(520px, calc(100vw - 32px)); padding: 10px 18px; border-radius: 4px; background: #323232; color: #fff; font-size: 14px; line-height: 1.45; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 6px 18px rgba(27,31,36,.22); opacity: 0; pointer-events: none; transform: translate(-50%, -12px); transition: opacity .18s ease, transform .18s ease; }
     .dmh-snackbar.dmh-open { opacity: 1; transform: translate(-50%, 0); }
     .dmh-ac { position: absolute; top: 42px; left: 0; z-index: 20; width: min(450px, 100%); max-height: 320px; overflow: auto; scrollbar-width: none; padding: 4px; border: 1px solid #d0d7de; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(140,149,159,.32); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-6px) scale(.98); transform-origin: top center; transition: opacity .16s ease, transform .16s ease, visibility 0s linear .16s; }
@@ -75,17 +127,24 @@ export function installStyles(): void {
     .dmh-viewer.dmh-zoom-mode img { max-width: none; max-height: none; cursor: grab; user-select: none; }
     .dmh-viewer.dmh-zoom-mode img.dmh-dragging { cursor: grabbing; }
     .dmh-viewer-actions { position: absolute; top: 14px; right: 14px; z-index: 3; display: flex; gap: 8px; opacity: 1; transition: opacity .18s ease; }
-    .dmh-viewer-button { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: #cfe8ff; color: #0969da; cursor: pointer; box-shadow: 0 2px 8px rgba(9,105,218,.18); transition: background .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease; }
+    .dmh-viewer-button { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: #cfe8ff; color: #0969da; cursor: pointer; box-shadow: 0 2px 8px rgba(9,105,218,.18); transition: background .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease; }
     .dmh-viewer-button:hover { background: #8ecbff; color: #034f9f; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(9,105,218,.24); }
     .dmh-viewer-button[disabled] { opacity: .45; cursor: not-allowed; }
-    .dmh-viewer-button svg, .dmh-viewer-nav svg { width: 22px; height: 22px; fill: currentColor; }
+    .dmh-viewer-button svg { width: 22px; height: 22px; fill: currentColor; }
     .dmh-viewer-button svg[fill="none"], .dmh-viewer-nav svg[fill="none"] { fill: none; }
     .dmh-viewer-button.dmh-favorited { background: #ffe5ea; color: rgb(255, 64, 96); box-shadow: 0 4px 12px rgba(255,64,96,.18); }
     .dmh-viewer-button.dmh-active { background: #8ecbff; color: #034f9f; }
-    .dmh-viewer-nav { position: absolute; top: 50%; z-index: 3; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: #cfe8ff; color: #0969da; cursor: pointer; opacity: 1; transform: translateY(-50%); box-shadow: 0 2px 8px rgba(9,105,218,.18); transition: background .16s ease, color .16s ease, opacity .18s ease, transform .16s ease, box-shadow .16s ease; }
-    .dmh-viewer-nav:hover { background: #8ecbff; color: #034f9f; transform: translateY(-50%) scale(1.06); box-shadow: 0 4px 12px rgba(9,105,218,.24); }
-    .dmh-viewer-prev { left: 22px; }
-    .dmh-viewer-next { right: 22px; }
+    .dmh-viewer-button.dmh-download-loading { background: #cfe8ff; color: #0969da; transform: none; }
+    .dmh-viewer-button.dmh-download-loading:hover { background: #cfe8ff; color: #0969da; transform: none; box-shadow: 0 2px 8px rgba(9,105,218,.18); }
+    .dmh-viewer-button.dmh-download-loading svg { opacity: 0; }
+    .dmh-viewer-button.dmh-download-loading::before { content: ''; position: absolute; width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: dmh-download-spin .75s linear infinite; }
+    #dmh-app .dmh-viewer-button.dmh-download-loading[data-dmh-tooltip]::after { display: none; content: none; }
+    .dmh-viewer-nav { position: absolute; top: 40%; bottom: 40%; z-index: 3; display: inline-flex; align-items: center; justify-content: center; width: min(96px, 18vw); height: auto; padding: 0; border: 0; border-radius: 0; background: transparent; color: #0969da; cursor: pointer; opacity: 1; transform: none; box-shadow: none; transition: opacity .18s ease; }
+    .dmh-viewer-nav:hover { background: transparent; color: #0969da; transform: none; box-shadow: none; }
+    .dmh-viewer-nav svg { width: 44px; height: 44px; padding: 10px; border-radius: 50%; background: #cfe8ff; color: #0969da; fill: currentColor; box-shadow: 0 2px 8px rgba(9,105,218,.18); transition: background .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease; }
+    .dmh-viewer-nav:hover svg { background: #8ecbff; color: #034f9f; transform: scale(1.06); box-shadow: 0 4px 12px rgba(9,105,218,.24); }
+    .dmh-viewer-prev { left: 0; }
+    .dmh-viewer-next { right: 0; }
     .dmh-viewer-info { position: absolute; top: 14px; left: 14px; z-index: 3; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; max-width: min(360px, 36vw); max-height: 44vh; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; opacity: 1; transform: translateY(0); transition: opacity .18s ease, transform .18s ease; pointer-events: none; }
     .dmh-viewer-info::-webkit-scrollbar { display: none; width: 0; height: 0; }
     .dmh-viewer.dmh-chrome-hidden .dmh-viewer-info { opacity: 0; transform: translateY(-6px); pointer-events: none; }
@@ -103,7 +162,7 @@ export function installStyles(): void {
     .dmh-tag-character { background: rgba(102, 187, 106, .9); }
     .dmh-tag-meta { background: rgba(84, 110, 122, .9); }
     @media (max-width: 980px) { .dmh-title { display: none; } .dmh-brand { gap: 0; } }
-    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, .6fr) minmax(120px, 1fr) max-content; gap: 8px; padding: 10px; } .dmh-search { justify-self: stretch; max-width: none; } .dmh-search-form { grid-template-columns: minmax(0, 1fr) 38px; } .dmh-status { display: none; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: 30vh; font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 42px; height: 42px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
+    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, .6fr) minmax(120px, 1fr) max-content; gap: 8px; padding: 10px; } .dmh-search { justify-self: stretch; max-width: none; } .dmh-search-form { grid-template-columns: minmax(0, 1fr) 38px; } .dmh-status { display: none; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: 30vh; font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 72px; } .dmh-viewer-nav svg { width: 42px; height: 42px; padding: 9px; } }
   `;
   document.head.appendChild(style);
 }

@@ -3,12 +3,21 @@ import type { AppState } from './state';
 export const LOAD_OFFSET_PX = 900;
 export const CARD_WIDTH = 220;
 export const CARD_GAP = 12;
+export const CARD_SIZE_OPTIONS = [
+  { key: 'small', label: '小', value: 180 },
+  { key: 'medium', label: '中', value: CARD_WIDTH },
+  { key: 'big', label: '大', value: 280 },
+] as const;
 
 export function layoutMasonry(state: AppState): void {
   const grid = document.getElementById('dmh-grid');
   if (!grid) return;
   const availableWidth = Math.max(0, grid.clientWidth);
-  const columnCount = Math.max(1, Math.floor((availableWidth + CARD_GAP) / (CARD_WIDTH + CARD_GAP)));
+  const targetCardWidth = state.cardWidth;
+  const columnCount = Math.max(
+    1,
+    Math.floor((availableWidth + CARD_GAP) / (targetCardWidth + CARD_GAP)),
+  );
   const layoutWidth = availableWidth;
   const columnWidth = Math.max(80, (layoutWidth - (columnCount - 1) * CARD_GAP) / columnCount);
   const columnHeights = Array.from({ length: columnCount }, () => 0);

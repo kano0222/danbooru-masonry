@@ -18,13 +18,40 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout. The top toolbar provides tag search, page jumping, arrow-key page navigation, and tag autocomplete; hovering over a thumbnail shows the image size.
+- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout on viewport changes. The top toolbar provides tag search, page jumping, arrow-key page navigation, and tag autocomplete.
+
+- Hovering over a thumbnail shows the Danbooru image ID and image size. Thumbnails also provide source and download buttons. The settings panel can control thumbnail display behavior and masonry image size.
 
 ![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
 
-- The immersive viewer supports image/video preview, previous/next navigation, wheel navigation, Esc close, original-size zoom, and drag-to-pan. Clicking a tag in the upper-left corner opens the corresponding search page. The upper-right buttons, from left to right, open the source link, favorite the post (requires Danbooru login), zoom, open the post detail page, download the original file with a source-aware filename, and exit.
+- The settings panel supports:
+
+  - Masonry image size: small / medium / big
+  - Thumbnail buttons shown by default
+  - Thumbnail info hidden by default
+  - Wheel navigation
+  - Use original file in viewer
+  - Per-source download filename templates
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
+
+- The immersive viewer supports image/video preview, previous/next navigation, wheel navigation, Esc close, original-size zoom, and drag-to-pan. Clicking a tag in the upper-left corner opens the corresponding search page. The upper-right buttons, from left to right, open the source link, favorite the post (requires Danbooru login), zoom, open the post detail page, download the original file with a source-aware filename, and exit.
+
+![preview4](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview4.png)
+
+### Download Filename Templates
+
+Download filename templates support the following placeholders:
+
+- `{original}`: original filename without extension
+- `{artist}`: Danbooru artist tag
+- `{username}`: username parsed from the source URL, falling back to the artist tag
+- `{userid}`: user ID parsed from the source URL
+- `{id}`: source work/post ID, falling back to the Danbooru ID
+- `{postid}`: Danbooru ID
+- `{ext}`: file extension
+
+Templates are generated only from Danbooru API data and source URL parsing results. The script does not request Pixiv, Bilibili, Weibo, or other source pages for extra metadata.
 
 ### Mirror Site Support
 

@@ -1,11 +1,24 @@
 import { icons } from './icons';
 import { escapeAttr } from '../utils/escape';
-import type { AppState } from '../core/state';
+import { DOWNLOAD_FILENAME_TEMPLATE_OPTIONS, type AppState } from '../core/state';
+import { CARD_SIZE_OPTIONS } from '../core/masonry';
 
 export function renderShell(state: AppState): void {
   document.title = 'Danbooru Masonry';
+  const cardSize = CARD_SIZE_OPTIONS.find((option) => option.value === state.cardWidth)?.key || 'medium';
+  const cardSizeOptions = CARD_SIZE_OPTIONS.map(
+    (option) =>
+      `<option value="${option.key}"${option.value === state.cardWidth ? ' selected' : ''}>${option.label}</option>`,
+  ).join('');
+  const downloadFilenameTemplateInputs = DOWNLOAD_FILENAME_TEMPLATE_OPTIONS.map(
+    (option) => `
+              <label class="dmh-download-template-row" for="dmh-download-template-${option.key}">
+                <span class="dmh-download-template-label">${option.label}</span>
+                <input class="dmh-download-template-input" id="dmh-download-template-${option.key}" type="text" data-download-template="${option.key}" value="${escapeAttr(state.downloadFilenameTemplates[option.key])}">
+              </label>`,
+  ).join('');
   document.body.innerHTML = `
-    <div id="dmh-app">
+    <div id="dmh-app" data-card-size="${cardSize}" data-show-thumbnail-info="${state.showThumbnailInfo}" data-show-thumbnail-buttons="${state.showThumbnailButtons}">
       <header class="dmh-topbar" id="dmh-topbar">
         <div class="dmh-toolbar-content">
           <div class="dmh-brand">
@@ -26,12 +39,83 @@ export function renderShell(state: AppState): void {
           </div>
           <div class="dmh-toolbar-actions">
             <div class="dmh-status" id="dmh-status">已加载 0 张</div>
+            <button class="dmh-settings-button dmh-icon-button" id="dmh-settings-toggle" type="button" data-dmh-tooltip="设置" aria-label="设置" aria-expanded="false" aria-controls="dmh-settings-panel">${icons.settings}</button>
             <button class="dmh-exit-button dmh-icon-button" id="dmh-exit" type="button" data-dmh-tooltip="退出瀑布流" aria-label="退出瀑布流">${icons.exit}</button>
           </div>
         </div>
       </header>
       <main class="dmh-grid" id="dmh-grid"></main>
       <div class="dmh-message" id="dmh-message"></div>
+      <div class="dmh-settings-overlay" id="dmh-settings-overlay" aria-hidden="true"></div>
+      <aside class="dmh-settings-panel" id="dmh-settings-panel" role="dialog" aria-modal="true" aria-labelledby="dmh-settings-title" aria-hidden="true">
+        <div class="dmh-settings-header">
+          <h2 id="dmh-settings-title">设置</h2>
+          <button class="dmh-settings-close" id="dmh-settings-close" type="button" aria-label="关闭设置">${icons.close}</button>
+        </div>
+        <div class="dmh-settings-content">
+          <section class="dmh-setting-section">
+            <label class="dmh-setting-row" for="dmh-card-size">
+              <span class="dmh-setting-label">瀑布流图片大小</span>
+              <select class="dmh-setting-select" id="dmh-card-size">
+${cardSizeOptions}
+              </select>
+            </label>
+          </section>
+          <section class="dmh-setting-section">
+            <label class="dmh-setting-row">
+              <span class="dmh-setting-label">缩略图按钮默认显示</span>
+              <span class="dmh-setting-switch">
+                <input id="dmh-show-thumbnail-buttons" type="checkbox" ${state.showThumbnailButtons ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </span>
+            </label>
+          </section>
+          <section class="dmh-setting-section">
+            <label class="dmh-setting-row">
+              <span class="dmh-setting-label">缩略图信息默认关闭</span>
+              <span class="dmh-setting-switch">
+                <input id="dmh-show-thumbnail-info" type="checkbox" ${state.showThumbnailInfo ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </span>
+            </label>
+          </section>
+          <section class="dmh-setting-section">
+            <label class="dmh-setting-row">
+              <span class="dmh-setting-label">滚动切图</span>
+              <span class="dmh-setting-switch">
+                <input id="dmh-viewer-wheel-navigation" type="checkbox" ${state.viewerWheelNavigation ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </span>
+            </label>
+          </section>
+          <section class="dmh-setting-section">
+            <label class="dmh-setting-row">
+              <span class="dmh-setting-label">详情使用原图</span>
+              <span class="dmh-setting-switch">
+                <input id="dmh-viewer-use-original" type="checkbox" ${state.viewerUseOriginal ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </span>
+            </label>
+          </section>
+          <section class="dmh-setting-section">
+            <div class="dmh-setting-stack">
+              <span class="dmh-setting-label">下载文件名格式</span>
+              <div class="dmh-download-template-list">
+${downloadFilenameTemplateInputs}
+              </div>
+              <div class="dmh-template-help">
+                <div><code>{original}</code> 原文件名，不含后缀</div>
+                <div><code>{artist}</code> Danbooru 画师标签</div>
+                <div><code>{username}</code> 来源 URL 可解析到的用户名，缺失时回退到画师标签</div>
+                <div><code>{userid}</code> 来源 URL 可解析到的用户 ID</div>
+                <div><code>{id}</code> 来源作品 ID，缺失时回退到 Danbooru ID</div>
+                <div><code>{postid}</code> Danbooru ID</div>
+                <div><code>{ext}</code> 文件后缀</div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
       <div class="dmh-viewer" id="dmh-viewer" aria-hidden="true">
         <div class="dmh-viewer-info" id="dmh-viewer-info"></div>
         <div class="dmh-viewer-actions">

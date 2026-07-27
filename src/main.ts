@@ -1,6 +1,15 @@
 import type { AppState } from './core/state';
 import type { BooruAdapter } from './adapters/types';
-import { createState } from './core/state';
+import {
+  createState,
+  saveCardWidth,
+  saveDownloadFilenameTemplates,
+  saveShowThumbnailButtons,
+  saveShowThumbnailInfo,
+  saveViewerUseOriginal,
+  saveViewerWheelNavigation,
+  type DownloadFilenamePlatform,
+} from './core/state';
 import { installStyles } from './ui/styles';
 import { installLaunchButton, renderShell } from './ui/shell';
 import { renderPosts } from './ui/cards';
@@ -12,7 +21,12 @@ import {
   openAutocomplete,
   scheduleAutocomplete,
 } from './ui/autocomplete';
-import { layoutMasonry, scheduleLayoutMasonry, shouldLoadMore } from './core/masonry';
+import {
+  CARD_SIZE_OPTIONS,
+  layoutMasonry,
+  scheduleLayoutMasonry,
+  shouldLoadMore,
+} from './core/masonry';
 import { resetSearch } from './core/search';
 import { installShortcuts } from './core/shortcuts';
 import {
@@ -80,6 +94,33 @@ function bindShellEvents(state: AppState): void {
     void loadNextPage(state);
   });
   byId('dmh-exit')?.addEventListener('click', () => location.reload());
+  byId('dmh-settings-toggle')?.addEventListener('click', () => openSettingsPanel());
+  byId('dmh-settings-overlay')?.addEventListener('click', () => closeSettingsPanel());
+  byId('dmh-settings-close')?.addEventListener('click', () => closeSettingsPanel());
+  byId<HTMLSelectElement>('dmh-card-size')?.addEventListener('change', (event) => {
+    setCardSize(state, (event.currentTarget as HTMLSelectElement).value);
+  });
+  document.querySelectorAll<HTMLInputElement>('input[data-download-template]').forEach((input) => {
+    input.addEventListener('change', () =>
+      setDownloadFilenameTemplate(
+        state,
+        input.dataset.downloadTemplate as DownloadFilenamePlatform,
+        input.value,
+      ),
+    );
+  });
+  byId<HTMLInputElement>('dmh-viewer-use-original')?.addEventListener('change', (event) => {
+    setViewerUseOriginal(state, (event.currentTarget as HTMLInputElement).checked);
+  });
+  byId<HTMLInputElement>('dmh-show-thumbnail-buttons')?.addEventListener('change', (event) => {
+    setShowThumbnailButtons(state, (event.currentTarget as HTMLInputElement).checked);
+  });
+  byId<HTMLInputElement>('dmh-show-thumbnail-info')?.addEventListener('change', (event) => {
+    setShowThumbnailInfo(state, (event.currentTarget as HTMLInputElement).checked);
+  });
+  byId<HTMLInputElement>('dmh-viewer-wheel-navigation')?.addEventListener('change', (event) => {
+    setViewerWheelNavigation(state, (event.currentTarget as HTMLInputElement).checked);
+  });
   const tagsInput = byId<HTMLInputElement>('dmh-tags');
   tagsInput?.addEventListener('input', (event) => {
     scheduleAutocomplete(state, (event.target as HTMLInputElement).value);
@@ -165,11 +206,13 @@ function bindShellEvents(state: AppState): void {
   byId('dmh-favorite')?.addEventListener('click', () => void favoriteCurrentPost(state));
   byId('dmh-zoom-toggle')?.addEventListener('click', (event) => toggleZoomMode(state, event));
   byId('dmh-open-post')?.addEventListener('click', () => openCurrentPost(state));
-  byId('dmh-download')?.addEventListener('click', () => downloadCurrentPost(state));
+  byId('dmh-download')?.addEventListener('click', (event) =>
+    downloadCurrentPost(state, event.currentTarget as HTMLElement),
+  );
   byId('dmh-open-source')?.addEventListener('click', () => openCurrentSource(state));
   let lastScrollY = window.scrollY;
   window.addEventListener('scroll', () => {
-    if (isViewerOpen()) return;
+    if (isViewerOpen() || isSettingsOpen()) return;
     const scrollY = window.scrollY;
     const scrollingDown = scrollY > lastScrollY;
     lastScrollY = scrollY;
@@ -178,7 +221,7 @@ function bindShellEvents(state: AppState): void {
   window.addEventListener(
     'wheel',
     (event) => {
-      if (isViewerOpen()) return;
+      if (isViewerOpen() || isSettingsOpen()) return;
       if (state.started && event.deltaY > 0 && shouldLoadMore()) void loadNextPage(state);
     },
     { passive: true },
@@ -313,4 +356,96 @@ function canShowLaunchButton(currentLocation: Location): boolean {
 
 function isViewerOpen(): boolean {
   return byId('dmh-viewer')?.classList.contains('dmh-open') || false;
+}
+
+function isSettingsOpen(): boolean {
+  return byId('dmh-settings-panel')?.classList.contains('dmh-open') || false;
+}
+
+function openSettingsPanel(): void {
+  setSettingsPanelOpen(true);
+}
+
+function closeSettingsPanel(): void {
+  setSettingsPanelOpen(false);
+}
+
+function setSettingsPanelOpen(open: boolean): void {
+  const panel = byId('dmh-settings-panel');
+  const overlay = byId('dmh-settings-overlay');
+  const button = byId<HTMLButtonElement>('dmh-settings-toggle');
+  if (!panel || !overlay || !button) return;
+  panel.classList.toggle('dmh-open', open);
+  overlay.classList.toggle('dmh-open', open);
+  panel.setAttribute('aria-hidden', String(!open));
+  overlay.setAttribute('aria-hidden', String(!open));
+  button.setAttribute('aria-expanded', String(open));
+  document.body.classList.toggle('dmh-no-scroll', open || isViewerOpen());
+}
+
+function setCardSize(state: AppState, cardSize: string): void {
+  const cardSizeOption = CARD_SIZE_OPTIONS.find((option) => option.key === cardSize);
+  if (!cardSizeOption) return;
+  const cardWidth = cardSizeOption.value;
+  if (state.cardWidth === cardWidth) return;
+  state.cardWidth = cardWidth;
+  saveCardWidth(cardWidth);
+  const app = byId('dmh-app');
+  if (app) app.dataset.cardSize = cardSizeOption.key;
+  const input = byId<HTMLSelectElement>('dmh-card-size');
+  if (input) input.value = cardSizeOption.key;
+  scheduleLayoutMasonry(state);
+}
+
+function setViewerUseOriginal(state: AppState, viewerUseOriginal: boolean): void {
+  if (state.viewerUseOriginal === viewerUseOriginal) return;
+  state.viewerUseOriginal = viewerUseOriginal;
+  saveViewerUseOriginal(viewerUseOriginal);
+  const input = byId<HTMLInputElement>('dmh-viewer-use-original');
+  if (input) input.checked = viewerUseOriginal;
+  if (isViewerOpen() && state.viewerIndex >= 0) showViewer(state, state.viewerIndex);
+}
+
+function setShowThumbnailButtons(state: AppState, showThumbnailButtons: boolean): void {
+  if (state.showThumbnailButtons === showThumbnailButtons) return;
+  state.showThumbnailButtons = showThumbnailButtons;
+  saveShowThumbnailButtons(showThumbnailButtons);
+  const app = byId('dmh-app');
+  if (app) app.dataset.showThumbnailButtons = String(showThumbnailButtons);
+  const input = byId<HTMLInputElement>('dmh-show-thumbnail-buttons');
+  if (input) input.checked = showThumbnailButtons;
+}
+
+function setShowThumbnailInfo(state: AppState, showThumbnailInfo: boolean): void {
+  if (state.showThumbnailInfo === showThumbnailInfo) return;
+  state.showThumbnailInfo = showThumbnailInfo;
+  saveShowThumbnailInfo(showThumbnailInfo);
+  const app = byId('dmh-app');
+  if (app) app.dataset.showThumbnailInfo = String(showThumbnailInfo);
+  const input = byId<HTMLInputElement>('dmh-show-thumbnail-info');
+  if (input) input.checked = showThumbnailInfo;
+}
+
+function setViewerWheelNavigation(state: AppState, viewerWheelNavigation: boolean): void {
+  if (state.viewerWheelNavigation === viewerWheelNavigation) return;
+  state.viewerWheelNavigation = viewerWheelNavigation;
+  saveViewerWheelNavigation(viewerWheelNavigation);
+  const input = byId<HTMLInputElement>('dmh-viewer-wheel-navigation');
+  if (input) input.checked = viewerWheelNavigation;
+}
+
+function setDownloadFilenameTemplate(
+  state: AppState,
+  platform: DownloadFilenamePlatform,
+  template: string,
+): void {
+  const nextTemplate = template.trim();
+  if (!nextTemplate || state.downloadFilenameTemplates[platform] === nextTemplate) return;
+  state.downloadFilenameTemplates = {
+    ...state.downloadFilenameTemplates,
+    [platform]: nextTemplate,
+  };
+  saveDownloadFilenameTemplates(state.downloadFilenameTemplates);
+  const input = byId<HTMLInputElement>(`dmh-download-template-${platform}`);
+  if (input) input.value = nextTemplate;
 }

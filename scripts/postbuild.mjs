@@ -18,13 +18,17 @@ const header = `// ==UserScript==\n\
 // @name         Danbooru 瀑布流浏览\n\
 // @name:zh      Danbooru 瀑布流浏览\n\
 // @name:en      Danbooru Masonry\n\
-// @namespace    danbooru-masonry\n\
+// @namespace    https://github.com/kano0222\n\
 // @version      ${pkg.version}\n\
-// @description  为 Danbooru 添加瀑布流浏览、标签翻译和沉浸式图片查看体验。\n\
-// @description:zh  为 Danbooru 添加瀑布流浏览、标签翻译和沉浸式图片查看体验。\n\
-// @description:en  Adds masonry browsing, tag translation, and an immersive image viewing experience to Danbooru.\n\
+// @description  为 Danbooru 添加瀑布流浏览、标签翻译、沉浸式图片查看和原图下载体验。\n\
+// @description:zh  为 Danbooru 添加瀑布流浏览、标签翻译、沉浸式图片查看和原图下载体验。\n\
+// @description:en  Adds masonry browsing, tag translation, immersive image viewing, and original-file downloads to Danbooru.\n\
+// @author       kano0222\n\
 // @license      MIT\n\
+// @icon         https://danbooru.donmai.us/favicon.ico\n\
 // @source       https://github.com/kano0222/danbooru-masonry\n\
+// @downloadURL  https://update.greasyfork.org/scripts/585986/Danbooru%20%E7%80%91%E5%B8%83%E6%B5%81%E6%B5%8F%E8%A7%88.user.js\n\
+// @updateURL    https://update.greasyfork.org/scripts/585986/Danbooru%20%E7%80%91%E5%B8%83%E6%B5%81%E6%B5%8F%E8%A7%88.user.js\n\
 // @match        https://danbooru.donmai.us/\n\
 // @match        https://danbooru.donmai.us/posts*\n\
 // @connect      danbooru.donmai.us\n\
@@ -34,6 +38,8 @@ const header = `// ==UserScript==\n\
 // @connect      i.pximg.net\n\
 // @grant        GM_openInTab\n\
 // @grant        GM_download\n\
+// @grant        GM_getValue\n\
+// @grant        GM_setValue\n\
 // @run-at       document-end\n\
 // ==/UserScript==\n\n`;
 writeFileSync(output, header + body, 'utf8');

@@ -1,7 +1,10 @@
 import type { Post } from '../adapters/types';
 import type { AppState } from '../core/state';
 import { scheduleLayoutMasonry } from '../core/masonry';
+import { downloadPost } from '../core/viewer';
 import { escapeAttr, escapeHtml } from '../utils/escape';
+import { openInTab } from '../utils/dom';
+import { icons } from './icons';
 
 export function renderPosts(
   state: AppState,
@@ -29,8 +32,22 @@ export function renderPosts(
         <span>#${escapeHtml(post.id)}</span>
         <span>${escapeHtml(post.width)} x ${escapeHtml(post.height)}</span>
       </div>
+      <div class="dmh-card-actions">
+        <button class="dmh-card-action dmh-card-source-button" type="button" data-card-action="source" aria-label="打开来源">${icons.external}</button>
+        <button class="dmh-card-action dmh-card-download-button" type="button" data-card-action="download" aria-label="下载原图">${icons.download}</button>
+      </div>
     `;
     card.addEventListener('click', () => onOpen(postIndex));
+    card.querySelector<HTMLElement>('.dmh-card-actions')?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-card-action]');
+      if (!button) return;
+      if (button.dataset.cardAction === 'download') {
+        downloadPost(post, button, state.downloadFilenameTemplates);
+        return;
+      }
+      if (button.dataset.cardAction === 'source' && post.source) openInTab(post.source);
+    });
     card.querySelector('img')?.addEventListener('load', (event) => {
       const image = event.currentTarget as HTMLImageElement;
       card.querySelector<HTMLElement>('.dmh-card-error')?.setAttribute('hidden', '');

@@ -16,13 +16,40 @@
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- 瀑布流支持最短列布局、下拉加载和布局自动重排。顶栏提供标签搜索、页码跳转、方向键翻页和标签自动补全；鼠标移到缩略图上会显示图片尺寸。
+- 瀑布流支持最短列布局、下拉加载和窗口变化自动重排。顶部工具栏提供标签搜索、页码跳转、方向键翻页和标签自动补全。
+
+- 鼠标移到缩略图上会显示danbooru的图片ID和图片尺寸，提供打开来源和下载按钮。可以在设置中控制是否显示和修改瀑布流图片大小。
 
 ![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
 
-- 沉浸式 viewer 支持图片/视频预览、左右切换、滚轮切换、Esc 关闭、原图缩放和拖拽查看。点击左上角标签会打开对应搜索页，右上角按钮从左到右是打开来源链接、收藏（需登录danbooru）、放大查看、打开详情页、下载（默认原图，文件名按主流来源生成）、退出
+- 设置页支持以下配置：
+
+  - 瀑布流图片大小：小 / 中 / 大
+  - 缩略图按钮默认显示
+  - 缩略图信息默认关闭
+  - 滚动切图
+  - 详情使用原图
+  - 各来源下载文件名模板
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
+
+- 沉浸式 viewer 支持图片/视频预览、左右切换、滚轮切换、Esc 关闭、原图缩放和拖拽查看。点击左上角标签会打开对应搜索页，右上角按钮从左到右是打开来源链接、收藏（需登录danbooru）、放大查看、打开详情页、下载（默认原图，文件名按主流来源生成）、退出
+
+![preview4](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview4.png)
+
+### 下载文件名模板
+
+下载文件名模板支持以下占位符：
+
+- `{original}`：原文件名，不含后缀
+- `{artist}`：Danbooru 画师标签
+- `{username}`：来源 URL 可解析到的用户名，缺失时回退到画师标签
+- `{userid}`：来源 URL 可解析到的用户 ID
+- `{id}`：来源作品 ID，缺失时回退到 Danbooru ID
+- `{postid}`：Danbooru ID
+- `{ext}`：文件后缀
+
+模板只基于 Danbooru API 返回的数据和 source URL 解析结果生成，不会额外请求 Pixiv、Bilibili、微博等原站页面。
 
 ### 镜像站支持
 
