@@ -130,7 +130,7 @@ export function installStyles(): void {
     .dmh-viewer-button { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: #cfe8ff; color: #0969da; cursor: pointer; box-shadow: 0 2px 8px rgba(9,105,218,.18); transition: background .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease; }
     .dmh-viewer-button:hover { background: #8ecbff; color: #034f9f; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(9,105,218,.24); }
     .dmh-viewer-button[disabled] { opacity: .45; cursor: not-allowed; }
-    .dmh-viewer-button svg { width: 22px; height: 22px; fill: currentColor; }
+    .dmh-viewer-button svg, .dmh-viewer-nav svg { width: 22px; height: 22px; fill: currentColor; }
     .dmh-viewer-button svg[fill="none"], .dmh-viewer-nav svg[fill="none"] { fill: none; }
     .dmh-viewer-button.dmh-favorited { background: #ffe5ea; color: rgb(255, 64, 96); box-shadow: 0 4px 12px rgba(255,64,96,.18); }
     .dmh-viewer-button.dmh-active { background: #8ecbff; color: #034f9f; }
@@ -139,17 +139,16 @@ export function installStyles(): void {
     .dmh-viewer-button.dmh-download-loading svg { opacity: 0; }
     .dmh-viewer-button.dmh-download-loading::before { content: ''; position: absolute; width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: dmh-download-spin .75s linear infinite; }
     #dmh-app .dmh-viewer-button.dmh-download-loading[data-dmh-tooltip]::after { display: none; content: none; }
-    .dmh-viewer-nav { position: absolute; top: 40%; bottom: 40%; z-index: 3; display: inline-flex; align-items: center; justify-content: center; width: min(96px, 18vw); height: auto; padding: 0; border: 0; border-radius: 0; background: transparent; color: #0969da; cursor: pointer; opacity: 1; transform: none; box-shadow: none; transition: opacity .18s ease; }
-    .dmh-viewer-nav:hover { background: transparent; color: #0969da; transform: none; box-shadow: none; }
-    .dmh-viewer-nav svg { width: 44px; height: 44px; padding: 10px; border-radius: 50%; background: #cfe8ff; color: #0969da; fill: currentColor; box-shadow: 0 2px 8px rgba(9,105,218,.18); transition: background .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease; }
-    .dmh-viewer-nav:hover svg { background: #8ecbff; color: #034f9f; transform: scale(1.06); box-shadow: 0 4px 12px rgba(9,105,218,.24); }
-    .dmh-viewer-prev { left: 0; }
-    .dmh-viewer-next { right: 0; }
-    .dmh-viewer-info { position: absolute; top: 14px; left: 14px; z-index: 3; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; max-width: min(360px, 36vw); max-height: 44vh; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; opacity: 1; transform: translateY(0); transition: opacity .18s ease, transform .18s ease; pointer-events: none; }
+    .dmh-viewer-nav { position: absolute; top: 50%; z-index: 3; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 50%; background: #cfe8ff; color: #0969da; cursor: pointer; opacity: 1; transform: translateY(-50%); box-shadow: 0 2px 8px rgba(9,105,218,.18); transition: background .16s ease, color .16s ease, opacity .18s ease, transform .16s ease, box-shadow .16s ease; }
+    .dmh-viewer-nav:hover { background: #8ecbff; color: #034f9f; transform: translateY(-50%) scale(1.06); box-shadow: 0 4px 12px rgba(9,105,218,.24); }
+    .dmh-viewer-prev { left: 22px; }
+    .dmh-viewer-next { right: 22px; }
+    .dmh-viewer-info { position: absolute; top: 14px; left: 14px; z-index: 3; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; max-width: min(360px, 36vw); max-height: calc(100vh - 96px); overflow-x: hidden; overflow-y: auto; scrollbar-width: none; opacity: 1; transform: translateY(0); transition: opacity .18s ease, transform .18s ease; pointer-events: none; }
     .dmh-viewer-info::-webkit-scrollbar { display: none; width: 0; height: 0; }
     .dmh-viewer.dmh-chrome-hidden .dmh-viewer-info { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+    .dmh-viewer.dmh-chrome-hidden .dmh-viewer-info .dmh-info-pill { pointer-events: none; }
     .dmh-viewer.dmh-chrome-hidden .dmh-viewer-actions, .dmh-viewer.dmh-chrome-hidden .dmh-viewer-nav { opacity: 0; pointer-events: none; }
-    .dmh-info-pill { display: block; max-width: 100%; height: 24px; padding: 0 10px; overflow: hidden; border: 1px solid transparent; border-radius: 999px; font-size: 12px; font-weight: bold; line-height: 24px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; pointer-events: auto; user-select: none; }
+    .dmh-info-pill { display: block; flex: 0 0 auto; max-width: 100%; height: 24px; padding: 0 10px; overflow: hidden; border: 1px solid transparent; border-radius: 999px; font-size: 12px; font-weight: bold; line-height: 24px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; pointer-events: auto; user-select: none; }
     .dmh-info-pill:hover { text-decoration: none; }
     .dmh-pill-id, .dmh-pill-id:visited { background: #bfe3ff; color: #0969da; }
     .dmh-pill-artist, .dmh-pill-artist:visited { color: rgb(201, 112, 0); background-color: rgb(255, 220, 176); border-color: rgb(255, 220, 176); }
@@ -162,7 +161,7 @@ export function installStyles(): void {
     .dmh-tag-character { background: rgba(102, 187, 106, .9); }
     .dmh-tag-meta { background: rgba(84, 110, 122, .9); }
     @media (max-width: 980px) { .dmh-title { display: none; } .dmh-brand { gap: 0; } }
-    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, .6fr) minmax(120px, 1fr) max-content; gap: 8px; padding: 10px; } .dmh-search { justify-self: stretch; max-width: none; } .dmh-search-form { grid-template-columns: minmax(0, 1fr) 38px; } .dmh-status { display: none; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: 30vh; font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 72px; } .dmh-viewer-nav svg { width: 42px; height: 42px; padding: 9px; } }
+    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, .6fr) minmax(120px, 1fr) max-content; gap: 8px; padding: 10px; } .dmh-search { justify-self: stretch; max-width: none; } .dmh-search-form { grid-template-columns: minmax(0, 1fr) 38px; } .dmh-status { display: none; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: calc(100vh - 104px); font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 50px; height: 50px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
   `;
   document.head.appendChild(style);
 }
