@@ -25,6 +25,8 @@ export interface Post {
   largeUrl: string;
   sampleUrl: string;
   previewUrl: string;
+  thumbnailUrl: string;
+  playbackUrl: string;
   listUrl: string;
   viewerUrl: string;
   width: number;
@@ -37,6 +39,7 @@ export interface Post {
   source: string;
   fileExt: string;
   isVideo: boolean;
+  isUgoira: boolean;
   favorited: boolean;
   available: boolean;
 }

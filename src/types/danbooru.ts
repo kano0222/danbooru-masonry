@@ -40,6 +40,9 @@ export interface DanbooruRawPost {
       name?: string | null;
       variant?: string | null;
       url?: string | null;
+      file_ext?: string | null;
+      width?: number | string | null;
+      height?: number | string | null;
     }>;
   } | null;
 }

@@ -26,7 +26,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm test
       - run: pnpm build
+      - name: Build release notes from changelog
+        run: node scripts/release-notes.mjs "${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}" dist/release-notes.md
       - uses: actions/upload-artifact@v6
         with:
           name: danbooru-masonry-userscript
@@ -35,4 +38,5 @@ jobs:
         with:
           tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           files: dist/danbooru-masonry.user.js
+          body_path: dist/release-notes.md
           fail_on_unmatched_files: true

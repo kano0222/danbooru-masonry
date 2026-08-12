@@ -2,16 +2,24 @@ import type { Post, TagGroups } from '../adapters/types';
 import type { DanbooruRawPost } from '../types/danbooru';
 import { absoluteUrl } from '../utils/url';
 
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif']);
+const VIDEO_EXTENSIONS = new Set(['mp4', 'webm']);
+
 export function normalizePost(rawValue: unknown, origin: string): Post {
   const raw = (rawValue || {}) as DanbooruRawPost;
   const variants = Array.isArray(raw.media_asset?.variants) ? raw.media_asset.variants : [];
-  const fileUrl = absoluteUrl(raw.file_url || findVariantUrl(variants, ['original', 'file']), origin);
+  const fileUrl = absoluteUrl(
+    raw.file_url || findVariantUrl(variants, ['original', 'file']),
+    origin,
+  );
   const largeUrl = absoluteUrl(
     raw.large_file_url || findVariantUrl(variants, ['large', 'sample', '720x720']),
     origin,
   );
   const sampleUrl = absoluteUrl(
-    raw.sample_file_url || raw.sample_url || findVariantUrl(variants, ['sample', 'large', '720x720']),
+    raw.sample_file_url ||
+      raw.sample_url ||
+      findVariantUrl(variants, ['sample', 'large', '720x720']),
     origin,
   );
   const previewUrl = absoluteUrl(
@@ -20,14 +28,43 @@ export function normalizePost(rawValue: unknown, origin: string): Post {
       findVariantUrl(variants, ['preview', '360x360', '180x180', 'small']),
     origin,
   );
+  const thumbnailUrl = absoluteUrl(
+    findVariantUrl(variants, ['720x720', '360x360', '180x180'], IMAGE_EXTENSIONS) ||
+      firstUrlWithExtension(
+        [
+          raw.preview_file_url,
+          raw.preview_url,
+          raw.sample_file_url,
+          raw.sample_url,
+          raw.large_file_url,
+        ],
+        IMAGE_EXTENSIONS,
+      ),
+    origin,
+  );
   const width = Number(raw.image_width || raw.width || raw.media_asset?.image_width || 0);
   const height = Number(raw.image_height || raw.height || raw.media_asset?.image_height || 0);
   const fileExt = String(raw.file_ext || extensionFromUrl(fileUrl) || '').toLowerCase();
-  const isVideo = fileExt === 'mp4' || fileExt === 'webm' || /\.(mp4|webm)(\?|$)/i.test(fileUrl);
-  const listUrl = isVideo
-    ? previewUrl || sampleUrl || largeUrl || fileUrl
-    : sampleUrl || largeUrl || previewUrl || fileUrl;
-  const viewerUrl = fileUrl || largeUrl || sampleUrl || previewUrl;
+  const isUgoira = fileExt === 'zip';
+  const playbackUrl = VIDEO_EXTENSIONS.has(fileExt)
+    ? fileUrl
+    : absoluteUrl(
+        findVariantUrl(variants, ['sample', '720x720'], VIDEO_EXTENSIONS) ||
+          firstUrlWithExtension(
+            [raw.sample_file_url, raw.sample_url, raw.large_file_url],
+            VIDEO_EXTENSIONS,
+          ),
+        origin,
+      );
+  const isVideo = Boolean(playbackUrl);
+  const listUrl =
+    thumbnailUrl ||
+    previewUrl ||
+    firstUrlWithExtension([sampleUrl, largeUrl, fileUrl], IMAGE_EXTENSIONS);
+  const viewerUrl =
+    firstUrlWithExtension([sampleUrl, largeUrl, fileUrl], IMAGE_EXTENSIONS) ||
+    thumbnailUrl ||
+    previewUrl;
 
   return {
     id: String(raw.id ?? ''),
@@ -36,6 +73,8 @@ export function normalizePost(rawValue: unknown, origin: string): Post {
     largeUrl,
     sampleUrl,
     previewUrl,
+    thumbnailUrl,
+    playbackUrl,
     listUrl,
     viewerUrl,
     width,
@@ -48,9 +87,13 @@ export function normalizePost(rawValue: unknown, origin: string): Post {
     source: normalizeSource(raw, origin),
     fileExt,
     isVideo,
+    isUgoira,
     favorited: isPostFavorited(raw),
     available:
-      !raw.is_deleted && !raw.is_banned && Boolean(raw.id) && Boolean(fileUrl || largeUrl || sampleUrl || previewUrl),
+      !raw.is_deleted &&
+      !raw.is_banned &&
+      Boolean(raw.id) &&
+      Boolean(fileUrl || largeUrl || sampleUrl || previewUrl),
   };
 }
 
@@ -94,12 +137,16 @@ function normalizeTagGroups(raw: DanbooruRawPost): TagGroups {
 function findVariantUrl(
   variants: NonNullable<DanbooruRawPost['media_asset']>['variants'],
   names: string[],
+  extensions?: Set<string>,
 ): string {
   if (!variants) return '';
   for (const name of names) {
     const variant = variants.find((item) => {
       const type = String(item.type || item.name || item.variant || '').toLowerCase();
-      return type === name || type.includes(name);
+      return (
+        (type === name || type.includes(name)) &&
+        (!extensions || extensions.has(variantExtension(item)))
+      );
     });
     if (variant?.url) return variant.url;
   }
@@ -111,7 +158,7 @@ function extensionFromUrl(url: string): string {
     const pathname = new URL(url).pathname;
     return pathname.split('.').pop() || '';
   } catch {
-    return url.split('?')[0]?.split('.').pop() || '';
+    return url.split(/[?#]/)[0]?.split('.').pop() || '';
   }
 }
 
@@ -174,14 +221,31 @@ function normalizeKnownSourceUrl(source: string): string {
   return '';
 }
 
+function variantExtension(
+  variant: NonNullable<NonNullable<DanbooruRawPost['media_asset']>['variants']>[number],
+): string {
+  return String(variant.file_ext || extensionFromUrl(variant.url || '')).toLowerCase();
+}
+
+function firstUrlWithExtension(
+  urls: Array<string | null | undefined>,
+  extensions: Set<string>,
+): string {
+  return (
+    urls.find(
+      (url) => Boolean(url) && extensions.has(extensionFromUrl(String(url)).toLowerCase()),
+    ) || ''
+  );
+}
+
 function isPostFavorited(raw: DanbooruRawPost): boolean {
   return Boolean(
     raw.is_favorited ||
-      raw.is_favorited_by_current_user ||
-      raw.is_favorited_by_user ||
-      raw.favorited ||
-      raw.has_favorite ||
-      raw.current_user_favorite ||
-      raw.favorite_id,
+    raw.is_favorited_by_current_user ||
+    raw.is_favorited_by_user ||
+    raw.favorited ||
+    raw.has_favorite ||
+    raw.current_user_favorite ||
+    raw.favorite_id,
   );
 }

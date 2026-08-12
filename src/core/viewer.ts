@@ -22,15 +22,17 @@ export function showViewer(state: AppState, index: number): void {
   if (!viewer || !img || !video || !loading || !info) return;
 
   setZoomMode(state, false);
-  if (post.isVideo) {
+  if (post.playbackUrl) {
     hideImageLoading(loading);
     img.hidden = true;
     img.src = '';
     video.hidden = false;
-    video.poster = post.previewUrl || '';
-    video.src = post.viewerUrl || post.fileUrl || '';
+    video.poster = post.thumbnailUrl || post.previewUrl || '';
+    video.src = post.playbackUrl;
     video.load();
-    void video.play().catch((error) => console.warn('[Danbooru Masonry] video autoplay failed:', error));
+    void video
+      .play()
+      .catch((error) => console.warn('[Danbooru Masonry] video autoplay failed:', error));
   } else {
     video.pause();
     video.hidden = true;
@@ -70,7 +72,8 @@ export function showViewer(state: AppState, index: number): void {
     fullImage.onload = showIfCurrentImage;
     fullImage.onerror = showErrorIfCurrentImage;
     fullImage.src = imageUrl;
-    if (fullImage.complete && fullImage.naturalWidth) window.requestAnimationFrame(showIfCurrentImage);
+    if (fullImage.complete && fullImage.naturalWidth)
+      window.requestAnimationFrame(showIfCurrentImage);
   }
 
   info.innerHTML = renderViewerInfo(state, post);
@@ -302,7 +305,8 @@ export function onViewerKeydown(state: AppState, event: KeyboardEvent): void {
   if (event.key === 'Escape') closeViewer(state);
   if (event.key === 'ArrowLeft') void showAdjacentViewerPost(state, -1);
   if (event.key === 'ArrowRight') void showAdjacentViewerPost(state, 1);
-  if (event.key.toLowerCase() === 'e' && !state.posts[state.viewerIndex]?.isVideo) toggleZoomMode(state);
+  if (event.key.toLowerCase() === 'e' && !state.posts[state.viewerIndex]?.isVideo)
+    toggleZoomMode(state);
 }
 
 function updateViewerChromeVisibility(state: AppState): void {
@@ -447,15 +451,14 @@ function showImageError(loading: HTMLElement): void {
 
 function getViewerPlaceholderUrl(post: Post, imageUrl: string): string {
   return (
-    [post.sampleUrl, post.largeUrl, post.listUrl, post.previewUrl].find(
-      (url) => url && url !== imageUrl,
-    ) || ''
+    [post.thumbnailUrl, post.previewUrl, post.listUrl].find((url) => url && url !== imageUrl) || ''
   );
 }
 
 function getViewerImageUrl(state: AppState, post: Post): string {
-  if (state.viewerUseOriginal) return post.viewerUrl || post.fileUrl || post.sampleUrl || post.previewUrl || '';
-  return post.sampleUrl || post.largeUrl || post.listUrl || post.previewUrl || post.viewerUrl || post.fileUrl || '';
+  if (state.viewerUseOriginal && !post.isUgoira)
+    return post.fileUrl || post.thumbnailUrl || post.previewUrl || '';
+  return post.viewerUrl || post.thumbnailUrl || post.previewUrl || post.listUrl || '';
 }
 
 interface DownloadFilenameContext {
@@ -485,7 +488,9 @@ function buildDownloadFilenameContext(post: Post): DownloadFilenameContext {
   const sourceUrl = parseUrl(source);
   const normalizedSourceUrl = parseUrl(post.source || source);
   const extension = sanitizeFilenamePart(post.fileExt || extensionFromUrl(post.fileUrl) || 'jpg');
-  const artist = sanitizeFilenamePart(firstTag(raw.tag_string_artist) || post.tagGroups.artist[0] || 'unknown');
+  const artist = sanitizeFilenamePart(
+    firstTag(raw.tag_string_artist) || post.tagGroups.artist[0] || 'unknown',
+  );
   const baseContext = createBaseFilenameContext(post, artist, extension, sourceUrl);
   const pixivId = String(raw.pixiv_id || extractPixivId(sourceUrl, source) || '').trim();
 
@@ -528,13 +533,19 @@ function buildDownloadFilenameContext(post: Post): DownloadFilenameContext {
   }
 
   if (sourceUrl && isTwitterSource(sourceUrl)) {
-    const author = sanitizeFilenamePart(sourceUrl.pathname.split('/').filter(Boolean)[0] || 'unknown');
-    const id = sanitizeFilenamePart(extractTwitterStatusId(sourceUrl) || extractSourceId(sourceUrl) || post.id);
+    const author = sanitizeFilenamePart(
+      sourceUrl.pathname.split('/').filter(Boolean)[0] || 'unknown',
+    );
+    const id = sanitizeFilenamePart(
+      extractTwitterStatusId(sourceUrl) || extractSourceId(sourceUrl) || post.id,
+    );
     return { ...baseContext, platform: 'twitter', username: author, id };
   }
 
   if (sourceUrl && isBilibiliSource(sourceUrl)) {
-    const id = sanitizeFilenamePart(extractBilibiliId(sourceUrl) || extractSourceId(sourceUrl) || post.id);
+    const id = sanitizeFilenamePart(
+      extractBilibiliId(sourceUrl) || extractSourceId(sourceUrl) || post.id,
+    );
     return { ...baseContext, platform: 'bilibili', id };
   }
 
@@ -554,14 +565,16 @@ function firstTag(value: unknown): string {
 }
 
 function sanitizeFilenamePart(value: string): string {
-  return value
-    .trim()
-    .replace(/[<>:"/\\|?*]+/g, '_')
-    .replace(/[\n\r\t]+/g, '_')
-    .replace(/\s+/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .slice(0, 120) || 'unknown';
+  return (
+    value
+      .trim()
+      .replace(/[<>:"/\\|?*]+/g, '_')
+      .replace(/[\n\r\t]+/g, '_')
+      .replace(/\s+/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 120) || 'unknown'
+  );
 }
 
 function sanitizeFilename(value: string): string {
@@ -584,7 +597,9 @@ function createBaseFilenameContext(
   sourceUrl: URL | null,
 ): DownloadFilenameContext {
   const original = sanitizeFilenamePart(
-    stripExtension((sourceUrl && lastPathSegment(sourceUrl)) || lastPathSegmentFromUrl(post.fileUrl) || post.id),
+    stripExtension(
+      (sourceUrl && lastPathSegment(sourceUrl)) || lastPathSegmentFromUrl(post.fileUrl) || post.id,
+    ),
   );
   return {
     platform: 'danbooru',
@@ -598,7 +613,10 @@ function createBaseFilenameContext(
   };
 }
 
-function renderDownloadFilenameTemplate(template: string, context: DownloadFilenameContext): string {
+function renderDownloadFilenameTemplate(
+  template: string,
+  context: DownloadFilenameContext,
+): string {
   const rendered = template.replace(/\{([a-zA-Z]+)\}/g, (_, key: string) => {
     if (!(key in context)) return '';
     return sanitizeFilenameToken(String(context[key as keyof DownloadFilenameContext] ?? ''));
@@ -695,11 +713,17 @@ function extractFantiaId(url: URL): string {
 
 function isPatreonSource(url: URL): boolean {
   const host = url.hostname.toLowerCase();
-  return host === 'patreon.com' || host.endsWith('.patreon.com') || host.endsWith('patreonusercontent.com');
+  return (
+    host === 'patreon.com' ||
+    host.endsWith('.patreon.com') ||
+    host.endsWith('patreonusercontent.com')
+  );
 }
 
 function extractPatreonId(url: URL): string {
-  return url.pathname.match(/\/posts\/(\d+)/)?.[1] || url.pathname.match(/\/post\/(\d+)\//)?.[1] || '';
+  return (
+    url.pathname.match(/\/posts\/(\d+)/)?.[1] || url.pathname.match(/\/post\/(\d+)\//)?.[1] || ''
+  );
 }
 
 function isWeiboSource(url: URL): boolean {
@@ -717,7 +741,12 @@ function extractWeiboId(url: URL): string {
 
 function isTwitterSource(url: URL): boolean {
   const host = url.hostname.toLowerCase();
-  return host === 'x.com' || host === 'twitter.com' || host.endsWith('.twitter.com') || host.endsWith('.x.com');
+  return (
+    host === 'x.com' ||
+    host === 'twitter.com' ||
+    host.endsWith('.twitter.com') ||
+    host.endsWith('.x.com')
+  );
 }
 
 function extractTwitterStatusId(url: URL): string {
