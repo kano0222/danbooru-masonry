@@ -1,7 +1,15 @@
+import type { BlacklistConfig } from '../core/blacklist';
+
 export interface GetPostsParams {
   tags: string;
   page: number;
   pageUrlSearch?: string;
+  blacklist: BlacklistConfig;
+}
+
+export interface GetPostsResult {
+  posts: Post[];
+  hasSourcePosts: boolean;
 }
 
 export interface AutocompleteItem {
@@ -48,7 +56,7 @@ export interface BooruAdapter {
   siteName: string;
   origin: string;
   isMatch(location: Location): boolean;
-  getPosts(params: GetPostsParams): Promise<Post[]>;
+  getPosts(params: GetPostsParams): Promise<GetPostsResult>;
   getAutocomplete(query: string): Promise<AutocompleteItem[]>;
   createFavorite(postId: string): Promise<void>;
   deleteFavorite(postId: string): Promise<void>;

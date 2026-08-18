@@ -16,7 +16,7 @@
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- 瀑布流支持最短列布局、下拉加载和窗口变化自动重排。顶部工具栏提供标签搜索、页码跳转、方向键翻页和标签自动补全。
+- 瀑布流支持最短列布局、下拉加载和窗口变化自动重排。顶部工具栏提供标签搜索、页码跳转、方向键翻页和标签自动补全。瀑布流会遵循进入模式时的 Danbooru 黑名单设置。
 
 - 鼠标移到缩略图上会显示danbooru的图片ID和图片尺寸，提供打开来源和下载按钮。可以在设置中控制是否显示和修改瀑布流图片大小。
 
@@ -61,6 +61,7 @@
 
 ## 注意事项
 
+- 黑名单使用进入瀑布流时的规则快照，修改 Danbooru 黑名单后需要退出并重新进入瀑布流。当前支持正负标签、`*` 通配符以及 `rating`、`score`、`status` 常用元标签；无法解析的规则不会隐藏帖子。
 - Danbooru API 请求使用同源 cookie 和 `Accept: application/json`。如果返回 HTML，通常代表未登录、权限不足、被重定向、Cloudflare/站点拦截，或接口行为变化。
 - 收藏状态通过当前登录用户的 favorites 查询结果判断。
 - 收藏操作依赖官方页面中的 `meta[name="csrf-token"]`、同源登录 cookie 和页面上的当前用户数据。失败时会显示 `收藏失败: ...`。

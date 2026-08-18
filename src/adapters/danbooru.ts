@@ -3,7 +3,13 @@ import { createFavorite, deleteFavorite, isPostFavorited } from '../api/favorite
 import { fetchPostsJson } from '../api/posts';
 import { normalizePost as normalizeDanbooruPost } from '../core/normalizePost';
 import { mergePostsUrl } from '../utils/url';
-import type { AutocompleteItem, BooruAdapter, GetPostsParams, Post } from './types';
+import type {
+  AutocompleteItem,
+  BooruAdapter,
+  GetPostsParams,
+  GetPostsResult,
+  Post,
+} from './types';
 
 export class DanbooruAdapter implements BooruAdapter {
   siteName = 'Danbooru';
@@ -17,7 +23,7 @@ export class DanbooruAdapter implements BooruAdapter {
     );
   }
 
-  getPosts(params: GetPostsParams): Promise<Post[]> {
+  getPosts(params: GetPostsParams): Promise<GetPostsResult> {
     return fetchPostsJson(this.origin, params, (raw) => this.normalizePost(raw));
   }
 

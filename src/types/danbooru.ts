@@ -24,6 +24,8 @@ export interface DanbooruRawPost {
   pixiv_id?: number | string | null;
   is_deleted?: boolean | null;
   is_banned?: boolean | null;
+  is_pending?: boolean | null;
+  is_flagged?: boolean | null;
   is_favorited?: boolean | null;
   is_favorited_by_current_user?: boolean | null;
   is_favorited_by_user?: boolean | null;

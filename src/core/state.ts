@@ -1,6 +1,7 @@
 import type { BooruAdapter, Post } from '../adapters/types';
 import { CARD_SIZE_OPTIONS, CARD_WIDTH } from './masonry';
 import { TagTranslationStore } from '../data/tagTranslation';
+import type { BlacklistConfig } from './blacklist';
 
 const CARD_SIZE_STORAGE_KEY = 'danbooru-masonry.cardSize';
 const VIEWER_USE_ORIGINAL_STORAGE_KEY = 'danbooru-masonry.viewerUseOriginal';
@@ -33,6 +34,7 @@ export interface AppState {
   page: number;
   tags: string;
   posts: Post[];
+  blacklist: BlacklistConfig;
   loading: boolean;
   done: boolean;
   started: boolean;
@@ -76,6 +78,7 @@ export function createState(adapter: BooruAdapter): AppState {
     page: getInitialPage(),
     tags: new URLSearchParams(location.search).get('tags') || '',
     posts: [],
+    blacklist: { enabled: false, rules: [] },
     loading: false,
     done: false,
     started: false,

@@ -55,12 +55,12 @@ export function shouldFillViewport(): boolean {
   return document.documentElement.scrollHeight <= window.innerHeight + LOAD_OFFSET_PX;
 }
 
-function findShortestColumn(columnHeights: number[]): number {
-  let shortestIndex = 0;
-  for (let index = 1; index < columnHeights.length; index += 1) {
-    if (columnHeights[index] < columnHeights[shortestIndex]) shortestIndex = index;
-  }
-  return shortestIndex;
+export function findShortestColumn(
+  columnHeights: number[],
+  tieTolerance = CARD_GAP,
+): number {
+  const shortestHeight = Math.min(...columnHeights);
+  return columnHeights.findIndex((height) => height <= shortestHeight + tieTolerance);
 }
 
 function getCardHeight(width: number, height: number, cardWidth: number): number {

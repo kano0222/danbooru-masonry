@@ -28,6 +28,7 @@ import {
   shouldLoadMore,
 } from './core/masonry';
 import { resetSearch } from './core/search';
+import { captureBlacklistConfig } from './core/blacklist';
 import { installShortcuts } from './core/shortcuts';
 import {
   closeViewer,
@@ -67,6 +68,7 @@ async function startMasonry(state: AppState): Promise<void> {
 
   try {
     await state.translations.load();
+    state.blacklist = captureBlacklistConfig(document);
     installStyles();
     renderShell(state);
     bindShellEvents(state);
@@ -239,25 +241,33 @@ async function loadNextPage(state: AppState): Promise<void> {
 
   try {
     const page = state.page;
-    const posts = await state.adapter.getPosts({
-      tags: state.tags,
-      page,
-      pageUrlSearch: location.search,
-    });
-    if (requestToken !== state.requestToken) return;
-    if (!posts.length) {
-      state.done = true;
-      setText('dmh-status', `已加载 ${state.posts.length} 张`);
-      setText('dmh-message', state.posts.length ? '下面没有了...' : 'No posts found.');
-      return;
+    let loadedPage = page;
+    let posts = [] as AppState['posts'];
+    while (true) {
+      const result = await state.adapter.getPosts({
+        tags: state.tags,
+        page: loadedPage,
+        pageUrlSearch: location.search,
+        blacklist: state.blacklist,
+      });
+      if (requestToken !== state.requestToken) return;
+      if (!result.hasSourcePosts) {
+        state.done = true;
+        setText('dmh-status', `已加载 ${state.posts.length} 张`);
+        setText('dmh-message', state.posts.length ? '下面没有了...' : 'No posts found.');
+        return;
+      }
+      posts = result.posts;
+      if (posts.length) break;
+      loadedPage += 1;
     }
     const startIndex = state.posts.length;
     state.posts.push(...posts);
     renderPosts(state, posts, startIndex, (index) => showViewer(state, index));
     layoutMasonry(state);
-    state.page = page + 1;
-    setPageInputValue(page);
-    updatePageParam(state, page);
+    state.page = loadedPage + 1;
+    setPageInputValue(loadedPage);
+    updatePageParam(state, loadedPage);
     setText('dmh-status', `已加载 ${state.posts.length} 张`);
   } catch (error) {
     if (requestToken !== state.requestToken) return;

@@ -18,7 +18,7 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout on viewport changes. The top toolbar provides tag search, page jumping, arrow-key page navigation, and tag autocomplete.
+- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout on viewport changes. The top toolbar provides tag search, page jumping, arrow-key page navigation, and tag autocomplete. Masonry mode follows the Danbooru blacklist settings captured when the mode starts.
 
 - Hovering over a thumbnail shows the Danbooru image ID and image size. Thumbnails also provide source and download buttons. The settings panel can control thumbnail display behavior and masonry image size.
 
@@ -63,6 +63,7 @@ If the script does not run on the domain you use, you can add the site URL to *U
 
 ## Notes
 
+- The blacklist is captured when masonry mode starts. Exit and re-enter masonry mode after changing Danbooru blacklist settings. Positive and negative tags, `*` wildcards, and the common `rating`, `score`, and `status` metatags are supported; rules that cannot be parsed do not hide posts.
 - Danbooru API requests use same-origin cookies and `Accept: application/json`. If HTML is returned, it usually means login, permission, redirect, Cloudflare/site interception, or API behavior has changed.
 - Favorite state is determined by querying favorites for the current logged-in user.
 - Favorite actions depend on the official page's `meta[name="csrf-token"]`, same-origin login cookie, and current user data on the page. Failures are shown as `收藏失败: ...`.
