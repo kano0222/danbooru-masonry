@@ -1,5 +1,4 @@
 import type { GetPostsParams, GetPostsResult, Post } from '../adapters/types';
-import { isPostBlacklisted } from '../core/blacklist';
 import { fetchJson } from '../utils/fetch';
 
 export async function fetchPostsJson(
@@ -16,9 +15,7 @@ export async function fetchPostsJson(
   const data = await fetchJson<unknown[]>(url.toString(), {}, 'posts.json');
   const rawPosts = Array.isArray(data) ? data : [];
   return {
-    posts: rawPosts
-      .map(normalize)
-      .filter((post) => post.available && !isPostBlacklisted(post, params.blacklist)),
+    posts: rawPosts.map(normalize).filter((post) => post.available),
     hasSourcePosts: rawPosts.length > 0,
   };
 }

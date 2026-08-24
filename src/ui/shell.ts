@@ -1,10 +1,14 @@
 import { icons } from './icons';
-import { escapeAttr } from '../utils/escape';
+import { escapeAttr, escapeHtml } from '../utils/escape';
 import { DOWNLOAD_FILENAME_TEMPLATE_OPTIONS, type AppState } from '../core/state';
 import { CARD_SIZE_OPTIONS } from '../core/masonry';
 
 export function renderShell(state: AppState): void {
   document.title = 'Danbooru Masonry';
+  const canSaveBlacklist = Boolean(
+    document.body.dataset.currentUserId &&
+      document.body.dataset.currentUserIsAnonymous !== 'true',
+  );
   const cardSize = CARD_SIZE_OPTIONS.find((option) => option.value === state.cardWidth)?.key || 'medium';
   const cardSizeOptions = CARD_SIZE_OPTIONS.map(
     (option) =>
@@ -99,6 +103,17 @@ ${cardSizeOptions}
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-stack">
+              <label class="dmh-setting-label" for="dmh-blacklist-rules">Danbooru 黑名单</label>
+              <textarea class="dmh-blacklist-rules" id="dmh-blacklist-rules" rows="7" spellcheck="false" ${canSaveBlacklist ? '' : 'readonly'}>${escapeHtml(state.blacklistText)}</textarea>
+              <div class="dmh-setting-help">每行一条规则。保存后会同步到 Danbooru 账号，并立即更新当前瀑布流。</div>
+              <div class="dmh-blacklist-actions">
+                <span class="dmh-blacklist-status" id="dmh-blacklist-status" role="status">${canSaveBlacklist ? '' : '登录 Danbooru 后可修改'}</span>
+                <button class="dmh-blacklist-save" id="dmh-blacklist-save" type="button" ${canSaveBlacklist ? '' : 'disabled'}>保存规则</button>
+              </div>
+            </div>
+          </section>
+          <section class="dmh-setting-section">
+            <div class="dmh-setting-stack">
               <span class="dmh-setting-label">下载文件名格式</span>
               <div class="dmh-download-template-list">
 ${downloadFilenameTemplateInputs}
@@ -111,6 +126,7 @@ ${downloadFilenameTemplateInputs}
                 <div><code>{id}</code> 来源作品 ID，缺失时回退到 Danbooru ID</div>
                 <div><code>{postid}</code> Danbooru ID</div>
                 <div><code>{ext}</code> 文件后缀</div>
+                <div>修改后及时生效，不需要保存</div>
               </div>
             </div>
           </section>

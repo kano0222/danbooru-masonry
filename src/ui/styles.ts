@@ -77,6 +77,18 @@ export function installStyles(): void {
     .dmh-settings-close svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
     .dmh-settings-content { display: flex; flex-direction: column; gap: 22px; height: calc(100% - 56px); padding: 20px 18px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
     .dmh-settings-content::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    .dmh-blacklist-rules { box-sizing: border-box; width: 100%; min-height: 132px; resize: vertical; padding: 9px 10px; border: 1px solid #afb8c1; border-radius: 6px; background: #fff; color: #24292f; font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .dmh-blacklist-rules:focus { border-color: #0969da; outline: 2px solid rgba(9,105,218,.18); }
+    .dmh-blacklist-rules[readonly] { background: #f6f8fa; color: #57606a; }
+    .dmh-setting-help { color: #57606a; font-size: 12px; line-height: 1.45; }
+    .dmh-blacklist-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .dmh-blacklist-status { min-width: 0; color: #57606a; font-size: 12px; line-height: 1.35; }
+    .dmh-blacklist-status.dmh-error { color: #cf222e; }
+    #dmh-app .dmh-blacklist-save { flex: 0 0 auto; min-height: 32px; padding: 0 12px; border: 1px solid #0969da; border-radius: 6px; background: #0969da; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: none; transition: background .16s ease, border-color .16s ease; }
+    #dmh-app .dmh-blacklist-save:hover { border-color: #075bbd; background: #075bbd; color: #fff; }
+    #dmh-app .dmh-blacklist-save:active { border-color: #054da2; background: #054da2; }
+    #dmh-app .dmh-blacklist-save:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
+    #dmh-app .dmh-blacklist-save:disabled, #dmh-app .dmh-blacklist-save:disabled:hover { border-color: #0969da; background: #0969da; color: #fff; opacity: .6; cursor: default; }
     .dmh-setting-section { display: flex; flex-direction: column; gap: 10px; }
     .dmh-setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; }
     .dmh-setting-stack { display: flex; flex-direction: column; gap: 10px; }

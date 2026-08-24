@@ -24,16 +24,29 @@ export interface BlacklistRuleInput {
   enabled: boolean;
 }
 
+export interface CapturedBlacklist {
+  config: BlacklistConfig;
+  text: string;
+}
+
 export function captureBlacklistConfig(root: Document): BlacklistConfig {
+  return captureBlacklist(root).config;
+}
+
+export function captureBlacklist(root: Document): CapturedBlacklist {
   const box = root.querySelector<HTMLElement>('#blacklist-box');
-  if (!box) return { enabled: false, rules: [] };
+  if (!box) return { config: { enabled: false, rules: [] }, text: '' };
 
   const enabledInput = box.querySelector<HTMLInputElement>('input[x-model="blacklist.enabled"]');
   const blurInput = box.querySelector<HTMLInputElement>('input[x-model="blacklist.blurImages"]');
   const enabled = Boolean(enabledInput && (enabledInput.checked || enabledInput.indeterminate));
-  const ruleInputs = Array.from(
+  const rows = Array.from(
     box.querySelectorAll<HTMLElement>('[x-data*="blacklist.rules"]'),
-  ).map((row) => {
+  );
+  const sources = rows
+    .map((row) => row.querySelector<HTMLAnchorElement>('a[title]')?.title.trim() || '')
+    .filter(Boolean);
+  const ruleInputs = rows.map((row) => {
       const input = row.querySelector<HTMLInputElement>('input[type="checkbox"]');
       return {
         source: row.querySelector<HTMLAnchorElement>('a[title]')?.title.trim() || '',
@@ -41,7 +54,34 @@ export function captureBlacklistConfig(root: Document): BlacklistConfig {
       };
     });
 
-  return createBlacklistConfig(enabled, Boolean(blurInput?.checked), ruleInputs);
+  return {
+    config: createBlacklistConfig(enabled, Boolean(blurInput?.checked), ruleInputs),
+    text: sources.join('\n'),
+  };
+}
+
+export function createBlacklistConfigFromText(
+  text: string,
+  storage: Storage | null = getLocalStorage(),
+): BlacklistConfig {
+  const sources = blacklistSources(text);
+  const ruleInputs = sources.map((source) => ({
+    source,
+    enabled: readStoredValue(storage, `blacklist.enabled:${source}`, true),
+  }));
+  const blurImages = sources.some(
+    (source) =>
+      readStoredValue<string>(storage, `blacklist.hideMethod:${source}`, 'hide') === 'blur',
+  );
+  return createBlacklistConfig(ruleInputs.some((rule) => rule.enabled), blurImages, ruleInputs);
+}
+
+export function normalizeBlacklistText(text: string): string {
+  return blacklistSources(text).join('\n');
+}
+
+export function filterBlacklistedPosts(posts: Post[], config: BlacklistConfig): Post[] {
+  return posts.filter((post) => !isPostBlacklisted(post, config));
 }
 
 export function createBlacklistConfig(
@@ -145,4 +185,28 @@ function postHasStatus(raw: DanbooruRawPost, status: PostStatus): boolean {
 
 function isPostStatus(value: string): value is PostStatus {
   return ['deleted', 'pending', 'flagged', 'banned', 'active'].includes(value);
+}
+
+function blacklistSources(text: string): string[] {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function getLocalStorage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function readStoredValue<T>(storage: Storage | null, key: string, fallback: T): T {
+  try {
+    const value = storage?.getItem(key);
+    return value === null || value === undefined ? fallback : (JSON.parse(value) as T);
+  } catch {
+    return fallback;
+  }
 }

@@ -31,6 +31,7 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
   - Thumbnail info hidden by default
   - Wheel navigation
   - Use original file in viewer
+  - Danbooru blacklist rule editing and account synchronization
   - Per-source download filename templates
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
@@ -63,7 +64,7 @@ If the script does not run on the domain you use, you can add the site URL to *U
 
 ## Notes
 
-- The blacklist is captured when masonry mode starts. Exit and re-enter masonry mode after changing Danbooru blacklist settings. Positive and negative tags, `*` wildcards, and the common `rating`, `score`, and `status` metatags are supported; rules that cannot be parsed do not hide posts.
+- Logged-in users can edit Danbooru blacklist rules from the masonry settings panel. A successful save updates the account and immediately re-filters loaded posts. Positive and negative tags, `*` wildcards, and the common `rating`, `score`, and `status` metatags are supported; unsupported rules are still saved to Danbooru but do not hide posts in masonry mode.
 - Danbooru API requests use same-origin cookies and `Accept: application/json`. If HTML is returned, it usually means login, permission, redirect, Cloudflare/site interception, or API behavior has changed.
 - Favorite state is determined by querying favorites for the current logged-in user.
 - Favorite actions depend on the official page's `meta[name="csrf-token"]`, same-origin login cookie, and current user data on the page. Failures are shown as `收藏失败: ...`.

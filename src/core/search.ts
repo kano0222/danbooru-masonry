@@ -5,6 +5,7 @@ export function resetSearch(state: AppState, tags: string, page = 1): void {
   state.tags = tags.trim();
   state.page = page;
   state.posts = [];
+  state.sourcePosts = [];
   state.done = false;
   state.loading = false;
   state.viewerIndex = -1;

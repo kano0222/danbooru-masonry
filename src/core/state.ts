@@ -34,7 +34,10 @@ export interface AppState {
   page: number;
   tags: string;
   posts: Post[];
+  sourcePosts: Post[];
   blacklist: BlacklistConfig;
+  blacklistText: string;
+  blacklistSaving: boolean;
   loading: boolean;
   done: boolean;
   started: boolean;
@@ -78,7 +81,10 @@ export function createState(adapter: BooruAdapter): AppState {
     page: getInitialPage(),
     tags: new URLSearchParams(location.search).get('tags') || '',
     posts: [],
+    sourcePosts: [],
     blacklist: { enabled: false, rules: [] },
+    blacklistText: '',
+    blacklistSaving: false,
     loading: false,
     done: false,
     started: false,

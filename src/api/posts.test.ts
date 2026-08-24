@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Post } from '../adapters/types';
-import { createBlacklistConfig } from '../core/blacklist';
 import { normalizePost } from '../core/normalizePost';
 import { fetchPostsJson } from './posts';
 
@@ -22,7 +21,7 @@ function normalize(raw: unknown): Post {
 describe('posts API', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it('uses one JSON request and filters unavailable and blacklisted posts', async () => {
+  it('uses one JSON request and keeps available posts for render-time filtering', async () => {
     const rawPosts = Array.from({ length: 9 }, (_, index) => ({
       id: index + 1,
       file_url: index < 7 ? `https://cdn.donmai.us/original/${index + 1}.jpg` : undefined,
@@ -35,15 +34,24 @@ describe('posts API', () => {
       }),
     );
     vi.stubGlobal('fetch', fetchMock);
-    const blacklist = createBlacklistConfig(true, false, [{ source: 'scat', enabled: true }]);
-
     await expect(
       fetchPostsJson(
         origin,
-        { tags: 'oooesonitn', page: 1, pageUrlSearch: '?z=5', blacklist },
+        { tags: 'oooesonitn', page: 1, pageUrlSearch: '?z=5' },
         (raw) => normalizePost(raw, origin),
       ),
-    ).resolves.toMatchObject({ posts: [{ id: '3' }, { id: '4' }, { id: '5' }, { id: '6' }, { id: '7' }], hasSourcePosts: true });
+    ).resolves.toMatchObject({
+      posts: [
+        { id: '1' },
+        { id: '2' },
+        { id: '3' },
+        { id: '4' },
+        { id: '5' },
+        { id: '6' },
+        { id: '7' },
+      ],
+      hasSourcePosts: true,
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -63,13 +71,11 @@ describe('posts API', () => {
         }),
       );
     vi.stubGlobal('fetch', fetchMock);
-    const blacklist = createBlacklistConfig(false, false, []);
-
     await expect(
-      fetchPostsJson(origin, { tags: '', page: 1, blacklist }, normalize),
+      fetchPostsJson(origin, { tags: '', page: 1 }, normalize),
     ).resolves.toEqual({ posts: [], hasSourcePosts: true });
     await expect(
-      fetchPostsJson(origin, { tags: '', page: 2, blacklist }, normalize),
+      fetchPostsJson(origin, { tags: '', page: 2 }, normalize),
     ).resolves.toEqual({ posts: [], hasSourcePosts: false });
   });
 });

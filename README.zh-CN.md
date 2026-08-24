@@ -29,6 +29,7 @@
   - 缩略图信息默认关闭
   - 滚动切图
   - 详情使用原图
+  - Danbooru 黑名单规则编辑与账号同步
   - 各来源下载文件名模板
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
@@ -61,7 +62,7 @@
 
 ## 注意事项
 
-- 黑名单使用进入瀑布流时的规则快照，修改 Danbooru 黑名单后需要退出并重新进入瀑布流。当前支持正负标签、`*` 通配符以及 `rating`、`score`、`status` 常用元标签；无法解析的规则不会隐藏帖子。
+- 登录后可在瀑布流设置面板编辑 Danbooru 黑名单规则。保存成功后会同步到账号并立即重新过滤已加载帖子。当前支持正负标签、`*` 通配符以及 `rating`、`score`、`status` 常用元标签；无法解析的规则仍会保存到 Danbooru，但不会在瀑布流中隐藏帖子。
 - Danbooru API 请求使用同源 cookie 和 `Accept: application/json`。如果返回 HTML，通常代表未登录、权限不足、被重定向、Cloudflare/站点拦截，或接口行为变化。
 - 收藏状态通过当前登录用户的 favorites 查询结果判断。
 - 收藏操作依赖官方页面中的 `meta[name="csrf-token"]`、同源登录 cookie 和页面上的当前用户数据。失败时会显示 `收藏失败: ...`。

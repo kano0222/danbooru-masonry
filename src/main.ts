@@ -28,7 +28,13 @@ import {
   shouldLoadMore,
 } from './core/masonry';
 import { resetSearch } from './core/search';
-import { captureBlacklistConfig } from './core/blacklist';
+import {
+  captureBlacklist,
+  createBlacklistConfigFromText,
+  filterBlacklistedPosts,
+  normalizeBlacklistText,
+} from './core/blacklist';
+import { updateBlacklistedTags } from './api/userSettings';
 import { installShortcuts } from './core/shortcuts';
 import {
   closeViewer,
@@ -68,7 +74,9 @@ async function startMasonry(state: AppState): Promise<void> {
 
   try {
     await state.translations.load();
-    state.blacklist = captureBlacklistConfig(document);
+    const capturedBlacklist = captureBlacklist(document);
+    state.blacklist = capturedBlacklist.config;
+    state.blacklistText = capturedBlacklist.text;
     installStyles();
     renderShell(state);
     bindShellEvents(state);
@@ -99,6 +107,7 @@ function bindShellEvents(state: AppState): void {
   byId('dmh-settings-toggle')?.addEventListener('click', () => openSettingsPanel());
   byId('dmh-settings-overlay')?.addEventListener('click', () => closeSettingsPanel());
   byId('dmh-settings-close')?.addEventListener('click', () => closeSettingsPanel());
+  byId('dmh-blacklist-save')?.addEventListener('click', () => void saveBlacklist(state));
   byId<HTMLSelectElement>('dmh-card-size')?.addEventListener('change', (event) => {
     setCardSize(state, (event.currentTarget as HTMLSelectElement).value);
   });
@@ -248,7 +257,6 @@ async function loadNextPage(state: AppState): Promise<void> {
         tags: state.tags,
         page: loadedPage,
         pageUrlSearch: location.search,
-        blacklist: state.blacklist,
       });
       if (requestToken !== state.requestToken) return;
       if (!result.hasSourcePosts) {
@@ -257,7 +265,8 @@ async function loadNextPage(state: AppState): Promise<void> {
         setText('dmh-message', state.posts.length ? '下面没有了...' : 'No posts found.');
         return;
       }
-      posts = result.posts;
+      state.sourcePosts.push(...result.posts);
+      posts = filterBlacklistedPosts(result.posts, state.blacklist);
       if (posts.length) break;
       loadedPage += 1;
     }
@@ -279,6 +288,58 @@ async function loadNextPage(state: AppState): Promise<void> {
       state.loading = false;
     }
   }
+}
+
+async function saveBlacklist(state: AppState): Promise<void> {
+  if (state.blacklistSaving) return;
+  const input = byId<HTMLTextAreaElement>('dmh-blacklist-rules');
+  const button = byId<HTMLButtonElement>('dmh-blacklist-save');
+  const status = byId('dmh-blacklist-status');
+  const userId = currentUserId();
+  if (!input || !button || !status || !userId) return;
+
+  const text = normalizeBlacklistText(input.value);
+  state.blacklistSaving = true;
+  button.disabled = true;
+  status.classList.remove('dmh-error');
+  status.textContent = '保存中...';
+  try {
+    await updateBlacklistedTags(state.adapter.origin, userId, text);
+    state.blacklistText = text;
+    state.blacklist = createBlacklistConfigFromText(text);
+    input.value = text;
+    refreshPostsForBlacklist(state);
+    status.textContent = '已保存';
+  } catch (error) {
+    status.classList.add('dmh-error');
+    status.textContent = error instanceof Error ? error.message : String(error);
+  } finally {
+    state.blacklistSaving = false;
+    button.disabled = false;
+  }
+}
+
+function refreshPostsForBlacklist(state: AppState): void {
+  const viewerPostId = isViewerOpen() ? state.posts[state.viewerIndex]?.id || '' : '';
+  state.posts = filterBlacklistedPosts(state.sourcePosts, state.blacklist);
+  const grid = byId('dmh-grid');
+  if (grid) grid.innerHTML = '';
+  renderPosts(state, state.posts, 0, (index) => showViewer(state, index));
+  layoutMasonry(state);
+  setText('dmh-status', `已加载 ${state.posts.length} 张`);
+
+  if (!viewerPostId) return;
+  const viewerIndex = state.posts.findIndex((post) => post.id === viewerPostId);
+  if (viewerIndex < 0) {
+    closeViewer(state);
+  } else {
+    showViewer(state, viewerIndex);
+  }
+}
+
+function currentUserId(): string {
+  const userId = document.body.dataset.currentUserId || '';
+  return document.body.dataset.currentUserIsAnonymous === 'true' ? '' : userId;
 }
 
 function updatePageParam(state: AppState, page: number): void {

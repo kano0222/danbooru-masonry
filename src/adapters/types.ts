@@ -1,10 +1,7 @@
-import type { BlacklistConfig } from '../core/blacklist';
-
 export interface GetPostsParams {
   tags: string;
   page: number;
   pageUrlSearch?: string;
-  blacklist: BlacklistConfig;
 }
 
 export interface GetPostsResult {

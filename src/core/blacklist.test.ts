@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest';
 import type { Post } from '../adapters/types';
 import {
   createBlacklistConfig,
+  createBlacklistConfigFromText,
+  filterBlacklistedPosts,
   isPostBlacklisted,
+  normalizeBlacklistText,
   parseBlacklistRule,
 } from './blacklist';
 
@@ -64,5 +67,26 @@ describe('Danbooru blacklist', () => {
     const rule = [{ source: 'cat*', enabled: true }];
     expect(isPostBlacklisted(post(), createBlacklistConfig(false, false, rule))).toBe(false);
     expect(isPostBlacklisted(post(), createBlacklistConfig(true, true, rule))).toBe(false);
+  });
+
+  it('rebuilds saved rules from Danbooru local rule state', () => {
+    const values = new Map([
+      ['blacklist.enabled:cat*', 'false'],
+      ['blacklist.enabled:solo', 'true'],
+    ]);
+    const storage = { getItem: (key: string) => values.get(key) ?? null } as Storage;
+    const value = createBlacklistConfigFromText('cat*\nsolo', storage);
+    expect(value.rules.map((rule) => rule.source)).toEqual(['solo']);
+    expect(isPostBlacklisted(post(), value)).toBe(true);
+  });
+
+  it('normalizes account rules to one trimmed non-empty rule per line', () => {
+    expect(normalizeBlacklistText('  scat  \r\n\r\n guro ')).toBe('scat\nguro');
+  });
+
+  it('re-filters the same cached posts after rules change', () => {
+    const cached = [post({ id: '1', tags: ['scat'] }), post({ id: '2', tags: ['solo'] })];
+    expect(filterBlacklistedPosts(cached, config('scat')).map((item) => item.id)).toEqual(['2']);
+    expect(filterBlacklistedPosts(cached, config('solo')).map((item) => item.id)).toEqual(['1']);
   });
 });
