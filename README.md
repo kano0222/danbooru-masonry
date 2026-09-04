@@ -18,7 +18,7 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout on viewport changes. The top toolbar provides tag search, page jumping, arrow-key page navigation, and tag autocomplete. Masonry mode follows the Danbooru blacklist settings captured when the mode starts.
+- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout on viewport changes. The top toolbar provides tag search, page jumping, arrow-key page navigation, and tag autocomplete. A custom scrollbar on the right shows and adjusts the browsing position, while the lower-right button smoothly returns to the top. Masonry mode follows the Danbooru blacklist settings captured when the mode starts.Pulling down a certain height will display a "Back to Top" button.
 
 - Hovering over a thumbnail shows the Danbooru image ID and image size. Thumbnails also provide source and download buttons. The settings panel can control thumbnail display behavior and masonry image size.
 
@@ -26,15 +26,22 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
 
 - The settings panel supports:
 
-  - Masonry image size: small / medium / big
-  - Thumbnail buttons shown by default
-  - Thumbnail info hidden by default
-  - Wheel navigation
-  - Use original file in viewer
-  - Danbooru blacklist rule editing and account synchronization
-  - Per-source download filename templates
+  - Thumbnails
+    - Thumbnail size: small / medium / big
+    - Show thumbnail action buttons (enabled by default)
+    - Show thumbnail information (disabled by default)
+    - Show masonry scrollbar (enabled by default)
+    - Show back-to-top button (enabled by default)
+  - Viewer
+    - Use the mouse wheel to navigate images (enabled by default)
+    - Load original files (disabled by default)
+  - Other
+    - Danbooru blacklist rule editing and account synchronization
+    - Download filename templates
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
+
+![preview3.1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.1.png)
 
 - The immersive viewer supports image/video preview, previous/next navigation, wheel navigation, Esc close, original-size zoom, and drag-to-pan. Clicking a tag in the upper-left corner opens the corresponding search page. The upper-right buttons, from left to right, open the source link, favorite the post (requires Danbooru login), zoom, open the post detail page, download the original file with a source-aware filename, and exit.
 
@@ -53,6 +60,7 @@ Download filename templates support the following placeholders:
 - `{ext}`: file extension
 
 Templates are generated only from Danbooru API data and source URL parsing results. The script does not request Pixiv, Bilibili, Weibo, or other source pages for extra metadata.
+Templates cannot be empty and manual edits are saved when the field loses focus. **Restore defaults** opens a confirmation next to the button, then immediately restores and saves all default templates when confirmed.
 
 ### Mirror Site Support
 

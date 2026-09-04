@@ -18,7 +18,7 @@ export function renderShell(state: AppState): void {
     (option) => `
               <label class="dmh-download-template-row" for="dmh-download-template-${option.key}">
                 <span class="dmh-download-template-label">${option.label}</span>
-                <input class="dmh-download-template-input" id="dmh-download-template-${option.key}" type="text" data-download-template="${option.key}" value="${escapeAttr(state.downloadFilenameTemplates[option.key])}">
+                <input class="dmh-download-template-input" id="dmh-download-template-${option.key}" type="text" data-download-template="${option.key}" value="${escapeAttr(state.downloadFilenameTemplates[option.key])}" required>
               </label>`,
   ).join('');
   document.body.innerHTML = `
@@ -47,9 +47,16 @@ export function renderShell(state: AppState): void {
             <button class="dmh-exit-button dmh-icon-button" id="dmh-exit" type="button" data-dmh-tooltip="退出瀑布流" aria-label="退出瀑布流">${icons.exit}</button>
           </div>
         </div>
+        <div class="dmh-loading-progress" id="dmh-loading-progress" role="progressbar" aria-label="正在加载瀑布流" aria-hidden="true" hidden>
+          <div class="dmh-loading-progress-bar"></div>
+        </div>
       </header>
       <main class="dmh-grid" id="dmh-grid"></main>
       <div class="dmh-message" id="dmh-message"></div>
+      <div class="dmh-scrollbar" id="dmh-scrollbar" role="scrollbar" aria-label="瀑布流滚动位置" aria-controls="dmh-grid" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+        <div class="dmh-scrollbar-thumb" id="dmh-scrollbar-thumb"></div>
+      </div>
+      <button class="dmh-back-to-top" id="dmh-back-to-top" type="button" aria-label="回到顶部" title="回到顶部">${icons.arrowUp}</button>
       <div class="dmh-settings-overlay" id="dmh-settings-overlay" aria-hidden="true"></div>
       <aside class="dmh-settings-panel" id="dmh-settings-panel" role="dialog" aria-modal="true" aria-labelledby="dmh-settings-title" aria-hidden="true">
         <div class="dmh-settings-header">
@@ -57,53 +64,74 @@ export function renderShell(state: AppState): void {
           <button class="dmh-settings-close" id="dmh-settings-close" type="button" aria-label="关闭设置">${icons.close}</button>
         </div>
         <div class="dmh-settings-content">
+          <h3 class="dmh-settings-group-title">瀑布流</h3>
           <section class="dmh-setting-section">
             <label class="dmh-setting-row" for="dmh-card-size">
-              <span class="dmh-setting-label">瀑布流图片大小</span>
+              <span class="dmh-setting-label">缩略图大小</span>
               <select class="dmh-setting-select" id="dmh-card-size">
 ${cardSizeOptions}
               </select>
             </label>
           </section>
           <section class="dmh-setting-section">
-            <label class="dmh-setting-row">
-              <span class="dmh-setting-label">缩略图按钮默认显示</span>
-              <span class="dmh-setting-switch">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-label">显示缩略图操作按钮</span>
+              <label class="dmh-setting-switch" aria-label="显示缩略图操作按钮">
                 <input id="dmh-show-thumbnail-buttons" type="checkbox" ${state.showThumbnailButtons ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
-              </span>
-            </label>
+              </label>
+            </div>
           </section>
           <section class="dmh-setting-section">
-            <label class="dmh-setting-row">
-              <span class="dmh-setting-label">缩略图信息默认关闭</span>
-              <span class="dmh-setting-switch">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-label">显示缩略图信息</span>
+              <label class="dmh-setting-switch" aria-label="显示缩略图信息">
                 <input id="dmh-show-thumbnail-info" type="checkbox" ${state.showThumbnailInfo ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
-              </span>
-            </label>
+              </label>
+            </div>
           </section>
           <section class="dmh-setting-section">
-            <label class="dmh-setting-row">
-              <span class="dmh-setting-label">滚动切图</span>
-              <span class="dmh-setting-switch">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-label">显示瀑布流滚动条</span>
+              <label class="dmh-setting-switch" aria-label="显示瀑布流滚动条">
+                <input id="dmh-show-scrollbar" type="checkbox" ${state.showScrollbar ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </label>
+            </div>
+          </section>
+          <section class="dmh-setting-section">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-label">显示回到顶部按钮</span>
+              <label class="dmh-setting-switch" aria-label="显示回到顶部按钮">
+                <input id="dmh-show-back-to-top" type="checkbox" ${state.showBackToTop ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </label>
+            </div>
+          </section>
+          <h3 class="dmh-settings-group-title">详情</h3>
+          <section class="dmh-setting-section">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-label">使用滚轮切换图片</span>
+              <label class="dmh-setting-switch" aria-label="使用滚轮切换图片">
                 <input id="dmh-viewer-wheel-navigation" type="checkbox" ${state.viewerWheelNavigation ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
-              </span>
-            </label>
+              </label>
+            </div>
           </section>
           <section class="dmh-setting-section">
-            <label class="dmh-setting-row">
-              <span class="dmh-setting-label">详情使用原图</span>
-              <span class="dmh-setting-switch">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-label">加载原图</span>
+              <label class="dmh-setting-switch" aria-label="加载原图">
                 <input id="dmh-viewer-use-original" type="checkbox" ${state.viewerUseOriginal ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
-              </span>
-            </label>
+              </label>
+            </div>
           </section>
+          <h3 class="dmh-settings-group-title">其他</h3>
           <section class="dmh-setting-section">
             <div class="dmh-setting-stack">
-              <label class="dmh-setting-label" for="dmh-blacklist-rules">Danbooru 黑名单</label>
+              <label class="dmh-setting-label" for="dmh-blacklist-rules">Danbooru 黑名单规则</label>
               <textarea class="dmh-blacklist-rules" id="dmh-blacklist-rules" rows="7" spellcheck="false" ${canSaveBlacklist ? '' : 'readonly'}>${escapeHtml(state.blacklistText)}</textarea>
               <div class="dmh-setting-help">每行一条规则。保存后会同步到 Danbooru 账号，并立即更新当前瀑布流。</div>
               <div class="dmh-blacklist-actions">
@@ -114,7 +142,7 @@ ${cardSizeOptions}
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-stack">
-              <span class="dmh-setting-label">下载文件名格式</span>
+              <span class="dmh-setting-label">下载文件名模板</span>
               <div class="dmh-download-template-list">
 ${downloadFilenameTemplateInputs}
               </div>
@@ -126,7 +154,22 @@ ${downloadFilenameTemplateInputs}
                 <div><code>{id}</code> 来源作品 ID，缺失时回退到 Danbooru ID</div>
                 <div><code>{postid}</code> Danbooru ID</div>
                 <div><code>{ext}</code> 文件后缀</div>
-                <div>修改后及时生效，不需要保存</div>
+                <div>模板不能为空，修改后失焦时自动保存。</div>
+              </div>
+              <div class="dmh-download-template-actions">
+                <span class="dmh-download-template-status" id="dmh-download-template-status" role="status" aria-live="polite"></span>
+                <div class="dmh-download-template-buttons">
+                  <div class="dmh-template-reset-control">
+                    <button class="dmh-template-reset" id="dmh-download-template-reset" type="button" aria-expanded="false" aria-controls="dmh-template-reset-confirmation">恢复默认</button>
+                    <div class="dmh-template-reset-popover" id="dmh-template-reset-confirmation" role="alertdialog" aria-labelledby="dmh-template-reset-confirmation-text" hidden>
+                      <div id="dmh-template-reset-confirmation-text">确定恢复全部默认模板？</div>
+                      <div class="dmh-template-reset-popover-actions">
+                        <button class="dmh-template-reset-cancel" id="dmh-template-reset-cancel" type="button">取消</button>
+                        <button class="dmh-template-reset-apply" id="dmh-template-reset-apply" type="button">确定恢复</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </section>

@@ -6,11 +6,17 @@ export function installStyles(): void {
   style.id = 'dmh-style';
   style.textContent = `
     * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; overflow-x: hidden; scrollbar-width: none; background: #f6f7f9; color: #1f2328; font-family: Arial, "Helvetica Neue", sans-serif; }
+    html, body { margin: 0; min-height: 100%; scrollbar-width: none; background: #f6f7f9; color: #1f2328; font-family: Arial, "Helvetica Neue", sans-serif; }
+    html { overflow-x: hidden; }
+    body { overflow-x: clip; }
     html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
-    body.dmh-no-scroll { overflow: hidden; }
+    html.dmh-no-scroll { overflow: hidden; }
     #dmh-app { min-height: 100vh; }
     .dmh-topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 10; min-height: 56px; background: rgba(255,255,255,.94); border-bottom: 1px solid #d8dee4; backdrop-filter: blur(10px); overflow: visible; }
+    .dmh-loading-progress { position: absolute; right: 0; bottom: -1px; left: 0; height: 3px; overflow: hidden; background: rgba(9,105,218,.14); pointer-events: none; }
+    .dmh-loading-progress[hidden] { display: none; }
+    .dmh-loading-progress-bar { width: 42%; height: 100%; background: #0969da; transform: translateX(-110%); animation: dmh-loading-progress 1.15s ease-in-out infinite; }
+    @keyframes dmh-loading-progress { 0% { transform: translateX(-110%); } 55% { transform: translateX(135%); } 100% { transform: translateX(265%); } }
     .dmh-toolbar-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 496px) minmax(0, 1fr); align-items: center; gap: 12px; width: 100%; min-width: 0; min-height: 56px; padding: 10px 16px; overflow: visible; white-space: nowrap; }
     .dmh-brand { display: flex; align-items: center; justify-self: start; gap: 25px; min-width: 0; }
     .dmh-title { font-size: 22px; font-weight: 700; line-height: 1; white-space: nowrap; }
@@ -38,8 +44,21 @@ export function installStyles(): void {
     .dmh-grid { position: relative; width: calc(100% - 32px); margin: 68px 16px 12px; overflow: hidden; }
     .dmh-layout { display: block; }
     .dmh-sidebar { display: none; }
+    .dmh-scrollbar { position: fixed; right: 2px; bottom: 8px; z-index: 8; width: 14px; min-height: 48px; border-radius: 999px; background: transparent; cursor: pointer; touch-action: none; user-select: none; }
+    .dmh-scrollbar::before { content: ''; position: absolute; inset: 0 3px; border-radius: 999px; background: rgba(87,96,106,.18); transition: background .16s ease; }
+    .dmh-scrollbar:hover::before, .dmh-scrollbar.dmh-dragging::before { background: rgba(87,96,106,.28); }
+    .dmh-scrollbar[hidden] { display: none; }
+    .dmh-scrollbar:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
+    .dmh-scrollbar-thumb { position: absolute; top: 0; left: 3px; width: 8px; min-height: 36px; border-radius: 999px; background: rgba(87,96,106,.68); box-shadow: 0 1px 2px rgba(27,31,36,.15); will-change: transform; }
+    .dmh-scrollbar:hover .dmh-scrollbar-thumb, .dmh-scrollbar.dmh-dragging .dmh-scrollbar-thumb { background: #57606a; }
+    #dmh-app .dmh-back-to-top { position: fixed; right: 22px; bottom: 20px; z-index: 9; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 1px solid #d0d7de; border-radius: 50%; background: rgba(255,255,255,.94); color: #57606a; cursor: pointer; box-shadow: 0 3px 12px rgba(27,31,36,.16); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(8px); transition: opacity .18s ease, visibility 0s linear .18s, transform .18s ease, background .16s ease, color .16s ease, border-color .16s ease; }
+    #dmh-app .dmh-back-to-top[hidden] { display: none; }
+    #dmh-app .dmh-back-to-top.dmh-visible { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); transition-delay: 0s; }
+    #dmh-app .dmh-back-to-top:hover { border-color: #0969da; background: #eef6ff; color: #0969da; }
+    #dmh-app .dmh-back-to-top:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
+    .dmh-back-to-top svg { width: 23px; height: 23px; }
     .dmh-card { position: absolute; width: ${CARD_WIDTH}px; overflow: hidden; border-radius: 6px; background: #d8dee4; box-shadow: 0 1px 2px rgba(27,31,36,.12); transition: left .18s ease, top .18s ease, width .18s ease; }
-    .dmh-card img { display: block; width: 100%; height: 100%; object-fit: cover; background: #d8dee4; }
+    .dmh-card img { display: block; width: 100%; height: 100%; object-fit: cover; background: #d8dee4; pointer-events: none; }
     .dmh-card-error { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: #f6f8fa; color: #57606a; text-align: center; }
     .dmh-card-error[hidden] { display: none; }
     .dmh-card-error svg { width: 42px; height: 42px; fill: currentColor; }
@@ -77,6 +96,7 @@ export function installStyles(): void {
     .dmh-settings-close svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
     .dmh-settings-content { display: flex; flex-direction: column; gap: 22px; height: calc(100% - 56px); padding: 20px 18px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
     .dmh-settings-content::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    .dmh-settings-group-title { margin: 2px 0 -10px; color: #57606a; font-size: 12px; font-weight: 700; line-height: 1.2; letter-spacing: .08em; }
     .dmh-blacklist-rules { box-sizing: border-box; width: 100%; min-height: 132px; resize: vertical; padding: 9px 10px; border: 1px solid #afb8c1; border-radius: 6px; background: #fff; color: #24292f; font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
     .dmh-blacklist-rules:focus { border-color: #0969da; outline: 2px solid rgba(9,105,218,.18); }
     .dmh-blacklist-rules[readonly] { background: #f6f8fa; color: #57606a; }
@@ -109,8 +129,27 @@ export function installStyles(): void {
     .dmh-download-template-label { color: #57606a; font-size: 12px; font-weight: 700; line-height: 1.2; }
     .dmh-download-template-input { width: 100%; height: 34px; padding: 0 10px; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; color: #24292f; font: 600 12px Consolas, "Courier New", monospace; outline: 0; }
     .dmh-download-template-input:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.12); }
+    .dmh-download-template-input:invalid { border-color: #cf222e; }
     .dmh-template-help { display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; color: #57606a; font-size: 12px; line-height: 1.45; }
     .dmh-template-help code { color: #0969da; font: 700 12px Consolas, "Courier New", monospace; }
+    .dmh-download-template-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .dmh-download-template-status { min-width: 0; color: #57606a; font-size: 12px; line-height: 1.35; }
+    .dmh-download-template-buttons { display: flex; flex: 0 0 auto; gap: 8px; }
+    .dmh-template-reset-control { position: relative; }
+    .dmh-template-reset-popover { position: absolute; right: 0; bottom: calc(100% + 9px); z-index: 2; width: 226px; padding: 12px; border: 1px solid #d0d7de; border-radius: 8px; background: #fff; color: #24292f; font-size: 13px; font-weight: 600; line-height: 1.4; box-shadow: 0 8px 24px rgba(140,149,159,.32); }
+    .dmh-template-reset-popover[hidden] { display: none; }
+    .dmh-template-reset-popover::after { content: ''; position: absolute; right: 26px; bottom: -6px; width: 10px; height: 10px; border-right: 1px solid #d0d7de; border-bottom: 1px solid #d0d7de; background: #fff; transform: rotate(45deg); }
+    .dmh-template-reset-popover-actions { position: relative; z-index: 1; display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    #dmh-app .dmh-template-reset-cancel, #dmh-app .dmh-template-reset-apply { min-height: 30px; padding: 0 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: none; }
+    #dmh-app .dmh-template-reset-cancel { border: 1px solid #d0d7de; background: #f6f8fa; color: #24292f; }
+    #dmh-app .dmh-template-reset-cancel:hover { background: #eaeef2; color: #24292f; }
+    #dmh-app .dmh-template-reset-apply { border: 1px solid #cf222e; background: #cf222e; color: #fff; }
+    #dmh-app .dmh-template-reset-apply:hover { border-color: #a40e26; background: #a40e26; color: #fff; }
+    #dmh-app .dmh-template-reset-cancel:focus-visible, #dmh-app .dmh-template-reset-apply:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
+    #dmh-app .dmh-template-reset { min-height: 32px; padding: 0 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: none; }
+    #dmh-app .dmh-template-reset { border: 1px solid #d0d7de; background: #f6f8fa; color: #24292f; }
+    #dmh-app .dmh-template-reset:hover { border-color: #afb8c1; background: #eaeef2; color: #24292f; }
+    #dmh-app .dmh-template-reset:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
     .dmh-snackbar { position: fixed; top: 72px; left: 50%; z-index: 220; max-width: min(520px, calc(100vw - 32px)); padding: 10px 18px; border-radius: 4px; background: #323232; color: #fff; font-size: 14px; line-height: 1.45; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 6px 18px rgba(27,31,36,.22); opacity: 0; pointer-events: none; transform: translate(-50%, -12px); transition: opacity .18s ease, transform .18s ease; }
     .dmh-snackbar.dmh-open { opacity: 1; transform: translate(-50%, 0); }
     .dmh-ac { position: absolute; top: 42px; left: 0; z-index: 20; width: min(450px, 100%); max-height: 320px; overflow: auto; scrollbar-width: none; padding: 4px; border: 1px solid #d0d7de; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(140,149,159,.32); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-6px) scale(.98); transform-origin: top center; transition: opacity .16s ease, transform .16s ease, visibility 0s linear .16s; }
@@ -173,7 +212,8 @@ export function installStyles(): void {
     .dmh-tag-character { background: rgba(102, 187, 106, .9); }
     .dmh-tag-meta { background: rgba(84, 110, 122, .9); }
     @media (max-width: 980px) { .dmh-title { display: none; } .dmh-brand { gap: 0; } }
-    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, .6fr) minmax(120px, 1fr) max-content; gap: 8px; padding: 10px; } .dmh-search { justify-self: stretch; max-width: none; } .dmh-search-form { grid-template-columns: minmax(0, 1fr) 38px; } .dmh-status { display: none; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: calc(100vh - 104px); font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 50px; height: 50px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
+    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, .6fr) minmax(120px, 1fr) max-content; gap: 8px; padding: 10px; } .dmh-search { justify-self: stretch; max-width: none; } .dmh-search-form { grid-template-columns: minmax(0, 1fr) 38px; } .dmh-status { display: none; } #dmh-app .dmh-back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: calc(100vh - 104px); font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 50px; height: 50px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
+    @media (prefers-reduced-motion: reduce) { #dmh-app .dmh-back-to-top { transition: none; } .dmh-loading-progress-bar { width: 100%; animation: none; transform: none; } }
   `;
   document.head.appendChild(style);
 }

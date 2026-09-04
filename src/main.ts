@@ -2,10 +2,14 @@ import type { AppState } from './core/state';
 import type { BooruAdapter } from './adapters/types';
 import {
   createState,
+  DEFAULT_DOWNLOAD_FILENAME_TEMPLATES,
+  DOWNLOAD_FILENAME_TEMPLATE_OPTIONS,
   saveCardWidth,
   saveDownloadFilenameTemplates,
   saveShowThumbnailButtons,
   saveShowThumbnailInfo,
+  saveShowBackToTop,
+  saveShowScrollbar,
   saveViewerUseOriginal,
   saveViewerWheelNavigation,
   type DownloadFilenamePlatform,
@@ -53,6 +57,11 @@ import {
   toggleZoomMode,
 } from './core/viewer';
 import { byId, setText } from './utils/dom';
+import {
+  bindScrollControls,
+  scheduleScrollControlsUpdate,
+  updateScrollControls,
+} from './core/scrollControls';
 
 export function boot(adapter: BooruAdapter): void {
   const state = createState(adapter);
@@ -80,6 +89,7 @@ async function startMasonry(state: AppState): Promise<void> {
     installStyles();
     renderShell(state);
     bindShellEvents(state);
+    bindScrollControls(state);
     observeMasonryLayout(state);
     state.started = true;
     await loadNextPage(state);
@@ -111,12 +121,26 @@ function bindShellEvents(state: AppState): void {
   byId<HTMLSelectElement>('dmh-card-size')?.addEventListener('change', (event) => {
     setCardSize(state, (event.currentTarget as HTMLSelectElement).value);
   });
+  byId('dmh-download-template-reset')?.addEventListener('click', () =>
+    showDownloadTemplateResetConfirmation(),
+  );
+  byId('dmh-template-reset-cancel')?.addEventListener('click', () =>
+    hideDownloadTemplateResetConfirmation(true),
+  );
+  byId('dmh-template-reset-apply')?.addEventListener('click', () => {
+    resetDownloadFilenameTemplates(state);
+    hideDownloadTemplateResetConfirmation(true);
+  });
   document.querySelectorAll<HTMLInputElement>('input[data-download-template]').forEach((input) => {
-    input.addEventListener('change', () =>
-      setDownloadFilenameTemplate(
+    input.addEventListener('input', () => {
+      input.setCustomValidity('');
+      setText('dmh-download-template-status', '');
+    });
+    input.addEventListener('blur', () =>
+      saveDownloadFilenameTemplate(
         state,
         input.dataset.downloadTemplate as DownloadFilenamePlatform,
-        input.value,
+        input,
       ),
     );
   });
@@ -131,6 +155,12 @@ function bindShellEvents(state: AppState): void {
   });
   byId<HTMLInputElement>('dmh-viewer-wheel-navigation')?.addEventListener('change', (event) => {
     setViewerWheelNavigation(state, (event.currentTarget as HTMLInputElement).checked);
+  });
+  byId<HTMLInputElement>('dmh-show-scrollbar')?.addEventListener('change', (event) => {
+    setShowScrollbar(state, (event.currentTarget as HTMLInputElement).checked);
+  });
+  byId<HTMLInputElement>('dmh-show-back-to-top')?.addEventListener('change', (event) => {
+    setShowBackToTop(state, (event.currentTarget as HTMLInputElement).checked);
   });
   const tagsInput = byId<HTMLInputElement>('dmh-tags');
   tagsInput?.addEventListener('input', (event) => {
@@ -170,9 +200,9 @@ function bindShellEvents(state: AppState): void {
       jumpToSearchPage(state);
       return;
     }
-    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
     event.preventDefault();
-    const direction = event.key === 'ArrowUp' || event.key === 'ArrowLeft' ? -1 : 1;
+    const direction = event.key === 'ArrowUp' ? -1 : 1;
     turnSearchPage(state, direction);
   });
   byId<HTMLInputElement>('dmh-page')?.addEventListener('input', (event) => {
@@ -186,6 +216,13 @@ function bindShellEvents(state: AppState): void {
   document.addEventListener('pointerdown', (event) => {
     const target = event.target as HTMLElement;
     if (!target.closest('.dmh-search-form')) closeAutocomplete(state);
+    if (!target.closest('.dmh-template-reset-control')) hideDownloadTemplateResetConfirmation();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !isDownloadTemplateResetConfirmationOpen()) return;
+    event.preventDefault();
+    event.stopPropagation();
+    hideDownloadTemplateResetConfirmation(true);
   });
   byId('dmh-viewer')?.addEventListener('click', (event) => {
     if ((event.target as HTMLElement).id === 'dmh-viewer') closeViewer(state);
@@ -246,7 +283,8 @@ async function loadNextPage(state: AppState): Promise<void> {
   state.loading = true;
   const requestToken = state.requestToken;
   setText('dmh-status', `已加载 ${state.posts.length} 张 / 加载中...`);
-  setText('dmh-message', '');
+  setText('dmh-message', '加载中...');
+  setMasonryLoading(true);
 
   try {
     const page = state.page;
@@ -274,10 +312,12 @@ async function loadNextPage(state: AppState): Promise<void> {
     state.posts.push(...posts);
     renderPosts(state, posts, startIndex, (index) => showViewer(state, index));
     layoutMasonry(state);
+    scheduleScrollControlsUpdate(state);
     state.page = loadedPage + 1;
     setPageInputValue(loadedPage);
     updatePageParam(state, loadedPage);
     setText('dmh-status', `已加载 ${state.posts.length} 张`);
+    setText('dmh-message', '');
   } catch (error) {
     if (requestToken !== state.requestToken) return;
     const message = error instanceof Error ? error.message : String(error);
@@ -286,8 +326,16 @@ async function loadNextPage(state: AppState): Promise<void> {
   } finally {
     if (requestToken === state.requestToken) {
       state.loading = false;
+      setMasonryLoading(false);
     }
   }
+}
+
+function setMasonryLoading(loading: boolean): void {
+  const progress = byId('dmh-loading-progress');
+  if (!progress) return;
+  progress.hidden = !loading;
+  progress.setAttribute('aria-hidden', String(!loading));
 }
 
 async function saveBlacklist(state: AppState): Promise<void> {
@@ -326,6 +374,7 @@ function refreshPostsForBlacklist(state: AppState): void {
   if (grid) grid.innerHTML = '';
   renderPosts(state, state.posts, 0, (index) => showViewer(state, index));
   layoutMasonry(state);
+  scheduleScrollControlsUpdate(state);
   setText('dmh-status', `已加载 ${state.posts.length} 张`);
 
   if (!viewerPostId) return;
@@ -438,6 +487,7 @@ function openSettingsPanel(): void {
 }
 
 function closeSettingsPanel(): void {
+  hideDownloadTemplateResetConfirmation();
   setSettingsPanelOpen(false);
 }
 
@@ -451,7 +501,7 @@ function setSettingsPanelOpen(open: boolean): void {
   panel.setAttribute('aria-hidden', String(!open));
   overlay.setAttribute('aria-hidden', String(!open));
   button.setAttribute('aria-expanded', String(open));
-  document.body.classList.toggle('dmh-no-scroll', open || isViewerOpen());
+  document.documentElement.classList.toggle('dmh-no-scroll', open || isViewerOpen());
 }
 
 function setCardSize(state: AppState, cardSize: string): void {
@@ -505,18 +555,77 @@ function setViewerWheelNavigation(state: AppState, viewerWheelNavigation: boolea
   if (input) input.checked = viewerWheelNavigation;
 }
 
-function setDownloadFilenameTemplate(
+function setShowScrollbar(state: AppState, showScrollbar: boolean): void {
+  if (state.showScrollbar === showScrollbar) return;
+  state.showScrollbar = showScrollbar;
+  saveShowScrollbar(showScrollbar);
+  const input = byId<HTMLInputElement>('dmh-show-scrollbar');
+  if (input) input.checked = showScrollbar;
+  updateScrollControls(state);
+}
+
+function setShowBackToTop(state: AppState, showBackToTop: boolean): void {
+  if (state.showBackToTop === showBackToTop) return;
+  state.showBackToTop = showBackToTop;
+  saveShowBackToTop(showBackToTop);
+  const input = byId<HTMLInputElement>('dmh-show-back-to-top');
+  if (input) input.checked = showBackToTop;
+  updateScrollControls(state);
+}
+
+function resetDownloadFilenameTemplates(state: AppState): void {
+  state.downloadFilenameTemplates = { ...DEFAULT_DOWNLOAD_FILENAME_TEMPLATES };
+  saveDownloadFilenameTemplates(state.downloadFilenameTemplates);
+  for (const option of DOWNLOAD_FILENAME_TEMPLATE_OPTIONS) {
+    const input = byId<HTMLInputElement>(`dmh-download-template-${option.key}`);
+    if (!input) continue;
+    input.value = DEFAULT_DOWNLOAD_FILENAME_TEMPLATES[option.key];
+    input.setCustomValidity('');
+  }
+  setText('dmh-download-template-status', '已恢复默认值');
+}
+
+function showDownloadTemplateResetConfirmation(): void {
+  const popover = byId('dmh-template-reset-confirmation');
+  const button = byId<HTMLButtonElement>('dmh-download-template-reset');
+  if (!popover || !button) return;
+  popover.hidden = false;
+  button.setAttribute('aria-expanded', 'true');
+  byId<HTMLButtonElement>('dmh-template-reset-apply')?.focus();
+}
+
+function hideDownloadTemplateResetConfirmation(restoreFocus = false): void {
+  const popover = byId('dmh-template-reset-confirmation');
+  const button = byId<HTMLButtonElement>('dmh-download-template-reset');
+  if (!popover || !button || popover.hidden) return;
+  popover.hidden = true;
+  button.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) button.focus();
+}
+
+function isDownloadTemplateResetConfirmationOpen(): boolean {
+  const popover = byId('dmh-template-reset-confirmation');
+  return Boolean(popover && !popover.hidden);
+}
+
+function saveDownloadFilenameTemplate(
   state: AppState,
   platform: DownloadFilenamePlatform,
-  template: string,
+  input: HTMLInputElement,
 ): void {
-  const nextTemplate = template.trim();
-  if (!nextTemplate || state.downloadFilenameTemplates[platform] === nextTemplate) return;
+  const template = input.value.trim();
+  input.setCustomValidity(template ? '' : '模板不能为空');
+  if (!template) {
+    const label = DOWNLOAD_FILENAME_TEMPLATE_OPTIONS.find((option) => option.key === platform)?.label;
+    setText('dmh-download-template-status', `${label || platform} 模板不能为空`);
+    return;
+  }
+  input.value = template;
+  if (state.downloadFilenameTemplates[platform] === template) return;
   state.downloadFilenameTemplates = {
     ...state.downloadFilenameTemplates,
-    [platform]: nextTemplate,
+    [platform]: template,
   };
   saveDownloadFilenameTemplates(state.downloadFilenameTemplates);
-  const input = byId<HTMLInputElement>(`dmh-download-template-${platform}`);
-  if (input) input.value = nextTemplate;
+  setText('dmh-download-template-status', '已保存');
 }

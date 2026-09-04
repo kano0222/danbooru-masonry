@@ -93,7 +93,7 @@ export function showViewer(state: AppState, index: number): void {
   updateViewerChromeVisibility(state);
   viewer.classList.add('dmh-open');
   viewer.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('dmh-no-scroll');
+  document.documentElement.classList.add('dmh-no-scroll');
 }
 
 export function closeViewer(state: AppState): void {
@@ -115,7 +115,7 @@ export function closeViewer(state: AppState): void {
   video.removeAttribute('poster');
   video.load();
   if (!byId('dmh-settings-panel')?.classList.contains('dmh-open')) {
-    document.body.classList.remove('dmh-no-scroll');
+    document.documentElement.classList.remove('dmh-no-scroll');
   }
 }
 

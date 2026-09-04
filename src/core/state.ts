@@ -8,6 +8,8 @@ const VIEWER_USE_ORIGINAL_STORAGE_KEY = 'danbooru-masonry.viewerUseOriginal';
 const SHOW_THUMBNAIL_INFO_STORAGE_KEY = 'danbooru-masonry.showThumbnailInfo';
 const SHOW_THUMBNAIL_BUTTONS_STORAGE_KEY = 'danbooru-masonry.showThumbnailButtons';
 const VIEWER_WHEEL_NAVIGATION_STORAGE_KEY = 'danbooru-masonry.viewerWheelNavigation';
+const SHOW_SCROLLBAR_STORAGE_KEY = 'danbooru-masonry.showScrollbar';
+const SHOW_BACK_TO_TOP_STORAGE_KEY = 'danbooru-masonry.showBackToTop';
 const DOWNLOAD_FILENAME_TEMPLATES_STORAGE_KEY = 'danbooru-masonry.downloadFilenameTemplates';
 const MISSING_VALUE = '__dmh_missing__';
 
@@ -71,6 +73,8 @@ export interface AppState {
   showThumbnailInfo: boolean;
   showThumbnailButtons: boolean;
   viewerWheelNavigation: boolean;
+  showScrollbar: boolean;
+  showBackToTop: boolean;
   downloadFilenameTemplates: DownloadFilenameTemplates;
   translations: TagTranslationStore;
 }
@@ -118,6 +122,8 @@ export function createState(adapter: BooruAdapter): AppState {
     showThumbnailInfo: getInitialBooleanSetting(SHOW_THUMBNAIL_INFO_STORAGE_KEY, false),
     showThumbnailButtons: getInitialBooleanSetting(SHOW_THUMBNAIL_BUTTONS_STORAGE_KEY, true),
     viewerWheelNavigation: getInitialBooleanSetting(VIEWER_WHEEL_NAVIGATION_STORAGE_KEY, true),
+    showScrollbar: getInitialBooleanSetting(SHOW_SCROLLBAR_STORAGE_KEY, true),
+    showBackToTop: getInitialBooleanSetting(SHOW_BACK_TO_TOP_STORAGE_KEY, true),
     downloadFilenameTemplates: getInitialDownloadFilenameTemplates(),
     translations: new TagTranslationStore(),
   };
@@ -141,7 +147,7 @@ export function saveCardWidth(value: number): void {
 }
 
 function getInitialViewerUseOriginal(): boolean {
-  return getInitialBooleanSetting(VIEWER_USE_ORIGINAL_STORAGE_KEY, true);
+  return getInitialBooleanSetting(VIEWER_USE_ORIGINAL_STORAGE_KEY, false);
 }
 
 export function saveViewerUseOriginal(value: boolean): void {
@@ -158,6 +164,14 @@ export function saveShowThumbnailButtons(value: boolean): void {
 
 export function saveViewerWheelNavigation(value: boolean): void {
   saveSetting(VIEWER_WHEEL_NAVIGATION_STORAGE_KEY, value);
+}
+
+export function saveShowScrollbar(value: boolean): void {
+  saveSetting(SHOW_SCROLLBAR_STORAGE_KEY, value);
+}
+
+export function saveShowBackToTop(value: boolean): void {
+  saveSetting(SHOW_BACK_TO_TOP_STORAGE_KEY, value);
 }
 
 export function saveDownloadFilenameTemplates(value: DownloadFilenameTemplates): void {
