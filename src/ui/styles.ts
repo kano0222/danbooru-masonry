@@ -44,13 +44,14 @@ export function installStyles(): void {
     .dmh-grid { position: relative; width: calc(100% - 32px); margin: 68px 16px 12px; overflow: hidden; }
     .dmh-layout { display: block; }
     .dmh-sidebar { display: none; }
-    .dmh-scrollbar { position: fixed; right: 2px; bottom: 8px; z-index: 8; width: 14px; min-height: 48px; border-radius: 999px; background: transparent; cursor: pointer; touch-action: none; user-select: none; }
-    .dmh-scrollbar::before { content: ''; position: absolute; inset: 0 3px; border-radius: 999px; background: rgba(87,96,106,.18); transition: background .16s ease; }
+    .dmh-scrollbar { position: fixed; right: 0; bottom: 8px; z-index: 8; width: 16px; min-height: 48px; border-radius: 999px; background: transparent; cursor: pointer; touch-action: none; user-select: none; }
+    .dmh-scrollbar::before { content: ''; position: absolute; inset: 0 4px; border-radius: 999px; background: rgba(87,96,106,.18); transition: background .16s ease; }
     .dmh-scrollbar:hover::before, .dmh-scrollbar.dmh-dragging::before { background: rgba(87,96,106,.28); }
     .dmh-scrollbar[hidden] { display: none; }
     .dmh-scrollbar:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
-    .dmh-scrollbar-thumb { position: absolute; top: 0; left: 3px; width: 8px; min-height: 36px; border-radius: 999px; background: rgba(87,96,106,.68); box-shadow: 0 1px 2px rgba(27,31,36,.15); will-change: transform; }
-    .dmh-scrollbar:hover .dmh-scrollbar-thumb, .dmh-scrollbar.dmh-dragging .dmh-scrollbar-thumb { background: #57606a; }
+    .dmh-scrollbar-thumb { position: absolute; top: 0; left: 0; width: 16px; min-height: 36px; border-radius: 999px; background: transparent; will-change: transform; }
+    .dmh-scrollbar-thumb::before { content: ''; position: absolute; inset: 0 4px; border-radius: 999px; background: rgba(87,96,106,.68); box-shadow: 0 1px 2px rgba(27,31,36,.15); transition: background .16s ease; }
+    .dmh-scrollbar:hover .dmh-scrollbar-thumb::before, .dmh-scrollbar.dmh-dragging .dmh-scrollbar-thumb::before { background: #57606a; }
     #dmh-app .dmh-back-to-top { position: fixed; right: 22px; bottom: 20px; z-index: 9; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 1px solid #d0d7de; border-radius: 50%; background: rgba(255,255,255,.94); color: #57606a; cursor: pointer; box-shadow: 0 3px 12px rgba(27,31,36,.16); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(8px); transition: opacity .18s ease, visibility 0s linear .18s, transform .18s ease, background .16s ease, color .16s ease, border-color .16s ease; }
     #dmh-app .dmh-back-to-top[hidden] { display: none; }
     #dmh-app .dmh-back-to-top.dmh-visible { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); transition-delay: 0s; }
