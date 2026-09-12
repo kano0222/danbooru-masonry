@@ -36,9 +36,9 @@ const DEFAULT_AUTOCOMPLETE_LABELS: Record<string, string> = {
 
 export function scheduleAutocomplete(state: AppState, value: string): void {
   window.clearTimeout(state.autocompleteTimer);
+  state.autocompleteToken += 1;
   const fragment = getLastTagFragment(value);
   if (!fragment) {
-    state.autocompleteToken += 1;
     renderAutocomplete(state, DEFAULT_AUTOCOMPLETE_ITEMS);
     return;
   }

@@ -4,6 +4,10 @@
 
 Adds masonry browsing, tag translation, immersive image viewing, and several helper features to Danbooru. This project is based on [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry), simplified and adapted for Danbooru.
 
+The tag translation data is currently being updated.
+
+<img src="https://count.getloli.com/@danbooru-masonry?theme=moebooru" alt="Moe Counter">
+
 ## Install
 
 [Install from Greasy Fork](https://greasyfork.org/scripts/585986) (login is required because the script is marked as adult content)
@@ -18,7 +22,7 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout on viewport changes. The top toolbar provides tag search, page jumping, arrow-key page navigation, and tag autocomplete. A custom scrollbar on the right shows and adjusts the browsing position, while the lower-right button smoothly returns to the top. Masonry mode follows the Danbooru blacklist settings captured when the mode starts.Pulling down a certain height will display a "Back to Top" button.
+- Masonry mode supports shortest-column layout, scroll loading, and automatic relayout when the viewport changes. The top toolbar provides tag search, page jumping, up/down arrow-key page navigation, and tag autocomplete; click the Danbooru title in the upper-left corner to exit masonry mode. After scrolling down a certain distance, a back-to-top button appears in the lower-right corner. Masonry mode follows the Danbooru blacklist settings captured when the mode starts.
 
 - Hovering over a thumbnail shows the Danbooru image ID and image size. Thumbnails also provide source and download buttons. The settings panel can control thumbnail display behavior and masonry image size.
 
@@ -35,15 +39,20 @@ Adds masonry browsing, tag translation, immersive image viewing, and several hel
   - Viewer
     - Use the mouse wheel to navigate images (enabled by default)
     - Load original files (disabled by default)
+    - Show viewer tag entry (enabled by default)
+    - Open the tag panel by default (disabled by default)
+    - Tag click behavior: new-tab masonry (default), original search in a new tab, or current-tab masonry
   - Other
     - Danbooru blacklist rule editing and account synchronization
     - Download filename templates
 
-![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
-
 ![preview3.1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.1.png)
 
-- The immersive viewer supports image/video preview, previous/next navigation, wheel navigation, Esc close, original-size zoom, and drag-to-pan. Clicking a tag in the upper-left corner opens the corresponding search page. The upper-right buttons, from left to right, open the source link, favorite the post (requires Danbooru login), zoom, open the post detail page, download the original file with a source-aware filename, and exit.
+![preview3.2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.2.png)
+
+- The immersive viewer supports image and video previews, left/right arrow-key navigation, wheel navigation, Esc to close, original-size zoom, and drag-to-pan. The upper-right buttons, from left to right, open the source, favorite the post (requires a Danbooru login), zoom, open the post details, download the original file, and exit the viewer.
+
+- The lower-left corner of the viewer provides a tag entry that expands to show other general tags and their Chinese translations. All tags in the viewer follow the configured click behavior: search Danbooru in a new tab, switch the current tab to a masonry search, or automatically start masonry mode in a new tab. A tag search replaces the previous query with the clicked tag.
 
 ![preview4](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview4.png)
 

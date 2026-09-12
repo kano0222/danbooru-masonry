@@ -1,6 +1,10 @@
 # Danbooru 瀑布流浏览
 
-为 Danbooru 增加瀑布流浏览、标签翻译和沉浸式图片查看以及一些辅助功能，基于 [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry) 简化改进而来。
+为 Danbooru 提供瀑布流浏览、标签翻译、沉浸式图片查看及其他辅助功能。本项目基于 [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry) 简化并适配 Danbooru。
+
+标签翻译数据正在更新中。
+
+<img src="https://count.getloli.com/@danbooru-masonry?theme=moebooru" alt="Moe Counter">
 
 ## 安装
 
@@ -16,9 +20,9 @@
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- 瀑布流支持最短列布局、下拉加载和窗口变化自动重排。顶部工具栏提供标签搜索、页码跳转、方向键翻页和标签自动补全。瀑布流会遵循进入模式时的 Danbooru 黑名单设置。下拉一定高度会显示回到顶部按钮。
+- 瀑布流支持最短列布局、滚动加载和窗口变化自动重排。顶部工具栏提供标签搜索、页码跳转、上下方向键翻页和标签自动补全；点击左上角的 Danbooru 标题可以退出瀑布流。向下滚动一定距离后，右下角会显示“回到顶部”按钮。瀑布流会遵循进入模式时读取的 Danbooru 黑名单设置。
 
-- 鼠标移到缩略图上会显示danbooru的图片ID和图片尺寸，提供打开来源和下载按钮。可以在设置中控制是否显示和修改瀑布流图片大小。
+- 鼠标悬停在缩略图上时会显示 Danbooru 图片 ID 和尺寸，并提供打开来源和下载按钮。可以在设置中控制缩略图信息、操作按钮及瀑布流图片大小。
 
 ![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
 
@@ -33,15 +37,20 @@
   - 详情
     - 使用滚轮切换图片（默认开启）
     - 加载原图（默认关闭）
+    - 显示详情标签入口（默认开启）
+    - 默认展开标签窗口（默认关闭）
+    - 标签点击行为：新标签页瀑布流搜索（默认）、新标签页原站搜索、当前页瀑布流搜索
   - 其他
     - Danbooru 黑名单规则编辑与账号同步
     - 下载文件名模板
 
-![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
-
 ![preview3.1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.1.png)
 
-- 沉浸式 viewer 支持图片/视频预览、左右切换、滚轮切换、Esc 关闭、原图缩放和拖拽查看。点击左上角标签会打开对应搜索页，右上角按钮从左到右是打开来源链接、收藏（需登录danbooru）、放大查看、打开详情页、下载（默认原图，文件名按主流来源生成）、退出
+![preview3.2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.2.png)
+
+- 沉浸式查看器支持图片和视频预览、左右方向键切换、滚轮切换、Esc 关闭、原图缩放及拖拽查看。右上角按钮依次用于打开来源、收藏帖子（需要登录 Danbooru）、缩放、打开帖子详情页、下载原文件和退出查看器。
+
+- 查看器左下角提供标签入口，可展开浏览其他普通标签及其中文翻译。查看器中的所有标签均遵循设置的点击行为：在原站新标签页搜索、在当前页切换瀑布流搜索，或在新标签页自动启动瀑布流搜索。标签搜索会使用所点击的标签替换原查询。
 
 ![preview4](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview4.png)
 
@@ -62,9 +71,9 @@
 
 ### 镜像站支持
 
-该脚本支持基于[danbooru](https://github.com/danbooru/danbooru)的图库镜像站
+该脚本支持基于 [Danbooru](https://github.com/danbooru/danbooru) 的图库镜像站。
 
-如脚本没有在你使用的域名上运行，可自行将网址加入 *用户匹配*（脚本编辑-设置-包括/排除-用户匹配-添加）
+如脚本没有在你使用的域名上运行，可自行将网址加入 *用户匹配*（脚本编辑 → 设置 → 包括/排除 → 用户匹配 → 添加）。
 
 ![userMatches](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/userMatches.png)
 

@@ -1,7 +1,12 @@
+import { consumeMasonryLaunchUrl, shouldSearchInCurrentTab } from './core/viewerTags';
 import type { AppState } from './core/state';
 import type { BooruAdapter } from './adapters/types';
 import {
   createState,
+  saveShowViewerTags,
+  saveOpenViewerTagsByDefault,
+  saveTagClickBehavior,
+  parseTagClickBehavior,
   DEFAULT_DOWNLOAD_FILENAME_TEMPLATES,
   DOWNLOAD_FILENAME_TEMPLATE_OPTIONS,
   saveCardWidth,
@@ -42,6 +47,8 @@ import { updateBlacklistedTags } from './api/userSettings';
 import { installShortcuts } from './core/shortcuts';
 import {
   closeViewer,
+  refreshViewerTags,
+  setViewerTagsOpen,
   favoriteCurrentPost,
   onViewerImageDoubleClick,
   onViewerMediaClick,
@@ -69,6 +76,11 @@ export function boot(adapter: BooruAdapter): void {
   void state.translations.load().then(() => translateOriginalPageTags(state));
   if (canShowLaunchButton(location)) {
     installLaunchButton(() => void startMasonry(state));
+    const launchUrl = consumeMasonryLaunchUrl(location.href);
+    if (launchUrl) {
+      history.replaceState(history.state, '', launchUrl);
+      void startMasonry(state);
+    }
   }
 }
 
@@ -76,6 +88,7 @@ async function startMasonry(state: AppState): Promise<void> {
   if (state.starting || state.started) return;
   const button = byId<HTMLButtonElement>('dmh-launch');
   state.starting = true;
+  let shellAttempted = false;
   if (button) {
     button.disabled = true;
     button.textContent = '加载中...';
@@ -87,6 +100,7 @@ async function startMasonry(state: AppState): Promise<void> {
     state.blacklist = capturedBlacklist.config;
     state.blacklistText = capturedBlacklist.text;
     installStyles();
+    shellAttempted = true;
     renderShell(state);
     bindShellEvents(state);
     bindScrollControls(state);
@@ -96,6 +110,20 @@ async function startMasonry(state: AppState): Promise<void> {
   } catch (error) {
     console.error('[Danbooru Masonry] start failed:', error);
     state.starting = false;
+    state.started = false;
+    if (shellAttempted) {
+      state.layoutObserver?.disconnect();
+      document.documentElement.classList.remove('dmh-no-scroll');
+      byId('dmh-app')?.remove();
+      byId('dmh-launch')?.remove();
+      installLaunchButton(() => {
+        const retryUrl = new URL(location.href);
+        retryUrl.searchParams.set('dmh', '1');
+        location.replace(retryUrl.toString());
+      });
+      const retry = byId('dmh-launch');
+      if (retry) retry.textContent = '启动失败，点击重试';
+    }
     if (button) {
       button.disabled = false;
       button.textContent = '瀑布流模式';
@@ -106,13 +134,46 @@ async function startMasonry(state: AppState): Promise<void> {
 }
 
 function bindShellEvents(state: AppState): void {
+  byId('dmh-show-viewer-tags')?.addEventListener('change', (event) => {
+    state.showViewerTags = (event.target as HTMLInputElement).checked;
+    saveShowViewerTags(state.showViewerTags);
+    refreshViewerTags(state);
+  });
+  byId('dmh-open-viewer-tags-by-default')?.addEventListener('change', (event) => {
+    state.openViewerTagsByDefault = (event.target as HTMLInputElement).checked;
+    saveOpenViewerTagsByDefault(state.openViewerTagsByDefault);
+  });
+  byId('dmh-tag-click-behavior')?.addEventListener('change', (event) => {
+    state.tagClickBehavior = parseTagClickBehavior((event.target as HTMLSelectElement).value);
+    saveTagClickBehavior(state.tagClickBehavior);
+    refreshViewerTags(state);
+  });
+  byId('dmh-viewer-tags-toggle')?.addEventListener('click', () =>
+    setViewerTagsOpen(state, !state.viewerTagsOpen),
+  );
+  byId('dmh-viewer-tags-panel')?.addEventListener('wheel', (event) => event.stopPropagation(), {
+    passive: true,
+  });
+  byId('dmh-viewer')?.addEventListener('click', (event) => {
+    const link = (event.target as Element).closest<HTMLAnchorElement>('a[data-viewer-tag]');
+    if (!link || !shouldSearchInCurrentTab(event, state.tagClickBehavior)) return;
+    event.preventDefault();
+    closeViewer(state);
+    closeAutocomplete(state);
+    resetSearch(state, link.dataset.viewerTag || '');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    void loadNextPage(state);
+  });
   byId('dmh-search')?.addEventListener('submit', (event) => {
     event.preventDefault();
     closeAutocomplete(state);
-    const tags = (byId<HTMLInputElement>('dmh-tags')?.value || '').trim();
+    const input = byId<HTMLInputElement>('dmh-tags');
+    const tags = (input?.value || '').trim();
+    input?.blur();
     resetSearch(state, tags);
     void loadNextPage(state);
   });
+  byId('dmh-title-exit')?.addEventListener('click', () => location.reload());
   byId('dmh-exit')?.addEventListener('click', () => location.reload());
   byId('dmh-settings-toggle')?.addEventListener('click', () => openSettingsPanel());
   byId('dmh-settings-overlay')?.addEventListener('click', () => closeSettingsPanel());
@@ -163,16 +224,39 @@ function bindShellEvents(state: AppState): void {
     setShowBackToTop(state, (event.currentTarget as HTMLInputElement).checked);
   });
   const tagsInput = byId<HTMLInputElement>('dmh-tags');
+  const searchForm = byId('dmh-search');
+  // Keep logical input focus across window/tab switches, which can re-fire focus.
+  let tagsInputFocused = false;
   tagsInput?.addEventListener('input', (event) => {
     scheduleAutocomplete(state, (event.target as HTMLInputElement).value);
   });
   tagsInput?.addEventListener('focus', (event) => {
+    if (tagsInputFocused) return;
+    tagsInputFocused = true;
     openAutocomplete(state, (event.target as HTMLInputElement).value);
+  });
+  tagsInput?.addEventListener('blur', () => {
+    if (document.hasFocus()) tagsInputFocused = false;
+  });
+  searchForm?.addEventListener('focusout', (event) => {
+    if (event.relatedTarget && searchForm.contains(event.relatedTarget as Node)) return;
+    // Wait for focus to settle; moving to a candidate stays inside the component.
+    queueMicrotask(() => {
+      if (!document.hasFocus() || searchForm.contains(document.activeElement)) return;
+      tagsInputFocused = false;
+      closeAutocomplete(state);
+    });
   });
   tagsInput?.addEventListener('click', (event) => {
     openAutocomplete(state, (event.target as HTMLInputElement).value);
   });
   byId<HTMLInputElement>('dmh-tags')?.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      // Suppress search-input clearing and page shortcuts without changing autocomplete.
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     const autocompleteOpen = byId('dmh-ac')?.classList.contains('dmh-open');
     if (autocompleteOpen && event.key === 'ArrowDown') {
@@ -188,10 +272,6 @@ function bindShellEvents(state: AppState): void {
     if (autocompleteOpen && event.key === 'Enter' && applySelectedAutocomplete(state)) {
       event.preventDefault();
       return;
-    }
-    if (event.key === 'Escape' && autocompleteOpen) {
-      closeAutocomplete(state);
-      event.stopPropagation();
     }
   });
   byId<HTMLInputElement>('dmh-page')?.addEventListener('keydown', (event) => {
@@ -215,7 +295,7 @@ function bindShellEvents(state: AppState): void {
   });
   document.addEventListener('pointerdown', (event) => {
     const target = event.target as HTMLElement;
-    if (!target.closest('.dmh-search-form')) closeAutocomplete(state);
+    if (!target.closest('.dmh-search-form, #dmh-scrollbar')) closeAutocomplete(state);
     if (!target.closest('.dmh-template-reset-control')) hideDownloadTemplateResetConfirmation();
   });
   document.addEventListener('keydown', (event) => {

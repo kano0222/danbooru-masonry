@@ -11,6 +11,34 @@ const VIEWER_WHEEL_NAVIGATION_STORAGE_KEY = 'danbooru-masonry.viewerWheelNavigat
 const SHOW_SCROLLBAR_STORAGE_KEY = 'danbooru-masonry.showScrollbar';
 const SHOW_BACK_TO_TOP_STORAGE_KEY = 'danbooru-masonry.showBackToTop';
 const DOWNLOAD_FILENAME_TEMPLATES_STORAGE_KEY = 'danbooru-masonry.downloadFilenameTemplates';
+const SHOW_VIEWER_TAGS_STORAGE_KEY = 'danbooru-masonry.showViewerTags';
+const OPEN_VIEWER_TAGS_BY_DEFAULT_STORAGE_KEY = 'danbooru-masonry.openViewerTagsByDefault';
+const TAG_CLICK_BEHAVIOR_STORAGE_KEY = 'danbooru-masonry.tagClickBehavior';
+export type TagClickBehavior = 'original-new-tab' | 'masonry-current-tab' | 'masonry-new-tab';
+
+export function parseTagClickBehavior(value: unknown): TagClickBehavior {
+  if (
+    value === 'original-new-tab' ||
+    value === 'masonry-current-tab' ||
+    value === 'masonry-new-tab'
+  ) {
+    return value;
+  }
+  return 'masonry-new-tab';
+}
+
+export function saveShowViewerTags(value: boolean): void {
+  saveSetting(SHOW_VIEWER_TAGS_STORAGE_KEY, value);
+}
+
+export function saveOpenViewerTagsByDefault(value: boolean): void {
+  saveSetting(OPEN_VIEWER_TAGS_BY_DEFAULT_STORAGE_KEY, value);
+}
+
+export function saveTagClickBehavior(value: TagClickBehavior): void {
+  saveSetting(TAG_CLICK_BEHAVIOR_STORAGE_KEY, value);
+}
+
 const MISSING_VALUE = '__dmh_missing__';
 
 export const DOWNLOAD_FILENAME_TEMPLATE_OPTIONS = [
@@ -51,6 +79,10 @@ export interface AppState {
   autocompleteTimer: number;
   autocompleteToken: number;
   autocompleteIndex: number;
+  showViewerTags: boolean;
+  openViewerTagsByDefault: boolean;
+  viewerTagsOpen: boolean;
+  tagClickBehavior: TagClickBehavior;
   viewerIndex: number;
   viewerChromeHidden: boolean;
   zoomMode: boolean;
@@ -100,6 +132,13 @@ export function createState(adapter: BooruAdapter): AppState {
     autocompleteTimer: 0,
     autocompleteToken: 0,
     autocompleteIndex: -1,
+    showViewerTags: getInitialBooleanSetting(SHOW_VIEWER_TAGS_STORAGE_KEY, true),
+    openViewerTagsByDefault: getInitialBooleanSetting(
+      OPEN_VIEWER_TAGS_BY_DEFAULT_STORAGE_KEY,
+      false,
+    ),
+    viewerTagsOpen: false,
+    tagClickBehavior: parseTagClickBehavior(getStoredSetting(TAG_CLICK_BEHAVIOR_STORAGE_KEY)),
     viewerIndex: -1,
     viewerChromeHidden: false,
     zoomMode: false,

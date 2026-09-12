@@ -26,7 +26,7 @@ export function renderShell(state: AppState): void {
       <header class="dmh-topbar" id="dmh-topbar">
         <div class="dmh-toolbar-content">
           <div class="dmh-brand">
-            <div class="dmh-title">danbooru</div>
+            <button class="dmh-title" id="dmh-title-exit" type="button" aria-label="退出瀑布流">danbooru</button>
             <div class="dmh-page-group">
               <span class="dmh-page-label">page</span>
               <label class="dmh-page-control" title="Page" aria-label="Page">
@@ -128,6 +128,42 @@ ${cardSizeOptions}
               </label>
             </div>
           </section>
+          <section class="dmh-setting-section">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-label">显示详情标签入口</span>
+              <label class="dmh-setting-switch" aria-label="显示详情标签入口">
+                <input id="dmh-show-viewer-tags" type="checkbox" ${state.showViewerTags ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </label>
+            </div>
+          </section>
+          <section class="dmh-setting-section">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-label">默认展开标签窗口</span>
+              <label class="dmh-setting-switch" aria-label="默认展开标签窗口">
+                <input id="dmh-open-viewer-tags-by-default" type="checkbox" ${state.openViewerTagsByDefault ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </label>
+            </div>
+          </section>
+          <section class="dmh-setting-section">
+            <div class="dmh-setting-row">
+              <label class="dmh-setting-label" for="dmh-tag-click-behavior">标签点击行为</label>
+              <select class="dmh-setting-select dmh-tag-click-select" id="dmh-tag-click-behavior">
+                ${[
+                  ['original-new-tab', '新标签页打开原站搜索'],
+                  ['masonry-current-tab', '当前页瀑布流搜索'],
+                  ['masonry-new-tab', '新标签页瀑布流搜索'],
+                ]
+                  .map(
+                    ([value, label]) =>
+                      `<option value="${value}"${state.tagClickBehavior === value ? ' selected' : ''}>${label}</option>`,
+                  )
+                  .join('')}
+              </select>
+            </div>
+            <div class="dmh-setting-help">适用于详情中的所有标签。新页瀑布流需启用脚本；刷新或退出后返回原站。</div>
+          </section>
           <h3 class="dmh-settings-group-title">其他</h3>
           <section class="dmh-setting-section">
             <div class="dmh-setting-stack">
@@ -176,6 +212,12 @@ ${downloadFilenameTemplateInputs}
         </div>
       </aside>
       <div class="dmh-viewer" id="dmh-viewer" aria-hidden="true">
+        <div class="dmh-viewer-tags" id="dmh-viewer-tags" hidden>
+          <section class="dmh-viewer-tags-panel" id="dmh-viewer-tags-panel" aria-label="图片标签" hidden>
+            <div class="dmh-viewer-tags-list" id="dmh-viewer-tags-list"></div>
+          </section>
+          <button class="dmh-info-pill dmh-pill-id" id="dmh-viewer-tags-toggle" type="button" aria-expanded="false" aria-controls="dmh-viewer-tags-panel">显示标签</button>
+        </div>
         <div class="dmh-viewer-info" id="dmh-viewer-info"></div>
         <div class="dmh-viewer-actions">
           <button class="dmh-viewer-button" id="dmh-open-source" type="button" data-dmh-tooltip="来源" aria-label="来源">${icons.external}</button>

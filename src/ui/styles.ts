@@ -19,7 +19,7 @@ export function installStyles(): void {
     @keyframes dmh-loading-progress { 0% { transform: translateX(-110%); } 55% { transform: translateX(135%); } 100% { transform: translateX(265%); } }
     .dmh-toolbar-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 496px) minmax(0, 1fr); align-items: center; gap: 12px; width: 100%; min-width: 0; min-height: 56px; padding: 10px 16px; overflow: visible; white-space: nowrap; }
     .dmh-brand { display: flex; align-items: center; justify-self: start; gap: 25px; min-width: 0; }
-    .dmh-title { font-size: 22px; font-weight: 700; line-height: 1; white-space: nowrap; }
+    #dmh-app .dmh-title, #dmh-app .dmh-title:hover, #dmh-app .dmh-title:active, #dmh-app .dmh-title:focus, #dmh-app .dmh-title:focus-visible { margin: -11px -12px; padding: 11px 12px; border: 0; border-radius: 0; outline: 0; background: transparent; color: inherit; box-shadow: none; font: inherit; font-size: 22px; font-weight: 700; line-height: 1; white-space: nowrap; cursor: pointer; appearance: none; -webkit-tap-highlight-color: transparent; user-select: none; }
     .dmh-search { display: block; justify-self: center; width: min(496px, 100%); min-width: 0; max-width: 496px; }
     .dmh-search-form { position: relative; display: grid; grid-template-columns: minmax(0, 450px) 38px; align-items: center; gap: 8px; width: 100%; min-width: 0; }
     #dmh-app .dmh-search input { width: 100%; height: 36px; padding: 0 12px; border: 1px solid #afb8c1; border-radius: 6px; background: #fff; color: inherit; }
@@ -118,6 +118,7 @@ export function installStyles(): void {
     .dmh-setting-select option { font: 700 13px Arial, "Helvetica Neue", sans-serif; }
     .dmh-setting-select:focus-visible { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.12); }
     .dmh-setting-select-full { width: 100%; }
+    .dmh-tag-click-select { width: 210px; }
     .dmh-setting-switch { display: inline-flex; flex: 0 0 auto; align-items: center; width: 48px; height: 28px; cursor: pointer; }
     .dmh-setting-switch input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     .dmh-setting-switch-track { position: relative; width: 48px; height: 28px; border-radius: 999px; background: #d0d7de; transition: background .18s ease, box-shadow .18s ease; }
@@ -202,10 +203,25 @@ export function installStyles(): void {
     .dmh-viewer.dmh-chrome-hidden .dmh-viewer-actions, .dmh-viewer.dmh-chrome-hidden .dmh-viewer-nav { opacity: 0; pointer-events: none; }
     .dmh-info-pill { display: block; flex: 0 0 auto; max-width: 100%; height: 24px; padding: 0 10px; overflow: hidden; border: 1px solid transparent; border-radius: 999px; font-size: 12px; font-weight: bold; line-height: 24px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; pointer-events: auto; user-select: none; }
     .dmh-info-pill:hover { text-decoration: none; }
+    .dmh-info-pill[data-viewer-tag] { transition: box-shadow .14s ease; }
+    .dmh-info-pill[data-viewer-tag]:hover { box-shadow: 0 1px 4px rgba(31,35,40,.14); }
     .dmh-pill-id, .dmh-pill-id:visited { background: #bfe3ff; color: #0969da; }
     .dmh-pill-artist, .dmh-pill-artist:visited { color: rgb(201, 112, 0); background-color: rgb(255, 220, 176); border-color: rgb(255, 220, 176); }
     .dmh-pill-copyright, .dmh-pill-copyright:visited { color: rgb(174, 63, 193); background-color: rgb(249, 213, 255); border-color: rgb(249, 213, 255); }
     .dmh-pill-character, .dmh-pill-character:visited { color: rgb(12, 147, 18); background-color: rgb(196, 255, 199); border-color: rgb(196, 255, 199); }
+    #dmh-app .dmh-pill-artist[data-viewer-tag]:hover { color: rgb(201, 112, 0); background-color: rgb(255, 220, 176); border-color: rgb(255, 220, 176); }
+    #dmh-app .dmh-pill-copyright[data-viewer-tag]:hover { color: rgb(174, 63, 193); background-color: rgb(249, 213, 255); border-color: rgb(249, 213, 255); }
+    #dmh-app .dmh-pill-character[data-viewer-tag]:hover { color: rgb(12, 147, 18); background-color: rgb(196, 255, 199); border-color: rgb(196, 255, 199); }
+    .dmh-viewer-tags { position: absolute; left: 28px; bottom: 36px; z-index: 4; max-width: calc(100vw - 56px); }
+    .dmh-viewer-tags[hidden], .dmh-viewer-tags-panel[hidden] { display: none; }
+    .dmh-viewer.dmh-chrome-hidden .dmh-viewer-tags { visibility: hidden; pointer-events: none; }
+    .dmh-viewer-tags-panel { position: absolute; left: calc(100% + 6px); bottom: calc(100% + 4px); display: flex; flex-direction: column; width: 360px; max-width: calc(100vw - 150px); max-height: 35vh; padding: 8px; border: 1px solid rgba(255,255,255,.22); border-radius: 10px; background: rgba(255,255,255,.1); box-shadow: 0 2px 10px rgba(31,35,40,.1); backdrop-filter: blur(8px) saturate(1.1); }
+    .dmh-viewer-tags-list { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px; overflow-y: auto; min-height: 0; overscroll-behavior: contain; scrollbar-width: none; }
+    .dmh-viewer-tags-list::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    .dmh-viewer-tags-list .dmh-info-pill, .dmh-viewer-tags-list .dmh-info-pill:visited { height: auto; padding: 0 8px; border-color: rgba(94,119,138,.12); border-radius: 10px; background: rgba(190,207,219,.7); color: #30485a; font-weight: 600; line-height: 22px; white-space: normal; overflow-wrap: anywhere; }
+    #dmh-app .dmh-viewer-tags-list .dmh-info-pill:hover { border-color: rgba(94,119,138,.12); background: rgba(190,207,219,.7); color: #30485a; }
+    #dmh-viewer-tags-toggle { min-width: 88px; height: 40px; padding: 0 14px; border-color: rgba(255,255,255,.28); background: rgba(190,207,219,.72); color: #30485a; font-size: 13px; line-height: 40px; cursor: pointer; box-shadow: 0 2px 8px rgba(31,35,40,.1); backdrop-filter: blur(6px); transition: background .14s ease, border-color .14s ease, color .14s ease, box-shadow .14s ease; }
+    #dmh-viewer-tags-toggle:hover { border-color: rgba(255,255,255,.36); background: rgba(190,207,219,.84); color: #263f50; box-shadow: 0 2px 8px rgba(31,35,40,.12); }
     .dmh-tag-chip { display: inline-flex; max-width: 100%; padding: 2px 7px; border-radius: 999px; color: #fff; text-decoration: none; background: rgba(143, 119, 181, .9); }
     .dmh-tag-chip:hover { text-decoration: none; }
     .dmh-tag-artist { background: rgba(251, 140, 0, .9); }

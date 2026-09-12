@@ -1,3 +1,4 @@
+import { getViewerTags, getTagSearchUrl } from './viewerTags';
 import type { Post } from '../adapters/types';
 import {
   DEFAULT_DOWNLOAD_FILENAME_TEMPLATES,
@@ -20,6 +21,8 @@ export function showViewer(state: AppState, index: number): void {
   const loading = byId('dmh-viewer-loading');
   const info = byId('dmh-viewer-info');
   if (!viewer || !img || !video || !loading || !info) return;
+  const wasOpen = viewer.classList.contains('dmh-open');
+  if (!wasOpen) state.viewerTagsOpen = state.openViewerTagsByDefault;
 
   setZoomMode(state, false);
   if (post.playbackUrl) {
@@ -76,7 +79,7 @@ export function showViewer(state: AppState, index: number): void {
       window.requestAnimationFrame(showIfCurrentImage);
   }
 
-  info.innerHTML = renderViewerInfo(state, post);
+  refreshViewerTags(state);
   const cachedFavoriteState = state.favoriteStateCache.get(post.id);
   if (cachedFavoriteState !== undefined) {
     applyFavoriteState(state, post, cachedFavoriteState);
@@ -97,6 +100,7 @@ export function showViewer(state: AppState, index: number): void {
 }
 
 export function closeViewer(state: AppState): void {
+  setViewerTagsOpen(state, false);
   const viewer = byId('dmh-viewer');
   const img = byId<HTMLImageElement>('dmh-viewer-img');
   const video = byId<HTMLVideoElement>('dmh-viewer-video');
@@ -286,6 +290,7 @@ export function onZoomPointerEnd(state: AppState, event: PointerEvent): void {
 export function onViewerWheel(state: AppState, event: WheelEvent): void {
   const isOpen = byId('dmh-viewer')?.classList.contains('dmh-open');
   if (!isOpen || !event.deltaY) return;
+  if ((event.target as Element).closest?.('#dmh-viewer-tags-panel')) return;
   event.preventDefault();
   event.stopPropagation();
   if (state.zoomMode) {
@@ -302,6 +307,17 @@ export function onViewerWheel(state: AppState, event: WheelEvent): void {
 export function onViewerKeydown(state: AppState, event: KeyboardEvent): void {
   const isOpen = byId('dmh-viewer')?.classList.contains('dmh-open');
   if (!isOpen) return;
+  if (event.defaultPrevented) return;
+  if (
+    event.key === 'Escape' &&
+    state.viewerTagsOpen &&
+    !state.viewerChromeHidden &&
+    !byId('dmh-viewer-tags')?.hidden
+  ) {
+    event.preventDefault();
+    setViewerTagsOpen(state, false, true);
+    return;
+  }
   if (event.key === 'Escape') closeViewer(state);
   if (event.key === 'ArrowLeft') void showAdjacentViewerPost(state, -1);
   if (event.key === 'ArrowRight') void showAdjacentViewerPost(state, 1);
@@ -786,9 +802,43 @@ function renderViewerInfo(state: AppState, post: Post): string {
       const translated = state.translations.translate(tag);
       const label = `[ ${labels[type]} ] ${tag}${translated ? ` [ ${translated} ]` : ''}`;
       pills.push(
-        `<a class="dmh-info-pill dmh-pill-${escapeAttr(type)}" href="${escapeAttr(state.adapter.getPostsPageUrl(tag))}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`,
+        `<a class="dmh-info-pill dmh-pill-${escapeAttr(type)}" data-viewer-tag="${escapeAttr(tag)}" href="${escapeAttr(getTagSearchUrl(state.adapter, tag, state.tagClickBehavior))}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`,
       );
     }
   }
   return pills.join('');
+}
+
+export function setViewerTagsOpen(state: AppState, open: boolean, restoreFocus = false): void {
+  state.viewerTagsOpen = open && state.showViewerTags;
+  const panel = byId('dmh-viewer-tags-panel');
+  if (panel) panel.hidden = !state.viewerTagsOpen;
+  const toggle = byId('dmh-viewer-tags-toggle');
+  toggle?.setAttribute('aria-expanded', String(state.viewerTagsOpen));
+  if (toggle) toggle.textContent = state.viewerTagsOpen ? '隐藏标签' : '显示标签';
+  if (restoreFocus) byId('dmh-viewer-tags-toggle')?.focus();
+}
+
+export function refreshViewerTags(state: AppState): void {
+  const post = state.posts[state.viewerIndex];
+  const root = byId('dmh-viewer-tags');
+  const list = byId('dmh-viewer-tags-list');
+  if (!root || !list) return;
+  const tags = post ? getViewerTags(post) : [];
+  root.hidden = !state.showViewerTags || !tags.length;
+  if (!state.showViewerTags || !tags.length) setViewerTagsOpen(state, false);
+  else setViewerTagsOpen(state, state.viewerTagsOpen);
+  if (post) {
+    const info = byId('dmh-viewer-info');
+    if (info) info.innerHTML = renderViewerInfo(state, post);
+  }
+  list.innerHTML = tags
+    .map((tag) => {
+      const translated = state.translations.translate(tag);
+      return `<a class="dmh-info-pill dmh-pill-id" data-viewer-tag="${escapeAttr(tag)}" href="${escapeAttr(getTagSearchUrl(state.adapter, tag, state.tagClickBehavior))}" target="_blank" rel="noreferrer">${escapeHtml(tag)}${translated ? ` [ ${escapeHtml(translated)} ]` : ''}</a>`;
+    })
+    .join('');
+  list.scrollTop = 0;
+  const toggle = byId('dmh-viewer-tags-toggle');
+  if (toggle) toggle.textContent = state.viewerTagsOpen ? '隐藏标签' : '显示标签';
 }
