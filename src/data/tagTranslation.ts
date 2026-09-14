@@ -1,7 +1,7 @@
 import { fetchWithTimeout } from '../utils/fetch';
 
 export const TAG_TRANSLATION_URL =
-  'https://cdn.jsdelivr.net/gh/asadahimeka/yandere-masonry@main/src/data/all_tags_cn_space.min.json';
+  'https://cdn.jsdelivr.net/gh/kano0222/danbooru-tag-zh@main/artifacts/ffdkj/zh-hans.min.json';
 export const TAG_TRANSLATION_TIMEOUT_MS = 2500;
 
 export class TagTranslationStore {

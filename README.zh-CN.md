@@ -2,7 +2,7 @@
 
 为 Danbooru 提供瀑布流浏览、标签翻译、沉浸式图片查看及其他辅助功能。本项目基于 [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry) 简化并适配 Danbooru。
 
-标签翻译数据正在更新中。
+当前翻译来源于 [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table)，如有错误，可访问 [标签纠错页面](https://tagsuggest.zeabur.app) 提交纠错。
 
 <img src="https://count.getloli.com/@danbooru-masonry?theme=moebooru" alt="Moe Counter">
 
@@ -81,9 +81,12 @@
 
 - 登录后可在瀑布流设置面板编辑 Danbooru 黑名单规则。保存成功后会同步到账号并立即重新过滤已加载帖子。当前支持正负标签、`*` 通配符以及 `rating`、`score`、`status` 常用元标签；无法解析的规则仍会保存到 Danbooru，但不会在瀑布流中隐藏帖子。
 - Danbooru API 请求使用同源 cookie 和 `Accept: application/json`。如果返回 HTML，通常代表未登录、权限不足、被重定向、Cloudflare/站点拦截，或接口行为变化。
-- 收藏状态通过当前登录用户的 favorites 查询结果判断。
 - 收藏操作依赖官方页面中的 `meta[name="csrf-token"]`、同源登录 cookie 和页面上的当前用户数据。失败时会显示 `收藏失败: ...`。
-- 中文标签翻译来自 jsDelivr，超时时间为 2500ms。失败不影响主要浏览功能。
+
+## 致谢
+
+- [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry)：Danbooru Masonry 所基于的原始项目。
+- [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table)：提供中文标签翻译数据。
 
 ## License
 

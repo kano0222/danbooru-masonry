@@ -4,7 +4,7 @@
 
 Adds masonry browsing, tag translation, immersive image viewing, and several helper features to Danbooru. This project is based on [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry), simplified and adapted for Danbooru.
 
-The tag translation data is currently being updated.
+The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table). If you find an error, submit a correction through the [tag correction page](https://tagsuggest.zeabur.app).
 
 <img src="https://count.getloli.com/@danbooru-masonry?theme=moebooru" alt="Moe Counter">
 
@@ -83,9 +83,12 @@ If the script does not run on the domain you use, you can add the site URL to *U
 
 - Logged-in users can edit Danbooru blacklist rules from the masonry settings panel. A successful save updates the account and immediately re-filters loaded posts. Positive and negative tags, `*` wildcards, and the common `rating`, `score`, and `status` metatags are supported; unsupported rules are still saved to Danbooru but do not hide posts in masonry mode.
 - Danbooru API requests use same-origin cookies and `Accept: application/json`. If HTML is returned, it usually means login, permission, redirect, Cloudflare/site interception, or API behavior has changed.
-- Favorite state is determined by querying favorites for the current logged-in user.
 - Favorite actions depend on the official page's `meta[name="csrf-token"]`, same-origin login cookie, and current user data on the page. Failures are shown as `收藏失败: ...`.
-- Chinese tag translation is loaded from jsDelivr with a 2500ms timeout. Failure does not affect the main browsing features.
+
+## Credits
+
+- [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry), the original project on which Danbooru Masonry is based.
+- [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table), for providing the Chinese tag translations.
 
 ## License
 
