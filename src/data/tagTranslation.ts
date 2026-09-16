@@ -30,6 +30,7 @@ export class TagTranslationStore {
   private async loadOnce(): Promise<boolean> {
     try {
       const response = await fetchWithTimeout(TAG_TRANSLATION_URL, TAG_TRANSLATION_TIMEOUT_MS, {
+        cache: 'no-cache',
         headers: { Accept: 'application/json' },
         credentials: 'omit',
       });
