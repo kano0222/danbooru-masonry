@@ -1,3 +1,15 @@
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly errorType: string,
+    public readonly serverMessage: string,
+    label: string,
+  ) {
+    super(serverMessage || `请求失败（HTTP ${status}，${label}）`);
+    this.name = 'ApiError';
+  }
+}
+
 export async function fetchJson<T>(url: string, init: RequestInit = {}, label = 'request'): Promise<T> {
   const response = await fetch(url, {
     credentials: 'same-origin',
@@ -8,15 +20,25 @@ export async function fetchJson<T>(url: string, init: RequestInit = {}, label = 
     },
   });
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${label} failed`);
+    let body: Record<string, unknown> = {};
+    try {
+      const data: unknown = await response.json();
+      if (data && typeof data === 'object' && !Array.isArray(data)) {
+        body = data as Record<string, unknown>;
+      }
+    } catch {
+      // HTML error pages and empty responses still have a useful HTTP status.
+    }
+    throw new ApiError(
+      response.status,
+      typeof body.error === 'string' ? body.error : '',
+      typeof body.message === 'string' ? body.message : typeof body.reason === 'string' ? body.reason : '',
+      label,
+    );
   }
   const contentType = response.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
-    const text = await response.text();
-    const snippet = text.replace(/\s+/g, ' ').slice(0, 180);
-    throw new Error(
-      `${label} did not return JSON. You may be logged out, lack permission, hit Cloudflare/interception, or were redirected. ${snippet}`,
-    );
+    throw new ApiError(response.status, 'UnexpectedResponse', '', label);
   }
   return (await response.json()) as T;
 }

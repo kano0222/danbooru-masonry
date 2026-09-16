@@ -20,9 +20,9 @@
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- 瀑布流支持最短列布局、滚动加载和窗口变化自动重排。顶部工具栏提供标签搜索、页码跳转、上下方向键翻页和标签自动补全；点击左上角的 Danbooru 标题可以退出瀑布流。向下滚动一定距离后，右下角会显示“回到顶部”按钮。瀑布流会遵循进入模式时读取的 Danbooru 黑名单设置。
+- 瀑布流支持滚动加载、标签搜索、页码跳转和标签自动补全，并遵循登录用户的 Danbooru 黑名单。
 
-- 鼠标悬停在缩略图上时会显示 Danbooru 图片 ID 和尺寸，并提供打开来源和下载按钮。可以在设置中控制缩略图信息、操作按钮及瀑布流图片大小。
+- 缩略图提供来源和下载入口，可显示图片 ID 和尺寸。
 
 ![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
 
@@ -30,6 +30,7 @@
 
   - 缩略图
     - 缩略图大小：小 / 中 / 大
+    - 显示 NSFW（默认开启）
     - 显示缩略图操作按钮（默认开启）
     - 显示缩略图信息（默认关闭）
     - 显示瀑布流滚动条（默认开启）
@@ -38,19 +39,16 @@
     - 使用滚轮切换图片（默认开启）
     - 加载原图（默认关闭）
     - 显示详情标签入口（默认开启）
-    - 默认展开标签窗口（默认关闭）
     - 标签点击行为：新标签页瀑布流搜索（默认）、新标签页原站搜索、当前页瀑布流搜索
   - 其他
     - Danbooru 黑名单规则编辑与账号同步
     - 下载文件名模板
 
-![preview3.1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.1.png)
+![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
 
-![preview3.2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.2.png)
+- 沉浸式查看器支持图片和视频预览、切换、缩放、收藏及下载。收藏需要登录 Danbooru。
 
-- 沉浸式查看器支持图片和视频预览、左右方向键切换、滚轮切换、Esc 关闭、原图缩放及拖拽查看。右上角按钮依次用于打开来源、收藏帖子（需要登录 Danbooru）、缩放、打开帖子详情页、下载原文件和退出查看器。
-
-- 查看器左下角提供标签入口，可展开浏览其他普通标签及其中文翻译。查看器中的所有标签均遵循设置的点击行为：在原站新标签页搜索、在当前页切换瀑布流搜索，或在新标签页自动启动瀑布流搜索。标签搜索会使用所点击的标签替换原查询。
+- 默认显示画师、角色和版权标签，更多标签可展开查看。
 
 ![preview4](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview4.png)
 
@@ -64,10 +62,8 @@
 - `{userid}`：来源 URL 可解析到的用户 ID
 - `{id}`：来源作品 ID，缺失时回退到 Danbooru ID
 - `{postid}`：Danbooru ID
-- `{ext}`：文件后缀
 
-模板只基于 Danbooru API 返回的数据和 source URL 解析结果生成，不会额外请求 Pixiv、Bilibili、微博等原站页面。
-模板不能为空，手动修改后会在输入框失焦时自动保存。点击“恢复默认”后可在按钮附近确认，确认后会立即恢复并保存默认模板。
+模板从 Danbooru 和来源 URL 获取数据生成文件名。修改或恢复默认后需点击“保存”。
 
 ### 镜像站支持
 
@@ -79,9 +75,7 @@
 
 ## 注意事项
 
-- 登录后可在瀑布流设置面板编辑 Danbooru 黑名单规则。保存成功后会同步到账号并立即重新过滤已加载帖子。当前支持正负标签、`*` 通配符以及 `rating`、`score`、`status` 常用元标签；无法解析的规则仍会保存到 Danbooru，但不会在瀑布流中隐藏帖子。
-- Danbooru API 请求使用同源 cookie 和 `Accept: application/json`。如果返回 HTML，通常代表未登录、权限不足、被重定向、Cloudflare/站点拦截，或接口行为变化。
-- 收藏操作依赖官方页面中的 `meta[name="csrf-token"]`、同源登录 cookie 和页面上的当前用户数据。失败时会显示 `收藏失败: ...`。
+- 瀑布流黑名单支持正负标签、`*` 通配符及 `rating`、`score`、`status` 元标签；其他规则仍会保存到 Danbooru，但不会在瀑布流中生效。
 
 ## 致谢
 

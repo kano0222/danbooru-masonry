@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Post } from '../adapters/types';
 import { normalizePost } from '../core/normalizePost';
-import { fetchPostsJson } from './posts';
+import { fetchPostsJson, getPostLoadError } from './posts';
 
 const origin = 'https://danbooru.donmai.us';
 
@@ -77,5 +77,67 @@ describe('posts API', () => {
     await expect(
       fetchPostsJson(origin, { tags: '', page: 2 }, normalize),
     ).resolves.toEqual({ posts: [], hasSourcePosts: false });
+  });
+});
+
+describe('readable post errors', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  async function responseError(status: number, body: unknown, contentType = 'application/json') {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(
+      contentType === 'application/json' ? JSON.stringify(body) : String(body),
+      { status, headers: { 'content-type': contentType } },
+    )));
+    try {
+      await fetchPostsJson(origin, { tags: 'a b c', page: 1 }, normalize);
+      throw new Error('Expected the request to fail');
+    } catch (error) {
+      return getPostLoadError(error);
+    }
+  }
+  it.each([2, 6])('uses the actual server tag limit %s and offers an upgrade', async limit => {
+    const result = await responseError(422, {
+      success: false,
+      error: 'PostQuery::TagLimitError',
+      message: 'You cannot search for more than ' + limit + ' tags at a time.',
+      backtrace: ['private details'],
+    });
+    expect(result.upgrade).toBe(true);
+    expect(result.message).toContain('最多搜索 ' + limit + ' 个标签');
+    expect(result.message).not.toContain('private details');
+  });
+  it('does not invent a limit when the server omits it', async () => {
+    const result = await responseError(422, { error: 'PostQuery::TagLimitError' });
+    expect(result.upgrade).toBe(true);
+    expect(result.message).toContain('超过当前账号上限');
+    expect(result.message).not.toContain('2');
+  });
+  it('does not mislabel other 422 errors as tag limits', async () => {
+    const result = await responseError(422, { error: 'PostQuery::Error', message: 'Invalid query' });
+    expect(result.upgrade).toBe(false);
+    expect(result.message).toContain('搜索条件无效');
+    expect(result.message).toContain('Invalid query');
+  });
+  it.each([[401, '身份验证失败'], [403, '访问被拒绝'], [410, '页码超过'], [429, '请求过于频繁'], [503, '服务暂时不可用']])('explains HTTP %s', async (status, text) => {
+    const result = await responseError(Number(status), {});
+    expect(result.message).toContain(text);
+    expect(result.upgrade).toBe(false);
+  });
+  it('distinguishes search timeouts from generic server failures', async () => {
+    expect((await responseError(500, { error: 'ActiveRecord::QueryCanceled' })).message).toContain('搜索超时');
+  });
+  it('handles HTML error pages without displaying their markup', async () => {
+    const result = await responseError(502, '<script>unsafe</script>', 'text/html');
+    expect(result.message).toContain('HTTP 502');
+    expect(result.message).not.toContain('script');
+  });
+  it('handles malformed error JSON and legacy reason fields', async () => {
+    expect((await responseError(422, '{invalid', 'text/plain')).message).toContain('搜索条件无效');
+    expect((await responseError(422, { reason: 'Invalid parameter' })).message).toContain('Invalid parameter');
+  });
+  it('explains a successful response containing an HTML verification page', async () => {
+    expect((await responseError(200, '<html>verify</html>', 'text/html')).message).toContain('完成验证');
+  });
+  it('explains network failures', () => {
+    expect(getPostLoadError(new TypeError('Failed to fetch')).message).toContain('网络连接失败');
   });
 });

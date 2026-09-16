@@ -25,6 +25,7 @@ export interface BlacklistRuleInput {
 }
 
 export interface CapturedBlacklist {
+  available: boolean;
   config: BlacklistConfig;
   text: string;
 }
@@ -35,7 +36,7 @@ export function captureBlacklistConfig(root: Document): BlacklistConfig {
 
 export function captureBlacklist(root: Document): CapturedBlacklist {
   const box = root.querySelector<HTMLElement>('#blacklist-box');
-  if (!box) return { config: { enabled: false, rules: [] }, text: '' };
+  if (!box) return { available: false, config: { enabled: false, rules: [] }, text: '' };
 
   const enabledInput = box.querySelector<HTMLInputElement>('input[x-model="blacklist.enabled"]');
   const blurInput = box.querySelector<HTMLInputElement>('input[x-model="blacklist.blurImages"]');
@@ -55,6 +56,7 @@ export function captureBlacklist(root: Document): CapturedBlacklist {
     });
 
   return {
+    available: true,
     config: createBlacklistConfig(enabled, Boolean(blurInput?.checked), ruleInputs),
     text: sources.join('\n'),
   };

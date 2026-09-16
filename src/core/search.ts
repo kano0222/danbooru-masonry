@@ -22,3 +22,9 @@ export function resetSearch(state: AppState, tags: string, page = 1): void {
   setText('dmh-message', '');
   history.pushState(null, '', state.adapter.getPostsPageUrl(state.tags, state.page));
 }
+
+export function getRequestTags(tags: string, hideNsfw: boolean): string {
+  if (!hideNsfw) return tags;
+  const query = tags.trim();
+  return query ? '( ' + query + ' ) rating:g' : 'rating:g';
+}

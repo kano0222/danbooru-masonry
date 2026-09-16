@@ -6,7 +6,7 @@ import { CARD_SIZE_OPTIONS } from '../core/masonry';
 export function renderShell(state: AppState): void {
   document.title = 'Danbooru Masonry';
   const canSaveBlacklist = Boolean(
-    document.body.dataset.currentUserId &&
+    state.blacklistAvailable && document.body.dataset.currentUserId &&
       document.body.dataset.currentUserIsAnonymous !== 'true',
   );
   const cardSize = CARD_SIZE_OPTIONS.find((option) => option.value === state.cardWidth)?.key || 'medium';
@@ -17,8 +17,11 @@ export function renderShell(state: AppState): void {
   const downloadFilenameTemplateInputs = DOWNLOAD_FILENAME_TEMPLATE_OPTIONS.map(
     (option) => `
               <label class="dmh-download-template-row" for="dmh-download-template-${option.key}">
-                <span class="dmh-download-template-label">${option.label}</span>
-                <input class="dmh-download-template-input" id="dmh-download-template-${option.key}" type="text" data-download-template="${option.key}" value="${escapeAttr(state.downloadFilenameTemplates[option.key])}" required>
+                <span class="dmh-download-template-heading">
+                  <span class="dmh-download-template-label">${option.label}</span>
+                  <span class="dmh-setting-help dmh-download-preview" id="dmh-download-preview-${option.key}"></span>
+                </span>
+                <input class="dmh-download-template-input" id="dmh-download-template-${option.key}" type="text" data-download-template="${option.key}" value="${escapeAttr(state.downloadFilenameTemplates[option.key])}" aria-describedby="dmh-download-preview-${option.key}">
               </label>`,
   ).join('');
   document.body.innerHTML = `
@@ -28,15 +31,15 @@ export function renderShell(state: AppState): void {
           <div class="dmh-brand">
             <button class="dmh-title" id="dmh-title-exit" type="button" aria-label="退出瀑布流">danbooru</button>
             <div class="dmh-page-group">
-              <span class="dmh-page-label">page</span>
-              <label class="dmh-page-control" title="Page" aria-label="Page">
+              <span class="dmh-page-label">页码</span>
+              <label class="dmh-page-control" title="页码" aria-label="页码">
                 <input class="dmh-page-input" id="dmh-page" type="text" inputmode="numeric" pattern="[0-9]*" size="1" value="${state.page}">
               </label>
             </div>
           </div>
           <div class="dmh-search">
             <form class="dmh-search-form" id="dmh-search">
-              <input id="dmh-tags" type="search" autocomplete="off" placeholder="tags" value="${escapeAttr(state.tags)}">
+              <input id="dmh-tags" type="search" autocomplete="off" placeholder="搜索标签" value="${escapeAttr(state.tags)}">
               <button class="dmh-button dmh-icon-button" type="submit" data-dmh-tooltip="搜索" aria-label="搜索">${icons.search}</button>
               <div class="dmh-ac" id="dmh-ac"></div>
             </form>
@@ -72,6 +75,15 @@ export function renderShell(state: AppState): void {
 ${cardSizeOptions}
               </select>
             </label>
+          </section>
+          <section class="dmh-setting-section">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-label">显示 NSFW</span>
+              <label class="dmh-setting-switch" aria-label="显示 NSFW">
+                <input id="dmh-show-nsfw" type="checkbox" ${!state.hideNsfw ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </label>
+            </div>
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-row">
@@ -139,15 +151,6 @@ ${cardSizeOptions}
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-row">
-              <span class="dmh-setting-label">默认展开标签窗口</span>
-              <label class="dmh-setting-switch" aria-label="默认展开标签窗口">
-                <input id="dmh-open-viewer-tags-by-default" type="checkbox" ${state.openViewerTagsByDefault ? 'checked' : ''}>
-                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
-              </label>
-            </div>
-          </section>
-          <section class="dmh-setting-section">
-            <div class="dmh-setting-row">
               <label class="dmh-setting-label" for="dmh-tag-click-behavior">标签点击行为</label>
               <select class="dmh-setting-select dmh-tag-click-select" id="dmh-tag-click-behavior">
                 ${[
@@ -162,23 +165,44 @@ ${cardSizeOptions}
                   .join('')}
               </select>
             </div>
-            <div class="dmh-setting-help">适用于详情中的所有标签。新页瀑布流需启用脚本；刷新或退出后返回原站。</div>
           </section>
           <h3 class="dmh-settings-group-title">其他</h3>
+          <button class="dmh-setting-editor-button" id="dmh-blacklist-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-blacklist-editor">Danbooru 黑名单规则 <span aria-hidden="true">›</span></button>
+          <button class="dmh-setting-editor-button" id="dmh-download-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-download-editor">下载文件名模板 <span aria-hidden="true">›</span></button>
+        </div>
+        <div class="dmh-settings-footer">
+          <a class="dmh-settings-github" href="https://github.com/kano0222/danbooru-masonry" target="_blank" rel="noreferrer" aria-label="打开 GitHub 仓库" title="GitHub">${icons.github}</a>
+        </div>
+      </aside>
+      <dialog class="dmh-settings-editor" id="dmh-blacklist-editor" aria-labelledby="dmh-blacklist-editor-title">
+        <div class="dmh-settings-header">
+          <h2 id="dmh-blacklist-editor-title">Danbooru 黑名单规则</h2>
+          <button class="dmh-settings-close" id="dmh-blacklist-editor-close" type="button" aria-label="关闭Danbooru 黑名单规则" autofocus>${icons.close}</button>
+        </div>
+        <div class="dmh-settings-editor-content">
           <section class="dmh-setting-section">
             <div class="dmh-setting-stack">
-              <label class="dmh-setting-label" for="dmh-blacklist-rules">Danbooru 黑名单规则</label>
-              <textarea class="dmh-blacklist-rules" id="dmh-blacklist-rules" rows="7" spellcheck="false" ${canSaveBlacklist ? '' : 'readonly'}>${escapeHtml(state.blacklistText)}</textarea>
-              <div class="dmh-setting-help">每行一条规则。保存后会同步到 Danbooru 账号，并立即更新当前瀑布流。</div>
+              <textarea class="dmh-blacklist-rules" id="dmh-blacklist-rules" aria-labelledby="dmh-blacklist-editor-title" rows="7" spellcheck="false" ${canSaveBlacklist ? '' : 'readonly'}>${escapeHtml(state.blacklistText)}</textarea>
+              <div class="dmh-template-help">每行一条规则，关闭窗口或取消会放弃未保存修改。</div>
               <div class="dmh-blacklist-actions">
-                <span class="dmh-blacklist-status" id="dmh-blacklist-status" role="status">${canSaveBlacklist ? '' : '登录 Danbooru 后可修改'}</span>
-                <button class="dmh-blacklist-save" id="dmh-blacklist-save" type="button" ${canSaveBlacklist ? '' : 'disabled'}>保存规则</button>
+                <span class="dmh-blacklist-status" id="dmh-blacklist-status" role="status">${!state.blacklistAvailable ? '未能读取原站黑名单，请刷新原站后重试' : canSaveBlacklist ? '' : '登录 Danbooru 后可修改'}</span>
+                <div class="dmh-blacklist-buttons">
+                  <button class="dmh-template-reset" id="dmh-blacklist-cancel" type="button">取消</button>
+                  <button class="dmh-blacklist-save" id="dmh-blacklist-save" type="button" ${canSaveBlacklist ? '' : 'disabled'}>保存</button>
+                </div>
               </div>
             </div>
           </section>
+        </div>
+      </dialog>
+      <dialog class="dmh-settings-editor" id="dmh-download-editor" aria-labelledby="dmh-download-editor-title">
+        <div class="dmh-settings-header">
+          <h2 id="dmh-download-editor-title">下载文件名模板</h2>
+          <button class="dmh-settings-close" id="dmh-download-editor-close" type="button" aria-label="关闭下载文件名模板" autofocus>${icons.close}</button>
+        </div>
+        <div class="dmh-settings-editor-content">
           <section class="dmh-setting-section">
             <div class="dmh-setting-stack">
-              <span class="dmh-setting-label">下载文件名模板</span>
               <div class="dmh-download-template-list">
 ${downloadFilenameTemplateInputs}
               </div>
@@ -189,28 +213,20 @@ ${downloadFilenameTemplateInputs}
                 <div><code>{userid}</code> 来源 URL 可解析到的用户 ID</div>
                 <div><code>{id}</code> 来源作品 ID，缺失时回退到 Danbooru ID</div>
                 <div><code>{postid}</code> Danbooru ID</div>
-                <div><code>{ext}</code> 文件后缀</div>
-                <div>模板不能为空，修改后失焦时自动保存。</div>
+                <div>关闭窗口或取消会放弃未保存修改。</div>
               </div>
               <div class="dmh-download-template-actions">
                 <span class="dmh-download-template-status" id="dmh-download-template-status" role="status" aria-live="polite"></span>
                 <div class="dmh-download-template-buttons">
-                  <div class="dmh-template-reset-control">
-                    <button class="dmh-template-reset" id="dmh-download-template-reset" type="button" aria-expanded="false" aria-controls="dmh-template-reset-confirmation">恢复默认</button>
-                    <div class="dmh-template-reset-popover" id="dmh-template-reset-confirmation" role="alertdialog" aria-labelledby="dmh-template-reset-confirmation-text" hidden>
-                      <div id="dmh-template-reset-confirmation-text">确定恢复全部默认模板？</div>
-                      <div class="dmh-template-reset-popover-actions">
-                        <button class="dmh-template-reset-cancel" id="dmh-template-reset-cancel" type="button">取消</button>
-                        <button class="dmh-template-reset-apply" id="dmh-template-reset-apply" type="button">确定恢复</button>
-                      </div>
-                    </div>
-                  </div>
+                  <button class="dmh-template-reset" id="dmh-download-template-reset" type="button">恢复默认</button>
+                  <button class="dmh-template-reset" id="dmh-download-cancel" type="button">取消</button>
+                  <button class="dmh-blacklist-save" id="dmh-download-save" type="button">保存</button>
                 </div>
               </div>
             </div>
           </section>
         </div>
-      </aside>
+      </dialog>
       <div class="dmh-viewer" id="dmh-viewer" aria-hidden="true">
         <div class="dmh-viewer-tags" id="dmh-viewer-tags" hidden>
           <section class="dmh-viewer-tags-panel" id="dmh-viewer-tags-panel" aria-label="图片标签" hidden>
@@ -232,7 +248,7 @@ ${downloadFilenameTemplateInputs}
         <img id="dmh-viewer-img" alt="" draggable="true">
         <video id="dmh-viewer-video" controls autoplay loop playsinline hidden></video>
         <div class="img_detail_loading" id="dmh-viewer-loading" hidden aria-hidden="true">
-          <div class="v-progress-circular" id="dmh-viewer-progress" role="status" aria-label="Loading image"></div>
+          <div class="v-progress-circular" id="dmh-viewer-progress" role="status" aria-label="正在加载图片"></div>
           <div class="dmh-viewer-error" id="dmh-viewer-error" hidden>
             <div class="sc-13hg6mj-1 bsMYYv">
               <svg viewBox="0 0 24 24" size="72" class="sc-11csm01-0 fieitW"><path d="M10,6 C10,4.8954305 10.8954305,4 12,4 C13.1045695,4 14,4.8954305 14,6 L14,12.5 C14,13.6045695 13.1045695,14.5 12,14.5 C10.8954305,14.5 10,13.6045695 10,12.5 L10,6 Z M12,20 C10.7573593,20 9.75,18.9926407 9.75,17.75 C9.75,16.5073593 10.7573593,15.5 12,15.5 C13.2426407,15.5 14.25,16.5073593 14.25,17.75 C14.25,18.9926407 13.2426407,20 12,20 Z" transform=""></path></svg>

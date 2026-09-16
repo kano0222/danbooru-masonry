@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createFavorite, isPostFavorited } from './favorites';
+import { createFavorite, deleteFavorite, isPostFavorited } from './favorites';
 
 const origin = 'https://danbooru.donmai.us';
 
@@ -67,6 +67,15 @@ describe('favorites API', () => {
     );
 
     await expect(isPostFavorited(origin, '100')).resolves.toBe(false);
+  });
+
+  it.each([401, 403, 429, 500])('reports HTTP %s failures in Chinese for adding and removing favorites', async status => {
+    setCurrentUser('42');
+    vi.stubGlobal('document', { body: { dataset: { currentUserId: '42' } }, querySelector: () => null });
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() => Promise.resolve(new Response('', { status }))));
+    const text = status === 401 || status === 403 ? '登录已失效或权限不足' : status === 429 ? '操作过于频繁' : '服务器未能完成收藏操作';
+    await expect(createFavorite(origin, '100')).rejects.toThrow(text);
+    await expect(deleteFavorite(origin, '100')).rejects.toThrow(text);
   });
 
   it('shows a clear login-state error before creating favorites when logged out', async () => {

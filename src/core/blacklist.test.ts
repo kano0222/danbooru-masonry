@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { Post } from '../adapters/types';
 import {
+  captureBlacklist,
   createBlacklistConfig,
   createBlacklistConfigFromText,
   filterBlacklistedPosts,
@@ -88,5 +89,26 @@ describe('Danbooru blacklist', () => {
     const cached = [post({ id: '1', tags: ['scat'] }), post({ id: '2', tags: ['solo'] })];
     expect(filterBlacklistedPosts(cached, config('scat')).map((item) => item.id)).toEqual(['2']);
     expect(filterBlacklistedPosts(cached, config('solo')).map((item) => item.id)).toEqual(['1']);
+  });
+});
+
+describe('blacklist capture', () => {
+  function documentWithRules(sources: string[] | null): Document {
+    const rows = (sources || []).map(source => ({
+      dataset: {},
+      querySelector: (selector: string) => selector === 'a[title]' ? { title: source } : { checked: false },
+    }));
+    const box = { querySelector: () => ({ checked: false, indeterminate: false }), querySelectorAll: () => rows };
+    return { querySelector: () => sources === null ? null : box } as unknown as Document;
+  }
+  it('distinguishes a missing original component from an actual empty blacklist', () => {
+    expect(captureBlacklist(documentWithRules(null))).toMatchObject({ available: false, text: '' });
+    expect(captureBlacklist(documentWithRules([]))).toMatchObject({ available: true, text: '' });
+  });
+  it('captures server-rendered rule text even before frontend checkboxes initialize', () => {
+    const result = captureBlacklist(documentWithRules(['cat*', 'rating:e']));
+    expect(result.available).toBe(true);
+    expect(result.text).toBe('cat*\nrating:e');
+    expect(result.config.enabled).toBe(false);
   });
 });

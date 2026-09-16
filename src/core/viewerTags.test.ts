@@ -4,7 +4,6 @@ import { normalizePost } from './normalizePost';
 import {
   createState,
   parseTagClickBehavior,
-  saveOpenViewerTagsByDefault,
   saveShowViewerTags,
   saveTagClickBehavior,
 } from './state';
@@ -34,27 +33,23 @@ describe('viewer tag settings and links', () => {
   it('uses the viewer tag defaults and persists preferences', () => {
     const value = state();
     expect(value.showViewerTags).toBe(true);
-    expect(value.openViewerTagsByDefault).toBe(false);
+    expect(value.viewerTagsOpen).toBe(false);
     expect(value.tagClickBehavior).toBe('masonry-new-tab');
     const save = vi.fn();
     vi.stubGlobal('GM_setValue', save);
     saveShowViewerTags(false);
-    saveOpenViewerTagsByDefault(true);
     saveTagClickBehavior('masonry-new-tab');
     expect(save.mock.calls).toEqual([
       ['danbooru-masonry.showViewerTags', false],
-      ['danbooru-masonry.openViewerTagsByDefault', true],
       ['danbooru-masonry.tagClickBehavior', 'masonry-new-tab'],
     ]);
     vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) => {
       if (key.endsWith('showViewerTags')) return false;
-      if (key.endsWith('openViewerTagsByDefault')) return true;
       if (key.endsWith('tagClickBehavior')) return 'original-new-tab';
       return fallback;
     });
     const restored = createState(adapter);
     expect(restored.showViewerTags).toBe(false);
-    expect(restored.openViewerTagsByDefault).toBe(true);
     expect(restored.tagClickBehavior).toBe('original-new-tab');
   });
   it.each([undefined, null, 'invalid', 1])('rejects invalid behavior %s', (value) => {
@@ -159,7 +154,50 @@ describe('viewer tag panel', () => {
     expect(nodes.get('dmh-viewer-tags')!.hidden).toBe(true);
     expect(value.viewerTagsOpen).toBe(false);
   });
-  it('reveals the panel when the viewer starts in the default-open state', () => {
+  it.each([true, false])('restores the last tag panel choice %s after reload', (open) => {
+    const { value } = setup();
+    const stored = new Map<string, unknown>();
+    const save = vi.fn((key: string, next: unknown) => stored.set(key, next));
+    vi.stubGlobal('GM_setValue', save);
+    vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) =>
+      stored.has(key) ? stored.get(key) : fallback,
+    );
+    setViewerTagsOpen(value, true);
+    setViewerTagsOpen(value, open);
+    expect(stored.get('danbooru-masonry.viewerTagsOpen')).toBe(open);
+    save.mockClear();
+    closeViewer(value);
+    value.posts[0].tagGroups.general = [];
+    refreshViewerTags(value);
+    expect(save).not.toHaveBeenCalled();
+    expect(createState(adapter).viewerTagsOpen).toBe(open);
+  });
+  it('keeps tag controls usable when preference storage is blocked', () => {
+    const { value, nodes } = setup();
+    vi.stubGlobal('GM_setValue', () => { throw new Error('blocked'); });
+    setViewerTagsOpen(value, true);
+    expect(value.viewerTagsOpen).toBe(true);
+    expect(nodes.get('dmh-viewer-tags-panel')!.hidden).toBe(false);
+  });
+  it('keeps the user choice after closing and refreshing the viewer', () => {
+    const { value, nodes } = setup();
+    setViewerTagsOpen(value, true);
+    closeViewer(value);
+    refreshViewerTags(value);
+    expect(nodes.get('dmh-viewer-tags-panel')!.hidden).toBe(false);
+    value.posts[0].tagGroups.general = [];
+    refreshViewerTags(value);
+    expect(nodes.get('dmh-viewer-tags')!.hidden).toBe(true);
+    value.posts[0].tagGroups.general = ['hello'];
+    refreshViewerTags(value);
+    expect(nodes.get('dmh-viewer-tags-panel')!.hidden).toBe(false);
+    setViewerTagsOpen(value, false);
+    closeViewer(value);
+    refreshViewerTags(value);
+    expect(value.viewerTagsOpen).toBe(false);
+    expect(nodes.get('dmh-viewer-tags-panel')!.hidden).toBe(true);
+  });
+  it('reveals the panel when the viewer has a remembered open state', () => {
     const { value, nodes } = setup();
     value.viewerTagsOpen = true;
     nodes.get('dmh-viewer-tags-panel')!.hidden = true;
@@ -178,7 +216,7 @@ describe('viewer tag panel', () => {
     expect(event.preventDefault).toHaveBeenCalledOnce();
     setViewerTagsOpen(value, true);
     closeViewer(value);
-    expect(value.viewerTagsOpen).toBe(false);
+    expect(value.viewerTagsOpen).toBe(true);
   });
   it('does not prevent native panel scrolling or navigate when zoomed', () => {
     const { value } = setup();
@@ -203,6 +241,6 @@ describe('viewer tag panel', () => {
     onViewerKeydown(value, event);
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(nodes.get('dmh-viewer-tags-toggle')!.focus).not.toHaveBeenCalled();
-    expect(value.viewerTagsOpen).toBe(false);
+    expect(value.viewerTagsOpen).toBe(true);
   });
 });

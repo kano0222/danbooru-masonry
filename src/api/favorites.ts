@@ -17,7 +17,7 @@ export async function createFavorite(origin: string, postId: string): Promise<vo
   if (!response.ok) {
     const text = await response.text();
     if (/already\s+favorited/i.test(text)) return;
-    throw new Error(favoriteError(response.status, 'favorite failed'));
+    throw new Error(favoriteError(response.status));
   }
 }
 
@@ -39,7 +39,7 @@ export async function deleteFavorite(origin: string, postId: string): Promise<vo
     }).toString(),
   });
   if (!response.ok && response.status !== 404) {
-    throw new Error(favoriteError(response.status, 'favorite delete failed'));
+    throw new Error(favoriteError(response.status));
   }
 }
 
@@ -54,10 +54,11 @@ export async function isPostFavorited(origin: string, postId: string): Promise<b
   return Array.isArray(data) && data.some((item) => isFavoriteForCurrentUser(item, postId, userId));
 }
 
-function favoriteError(status: number, message: string): string {
-  if (status === 401 || status === 403) return `HTTP ${status}: ${message}; login or CSRF may be required`;
-  if (status === 404) return `HTTP ${status}: ${message}; endpoint or post was not found`;
-  return `HTTP ${status}: ${message}`;
+function favoriteError(status: number): string {
+  if (status === 401 || status === 403) return '登录已失效或权限不足，请刷新原站并确认登录后重试。';
+  if (status === 404) return '图片不存在或已被删除。';
+  if (status === 429) return '操作过于频繁，请稍等一分钟后重试。';
+  return '服务器未能完成收藏操作，请稍后重试。（HTTP ' + status + '）';
 }
 
 function assertLoggedIn(): void {

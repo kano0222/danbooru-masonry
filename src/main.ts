@@ -3,8 +3,8 @@ import type { AppState } from './core/state';
 import type { BooruAdapter } from './adapters/types';
 import {
   createState,
+  saveHideNsfw,
   saveShowViewerTags,
-  saveOpenViewerTagsByDefault,
   saveTagClickBehavior,
   parseTagClickBehavior,
   DEFAULT_DOWNLOAD_FILENAME_TEMPLATES,
@@ -17,7 +17,7 @@ import {
   saveShowScrollbar,
   saveViewerUseOriginal,
   saveViewerWheelNavigation,
-  type DownloadFilenamePlatform,
+  type DownloadFilenameTemplates,
 } from './core/state';
 import { installStyles } from './ui/styles';
 import { installLaunchButton, renderShell } from './ui/shell';
@@ -36,17 +36,20 @@ import {
   scheduleLayoutMasonry,
   shouldLoadMore,
 } from './core/masonry';
-import { resetSearch } from './core/search';
+import { getRequestTags, resetSearch } from './core/search';
 import {
   captureBlacklist,
   createBlacklistConfigFromText,
   filterBlacklistedPosts,
   normalizeBlacklistText,
 } from './core/blacklist';
+import { getPostLoadError } from './api/posts';
 import { updateBlacklistedTags } from './api/userSettings';
 import { installShortcuts } from './core/shortcuts';
 import {
   closeViewer,
+  previewDownloadFilenameTemplate,
+  validateDownloadFilenameTemplate,
   refreshViewerTags,
   setViewerTagsOpen,
   favoriteCurrentPost,
@@ -99,6 +102,7 @@ async function startMasonry(state: AppState): Promise<void> {
     const capturedBlacklist = captureBlacklist(document);
     state.blacklist = capturedBlacklist.config;
     state.blacklistText = capturedBlacklist.text;
+    state.blacklistAvailable = capturedBlacklist.available;
     installStyles();
     shellAttempted = true;
     renderShell(state);
@@ -134,14 +138,22 @@ async function startMasonry(state: AppState): Promise<void> {
 }
 
 function bindShellEvents(state: AppState): void {
+  bindSettingsEditors(state);
+  byId('dmh-show-nsfw')?.addEventListener('change', (event) => {
+    const hideNsfw = !(event.target as HTMLInputElement).checked;
+    if (state.hideNsfw === hideNsfw) return;
+    state.hideNsfw = hideNsfw;
+    saveHideNsfw(hideNsfw);
+    closeViewer(state);
+    closeAutocomplete(state);
+    resetSearch(state, state.tags);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    void loadNextPage(state);
+  });
   byId('dmh-show-viewer-tags')?.addEventListener('change', (event) => {
     state.showViewerTags = (event.target as HTMLInputElement).checked;
     saveShowViewerTags(state.showViewerTags);
     refreshViewerTags(state);
-  });
-  byId('dmh-open-viewer-tags-by-default')?.addEventListener('change', (event) => {
-    state.openViewerTagsByDefault = (event.target as HTMLInputElement).checked;
-    saveOpenViewerTagsByDefault(state.openViewerTagsByDefault);
   });
   byId('dmh-tag-click-behavior')?.addEventListener('change', (event) => {
     state.tagClickBehavior = parseTagClickBehavior((event.target as HTMLSelectElement).value);
@@ -183,27 +195,17 @@ function bindShellEvents(state: AppState): void {
     setCardSize(state, (event.currentTarget as HTMLSelectElement).value);
   });
   byId('dmh-download-template-reset')?.addEventListener('click', () =>
-    showDownloadTemplateResetConfirmation(),
+    resetDownloadFilenameTemplates(),
   );
-  byId('dmh-template-reset-cancel')?.addEventListener('click', () =>
-    hideDownloadTemplateResetConfirmation(true),
+  byId('dmh-download-cancel')?.addEventListener('click', () =>
+    byId<HTMLDialogElement>('dmh-download-editor')?.close(),
   );
-  byId('dmh-template-reset-apply')?.addEventListener('click', () => {
-    resetDownloadFilenameTemplates(state);
-    hideDownloadTemplateResetConfirmation(true);
-  });
+  byId('dmh-download-save')?.addEventListener('click', () => saveDownloadTemplateDraft(state));
   document.querySelectorAll<HTMLInputElement>('input[data-download-template]').forEach((input) => {
     input.addEventListener('input', () => {
-      input.setCustomValidity('');
-      setText('dmh-download-template-status', '');
+      updateDownloadTemplatePreview(input);
+      setText('dmh-download-template-status', '尚未保存');
     });
-    input.addEventListener('blur', () =>
-      saveDownloadFilenameTemplate(
-        state,
-        input.dataset.downloadTemplate as DownloadFilenamePlatform,
-        input,
-      ),
-    );
   });
   byId<HTMLInputElement>('dmh-viewer-use-original')?.addEventListener('change', (event) => {
     setViewerUseOriginal(state, (event.currentTarget as HTMLInputElement).checked);
@@ -296,13 +298,6 @@ function bindShellEvents(state: AppState): void {
   document.addEventListener('pointerdown', (event) => {
     const target = event.target as HTMLElement;
     if (!target.closest('.dmh-search-form, #dmh-scrollbar')) closeAutocomplete(state);
-    if (!target.closest('.dmh-template-reset-control')) hideDownloadTemplateResetConfirmation();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || !isDownloadTemplateResetConfirmationOpen()) return;
-    event.preventDefault();
-    event.stopPropagation();
-    hideDownloadTemplateResetConfirmation(true);
   });
   byId('dmh-viewer')?.addEventListener('click', (event) => {
     if ((event.target as HTMLElement).id === 'dmh-viewer') closeViewer(state);
@@ -372,7 +367,7 @@ async function loadNextPage(state: AppState): Promise<void> {
     let posts = [] as AppState['posts'];
     while (true) {
       const result = await state.adapter.getPosts({
-        tags: state.tags,
+        tags: getRequestTags(state.tags, state.hideNsfw),
         page: loadedPage,
         pageUrlSearch: location.search,
       });
@@ -380,7 +375,7 @@ async function loadNextPage(state: AppState): Promise<void> {
       if (!result.hasSourcePosts) {
         state.done = true;
         setText('dmh-status', `已加载 ${state.posts.length} 张`);
-        setText('dmh-message', state.posts.length ? '下面没有了...' : 'No posts found.');
+        setText('dmh-message', state.posts.length ? '已经到底了，没有更多图片。' : '没有找到符合条件的图片。');
         return;
       }
       state.sourcePosts.push(...result.posts);
@@ -400,8 +395,16 @@ async function loadNextPage(state: AppState): Promise<void> {
     setText('dmh-message', '');
   } catch (error) {
     if (requestToken !== state.requestToken) return;
-    const message = error instanceof Error ? error.message : String(error);
-    setText('dmh-message', `Failed to load posts: ${message}`);
+    const { message, upgrade } = getPostLoadError(error);
+    setText('dmh-message', message);
+    if (upgrade) {
+      const link = document.createElement('a');
+      link.href = new URL('/upgrade', state.adapter.origin).toString();
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.textContent = ' 升级账号';
+      byId('dmh-message')?.appendChild(link);
+    }
     setText('dmh-status', `已加载 ${state.posts.length} 张`);
   } finally {
     if (requestToken === state.requestToken) {
@@ -419,7 +422,7 @@ function setMasonryLoading(loading: boolean): void {
 }
 
 async function saveBlacklist(state: AppState): Promise<void> {
-  if (state.blacklistSaving) return;
+  if (state.blacklistSaving || !state.blacklistAvailable) return;
   const input = byId<HTMLTextAreaElement>('dmh-blacklist-rules');
   const button = byId<HTMLButtonElement>('dmh-blacklist-save');
   const status = byId('dmh-blacklist-status');
@@ -429,6 +432,11 @@ async function saveBlacklist(state: AppState): Promise<void> {
   const text = normalizeBlacklistText(input.value);
   state.blacklistSaving = true;
   button.disabled = true;
+  input.readOnly = true;
+  const cancel = byId<HTMLButtonElement>('dmh-blacklist-cancel');
+  const close = byId<HTMLButtonElement>('dmh-blacklist-editor-close');
+  if (cancel) cancel.disabled = true;
+  if (close) close.disabled = true;
   status.classList.remove('dmh-error');
   status.textContent = '保存中...';
   try {
@@ -438,12 +446,16 @@ async function saveBlacklist(state: AppState): Promise<void> {
     input.value = text;
     refreshPostsForBlacklist(state);
     status.textContent = '已保存';
+    byId<HTMLDialogElement>('dmh-blacklist-editor')?.close();
   } catch (error) {
     status.classList.add('dmh-error');
-    status.textContent = error instanceof Error ? error.message : String(error);
+    status.textContent = error instanceof TypeError ? '网络连接失败，请检查网络后重新保存。' : error instanceof Error ? error.message : '保存失败，请稍后重试。';
   } finally {
     state.blacklistSaving = false;
     button.disabled = false;
+    input.readOnly = false;
+    if (cancel) cancel.disabled = false;
+    if (close) close.disabled = false;
   }
 }
 
@@ -567,7 +579,6 @@ function openSettingsPanel(): void {
 }
 
 function closeSettingsPanel(): void {
-  hideDownloadTemplateResetConfirmation();
   setSettingsPanelOpen(false);
 }
 
@@ -653,59 +664,112 @@ function setShowBackToTop(state: AppState, showBackToTop: boolean): void {
   updateScrollControls(state);
 }
 
-function resetDownloadFilenameTemplates(state: AppState): void {
-  state.downloadFilenameTemplates = { ...DEFAULT_DOWNLOAD_FILENAME_TEMPLATES };
-  saveDownloadFilenameTemplates(state.downloadFilenameTemplates);
+function resetDownloadFilenameTemplates(): void {
+  fillDownloadTemplateDraft(DEFAULT_DOWNLOAD_FILENAME_TEMPLATES);
+  setText('dmh-download-template-status', '草稿已恢复默认，保存后生效');
+}
+
+function updateDownloadTemplatePreview(input: HTMLInputElement, validate = false): string {
+  const error = validate ? validateDownloadFilenameTemplate(input.value.trim()) : '';
+  input.setCustomValidity(error);
+  setText('dmh-download-preview-' + input.dataset.downloadTemplate,
+    error || '示例:' + previewDownloadFilenameTemplate(input.value.trim()));
+  return error;
+}
+
+function fillDownloadTemplateDraft(templates: DownloadFilenameTemplates): void {
   for (const option of DOWNLOAD_FILENAME_TEMPLATE_OPTIONS) {
-    const input = byId<HTMLInputElement>(`dmh-download-template-${option.key}`);
+    const input = byId<HTMLInputElement>('dmh-download-template-' + option.key);
     if (!input) continue;
-    input.value = DEFAULT_DOWNLOAD_FILENAME_TEMPLATES[option.key];
-    input.setCustomValidity('');
+    input.value = templates[option.key];
+    updateDownloadTemplatePreview(input);
   }
-  setText('dmh-download-template-status', '已恢复默认值');
 }
 
-function showDownloadTemplateResetConfirmation(): void {
-  const popover = byId('dmh-template-reset-confirmation');
-  const button = byId<HTMLButtonElement>('dmh-download-template-reset');
-  if (!popover || !button) return;
-  popover.hidden = false;
-  button.setAttribute('aria-expanded', 'true');
-  byId<HTMLButtonElement>('dmh-template-reset-apply')?.focus();
-}
-
-function hideDownloadTemplateResetConfirmation(restoreFocus = false): void {
-  const popover = byId('dmh-template-reset-confirmation');
-  const button = byId<HTMLButtonElement>('dmh-download-template-reset');
-  if (!popover || !button || popover.hidden) return;
-  popover.hidden = true;
-  button.setAttribute('aria-expanded', 'false');
-  if (restoreFocus) button.focus();
-}
-
-function isDownloadTemplateResetConfirmationOpen(): boolean {
-  const popover = byId('dmh-template-reset-confirmation');
-  return Boolean(popover && !popover.hidden);
-}
-
-function saveDownloadFilenameTemplate(
-  state: AppState,
-  platform: DownloadFilenamePlatform,
-  input: HTMLInputElement,
-): void {
-  const template = input.value.trim();
-  input.setCustomValidity(template ? '' : '模板不能为空');
-  if (!template) {
-    const label = DOWNLOAD_FILENAME_TEMPLATE_OPTIONS.find((option) => option.key === platform)?.label;
-    setText('dmh-download-template-status', `${label || platform} 模板不能为空`);
+function saveDownloadTemplateDraft(state: AppState): void {
+  const draft = { ...state.downloadFilenameTemplates };
+  let firstInvalid: HTMLInputElement | null = null;
+  for (const option of DOWNLOAD_FILENAME_TEMPLATE_OPTIONS) {
+    const input = byId<HTMLInputElement>('dmh-download-template-' + option.key);
+    if (!input) return;
+    const error = updateDownloadTemplatePreview(input, true);
+    if (error) firstInvalid ||= input;
+    draft[option.key] = input.value.trim();
+  }
+  if (firstInvalid) {
+    setText('dmh-download-template-status', '模板不能为空');
+    firstInvalid.focus();
+    firstInvalid.reportValidity();
     return;
   }
-  input.value = template;
-  if (state.downloadFilenameTemplates[platform] === template) return;
-  state.downloadFilenameTemplates = {
-    ...state.downloadFilenameTemplates,
-    [platform]: template,
-  };
-  saveDownloadFilenameTemplates(state.downloadFilenameTemplates);
-  setText('dmh-download-template-status', '已保存');
+  state.downloadFilenameTemplates = draft;
+  saveDownloadFilenameTemplates(draft);
+  byId<HTMLDialogElement>('dmh-download-editor')?.close();
+}
+
+function bindSettingsEditors(state: AppState): void {
+  for (const name of ['blacklist', 'download']) {
+    const dialog = byId<HTMLDialogElement>('dmh-' + name + '-editor');
+    const button = byId<HTMLButtonElement>('dmh-' + name + '-editor-open');
+    if (!dialog || !button) continue;
+    let pressedOnBackdrop = false;
+    const isBackdrop = (event: MouseEvent): boolean => {
+      if (event.target !== dialog) return false;
+      const rect = dialog.getBoundingClientRect();
+      return event.clientX < rect.left || event.clientX > rect.right ||
+        event.clientY < rect.top || event.clientY > rect.bottom;
+    };
+    dialog.addEventListener('pointerdown', (event) => {
+      pressedOnBackdrop = event.button === 0 && isBackdrop(event);
+    });
+    dialog.addEventListener('pointercancel', () => { pressedOnBackdrop = false; });
+    button.addEventListener('click', () => {
+      pressedOnBackdrop = false;
+      if (!dialog.open) {
+        if (name === 'blacklist') restoreBlacklistDraft(state);
+        if (name === 'download') {
+          fillDownloadTemplateDraft(state.downloadFilenameTemplates);
+          setText('dmh-download-template-status', '');
+        }
+        dialog.showModal();
+      }
+    });
+    const closeEditor = () => {
+      if (name === 'blacklist' && state.blacklistSaving) return;
+      dialog.close();
+    };
+    byId('dmh-' + name + '-editor-close')?.addEventListener('click', closeEditor);
+    if (name === 'blacklist') {
+      byId('dmh-blacklist-cancel')?.addEventListener('click', closeEditor);
+      dialog.addEventListener('cancel', (event) => {
+        if (state.blacklistSaving) event.preventDefault();
+      });
+    }
+    dialog.addEventListener('close', () => {
+      pressedOnBackdrop = false;
+      if (name === 'download') fillDownloadTemplateDraft(state.downloadFilenameTemplates);
+      if (name === 'blacklist') restoreBlacklistDraft(state);
+      button.focus();
+    });
+    dialog.addEventListener('keydown', (event) => {
+      // Keep viewer shortcuts out of the modal, including arrows in text fields.
+      event.stopPropagation();
+    });
+    dialog.addEventListener('click', (event) => {
+      const shouldClose = pressedOnBackdrop && isBackdrop(event);
+      pressedOnBackdrop = false;
+      if (shouldClose) closeEditor();
+    });
+  }
+}
+
+function restoreBlacklistDraft(state: AppState): void {
+  const input = byId<HTMLTextAreaElement>('dmh-blacklist-rules');
+  if (input) input.value = state.blacklistText;
+  const status = byId('dmh-blacklist-status');
+  if (!status) return;
+  status.classList.remove('dmh-error');
+  status.textContent = !state.blacklistAvailable
+    ? '未能读取原站黑名单，请刷新原站后重试'
+    : currentUserId() ? '' : '登录 Danbooru 后可修改';
 }

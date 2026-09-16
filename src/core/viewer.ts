@@ -2,6 +2,7 @@ import { getViewerTags, getTagSearchUrl } from './viewerTags';
 import type { Post } from '../adapters/types';
 import {
   DEFAULT_DOWNLOAD_FILENAME_TEMPLATES,
+  saveViewerTagsOpen,
   type AppState,
   type DownloadFilenamePlatform,
   type DownloadFilenameTemplates,
@@ -21,8 +22,6 @@ export function showViewer(state: AppState, index: number): void {
   const loading = byId('dmh-viewer-loading');
   const info = byId('dmh-viewer-info');
   if (!viewer || !img || !video || !loading || !info) return;
-  const wasOpen = viewer.classList.contains('dmh-open');
-  if (!wasOpen) state.viewerTagsOpen = state.openViewerTagsByDefault;
 
   setZoomMode(state, false);
   if (post.playbackUrl) {
@@ -100,7 +99,6 @@ export function showViewer(state: AppState, index: number): void {
 }
 
 export function closeViewer(state: AppState): void {
-  setViewerTagsOpen(state, false);
   const viewer = byId('dmh-viewer');
   const img = byId<HTMLImageElement>('dmh-viewer-img');
   const video = byId<HTMLVideoElement>('dmh-viewer-video');
@@ -162,8 +160,10 @@ export async function favoritePost(state: AppState, post: Post | undefined): Pro
     updateFavoriteButton(state, post);
   } catch (error) {
     console.warn('[Danbooru Masonry] favorite toggle failed:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error || '');
-    const message = `\u6536\u85cf\u5931\u8d25: ${errorMessage || '\u672a\u68c0\u6d4b\u5230danbooru\u7684\u767b\u9646\u72b6\u6001'}`;
+    const errorMessage = error instanceof TypeError
+      ? '网络连接失败，请检查网络后重试。'
+      : error instanceof Error ? error.message : '请稍后重试。';
+    const message = '收藏操作失败：' + errorMessage;
     showSnackbar(message);
     updateFavoriteButton(state, post, message);
     window.setTimeout(() => {
@@ -214,7 +214,7 @@ export function downloadPost(
       ontimeout: () => {
         setDownloadLoading(trigger, false);
         console.warn('[Danbooru Masonry] download timed out');
-        showSnackbar('下载失败');
+        showSnackbar('下载超时，请稍后重试。');
       },
     });
   } catch (error) {
@@ -494,7 +494,11 @@ function buildDownloadFilename(post: Post, filenameTemplates: DownloadFilenameTe
     filenameTemplates[context.platform] ||
     DEFAULT_DOWNLOAD_FILENAME_TEMPLATES[context.platform] ||
     DEFAULT_DOWNLOAD_FILENAME_TEMPLATES.danbooru;
-  return renderDownloadFilenameTemplate(template, context);
+  return renderDownloadFilenameTemplate(
+    validateDownloadFilenameTemplate(template)
+      ? DEFAULT_DOWNLOAD_FILENAME_TEMPLATES[context.platform] : template,
+    context,
+  );
 }
 
 function buildDownloadFilenameContext(post: Post): DownloadFilenameContext {
@@ -633,13 +637,13 @@ function renderDownloadFilenameTemplate(
   template: string,
   context: DownloadFilenameContext,
 ): string {
-  const rendered = template.replace(/\{([a-zA-Z]+)\}/g, (_, key: string) => {
+  const basename = template.replace(/\.\{ext\}$/, '').replace(/\.(?:jpe?g|png|gif|webp|avif|webm|mp4|zip)$/i, '');
+  const rendered = basename.replace(/\{([a-zA-Z]+)\}/g, (_, key: string) => {
     if (!(key in context)) return '';
     return sanitizeFilenameToken(String(context[key as keyof DownloadFilenameContext] ?? ''));
   });
   const filename = sanitizeFilename(rendered);
-  if (filename.match(/\.[a-z0-9]{2,5}$/i)) return filename;
-  return sanitizeFilename(`${filename}.${context.ext}`);
+  return `${filename}.${context.ext}`;
 }
 
 function sanitizeFilenameToken(value: string): string {
@@ -810,7 +814,11 @@ function renderViewerInfo(state: AppState, post: Post): string {
 }
 
 export function setViewerTagsOpen(state: AppState, open: boolean, restoreFocus = false): void {
-  state.viewerTagsOpen = open && state.showViewerTags;
+  const nextOpen = open && state.showViewerTags;
+  if (state.viewerTagsOpen !== nextOpen) {
+    state.viewerTagsOpen = nextOpen;
+    saveViewerTagsOpen(nextOpen);
+  }
   const panel = byId('dmh-viewer-tags-panel');
   if (panel) panel.hidden = !state.viewerTagsOpen;
   const toggle = byId('dmh-viewer-tags-toggle');
@@ -826,7 +834,7 @@ export function refreshViewerTags(state: AppState): void {
   if (!root || !list) return;
   const tags = post ? getViewerTags(post) : [];
   root.hidden = !state.showViewerTags || !tags.length;
-  if (!state.showViewerTags || !tags.length) setViewerTagsOpen(state, false);
+  if (!state.showViewerTags) setViewerTagsOpen(state, false);
   else setViewerTagsOpen(state, state.viewerTagsOpen);
   if (post) {
     const info = byId('dmh-viewer-info');
@@ -841,4 +849,15 @@ export function refreshViewerTags(state: AppState): void {
   list.scrollTop = 0;
   const toggle = byId('dmh-viewer-tags-toggle');
   if (toggle) toggle.textContent = state.viewerTagsOpen ? '隐藏标签' : '显示标签';
+}
+
+export function validateDownloadFilenameTemplate(template: string): string {
+  return template.trim() ? '' : '模板不能为空';
+}
+
+export function previewDownloadFilenameTemplate(template: string): string {
+  return renderDownloadFilenameTemplate(template, {
+    platform: 'danbooru', original: '原文件名', artist: '画师名称',
+    username: '用户名', userid: '123456', id: '12345', postid: '67890', ext: 'png',
+  });
 }

@@ -87,22 +87,36 @@ export function installStyles(): void {
     .dmh-message { padding: 24px; text-align: center; color: #57606a; }
     .dmh-settings-overlay { position: fixed; inset: 0; z-index: 300; background: rgba(31,35,40,.32); opacity: 0; pointer-events: none; transition: opacity .22s ease; }
     .dmh-settings-overlay.dmh-open { opacity: 1; pointer-events: auto; }
-    .dmh-settings-panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 301; width: min(360px, calc(100vw - 32px)); padding: 0; border-left: 1px solid #d8dee4; background: #fff; box-shadow: -8px 0 24px rgba(27,31,36,.18); opacity: 0; pointer-events: none; transform: translateX(100%); transition: transform .22s ease, opacity .22s ease; }
-    .dmh-settings-panel.dmh-open { opacity: 1; pointer-events: auto; transform: translateX(0); }
-    .dmh-settings-header { display: flex; align-items: center; justify-content: space-between; min-height: 56px; padding: 0 16px; border-bottom: 1px solid #d8dee4; }
+    .dmh-settings-panel { position: fixed; top: 50%; right: 12px; bottom: auto; z-index: 301; display: flex; flex-direction: column; height: fit-content; max-height: calc(100dvh - 24px); width: min(360px, calc(100vw - 32px)); padding: 0; border-left: 1px solid #d8dee4; background: #fff; box-shadow: -8px 0 24px rgba(27,31,36,.18); opacity: 0; pointer-events: none; transform: translate(100%, -50%); transition: transform .22s ease, opacity .22s ease; }
+    .dmh-settings-panel.dmh-open { opacity: 1; pointer-events: auto; transform: translate(0, -50%); }
+    .dmh-settings-header { display: flex; align-items: center; justify-content: space-between; min-height: 56px; flex: 0 0 auto; padding: 0 16px; border-bottom: 1px solid #d8dee4; }
     .dmh-settings-header h2 { margin: 0; font-size: 18px; font-weight: 700; line-height: 1; color: #24292f; }
     .dmh-settings-close { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #57606a; cursor: pointer; }
     .dmh-settings-close:hover { background: rgba(9,105,218,.08); color: #0969da; }
     .dmh-settings-close:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
     .dmh-settings-close svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
-    .dmh-settings-content { display: flex; flex-direction: column; gap: 22px; height: calc(100% - 56px); padding: 20px 18px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+    .dmh-settings-content { display: flex; flex-direction: column; gap: 22px; min-height: 0; padding: 20px 18px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
     .dmh-settings-content::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    .dmh-settings-footer { display: flex; flex: 0 0 auto; justify-content: center; padding: 10px 18px; border-top: 1px solid #d8dee4; }
+    #dmh-app .dmh-settings-github { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; color: #57606a; text-decoration: none; }
+    #dmh-app .dmh-settings-github:hover { background: rgba(9,105,218,.08); color: #0969da; }
+    #dmh-app .dmh-settings-github:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
+    .dmh-settings-github svg { width: 22px; height: 22px; fill: currentColor; }
+    #dmh-app .dmh-settings-editor { position: fixed; inset: 0; width: min(580px, calc(100vw - 32px)); max-width: none; height: fit-content; max-height: calc(100dvh - 32px); margin: auto; padding: 0; border: 1px solid #d8dee4; border-radius: 12px; background: #fff; color: #24292f; box-shadow: 0 16px 48px rgba(27,31,36,.24); overflow: hidden; }
+    #dmh-app .dmh-settings-editor:not([open]) { display: none; }
+    #dmh-app .dmh-settings-editor[open] { display: flex; flex-direction: column; }
+    .dmh-settings-editor::backdrop { background: rgba(31,35,40,.4); }
+    .dmh-settings-editor .dmh-settings-header { flex: 0 0 auto; }
+    .dmh-settings-editor-content { min-height: 0; padding: 20px; overflow-y: auto; overscroll-behavior: contain; }
+    #dmh-app .dmh-setting-editor-button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; color: #24292f; font: 700 13px Arial, sans-serif; cursor: pointer; box-shadow: none; }
+    #dmh-app .dmh-setting-editor-button:hover { background: #eaeef2; }
+    #dmh-app .dmh-setting-editor-button:focus-visible { outline: 2px solid #0969da; outline-offset: 2px; }
     .dmh-settings-group-title { margin: 2px 0 -10px; color: #57606a; font-size: 12px; font-weight: 700; line-height: 1.2; letter-spacing: .08em; }
     .dmh-blacklist-rules { box-sizing: border-box; width: 100%; min-height: 132px; resize: vertical; padding: 9px 10px; border: 1px solid #afb8c1; border-radius: 6px; background: #fff; color: #24292f; font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
     .dmh-blacklist-rules:focus { border-color: #0969da; outline: 2px solid rgba(9,105,218,.18); }
     .dmh-blacklist-rules[readonly] { background: #f6f8fa; color: #57606a; }
     .dmh-setting-help { color: #57606a; font-size: 12px; line-height: 1.45; }
-    .dmh-blacklist-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
     .dmh-blacklist-status { min-width: 0; color: #57606a; font-size: 12px; line-height: 1.35; }
     .dmh-blacklist-status.dmh-error { color: #cf222e; }
     #dmh-app .dmh-blacklist-save { flex: 0 0 auto; min-height: 32px; padding: 0 12px; border: 1px solid #0969da; border-radius: 6px; background: #0969da; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: none; transition: background .16s ease, border-color .16s ease; }
@@ -128,26 +142,22 @@ export function installStyles(): void {
     .dmh-setting-switch input:focus-visible + .dmh-setting-switch-track { box-shadow: 0 0 0 3px rgba(9,105,218,.18); }
     .dmh-download-template-list { display: flex; flex-direction: column; gap: 10px; }
     .dmh-download-template-row { display: flex; flex-direction: column; gap: 5px; }
+    .dmh-download-template-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .dmh-download-template-heading .dmh-download-template-label { flex: 0 0 auto; }
+    .dmh-download-preview { min-width: 0; overflow-wrap: anywhere; text-align: right; }
+
     .dmh-download-template-label { color: #57606a; font-size: 12px; font-weight: 700; line-height: 1.2; }
     .dmh-download-template-input { width: 100%; height: 34px; padding: 0 10px; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; color: #24292f; font: 600 12px Consolas, "Courier New", monospace; outline: 0; }
     .dmh-download-template-input:focus { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.12); }
     .dmh-download-template-input:invalid { border-color: #cf222e; }
     .dmh-template-help { display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; color: #57606a; font-size: 12px; line-height: 1.45; }
     .dmh-template-help code { color: #0969da; font: 700 12px Consolas, "Courier New", monospace; }
-    .dmh-download-template-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .dmh-download-template-actions, .dmh-blacklist-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; }
+    .dmh-download-template-actions > [role="status"], .dmh-blacklist-actions > [role="status"] { flex: 1; min-width: 0; overflow-wrap: anywhere; }
     .dmh-download-template-status { min-width: 0; color: #57606a; font-size: 12px; line-height: 1.35; }
-    .dmh-download-template-buttons { display: flex; flex: 0 0 auto; gap: 8px; }
-    .dmh-template-reset-control { position: relative; }
-    .dmh-template-reset-popover { position: absolute; right: 0; bottom: calc(100% + 9px); z-index: 2; width: 226px; padding: 12px; border: 1px solid #d0d7de; border-radius: 8px; background: #fff; color: #24292f; font-size: 13px; font-weight: 600; line-height: 1.4; box-shadow: 0 8px 24px rgba(140,149,159,.32); }
-    .dmh-template-reset-popover[hidden] { display: none; }
-    .dmh-template-reset-popover::after { content: ''; position: absolute; right: 26px; bottom: -6px; width: 10px; height: 10px; border-right: 1px solid #d0d7de; border-bottom: 1px solid #d0d7de; background: #fff; transform: rotate(45deg); }
-    .dmh-template-reset-popover-actions { position: relative; z-index: 1; display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
-    #dmh-app .dmh-template-reset-cancel, #dmh-app .dmh-template-reset-apply { min-height: 30px; padding: 0 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: none; }
-    #dmh-app .dmh-template-reset-cancel { border: 1px solid #d0d7de; background: #f6f8fa; color: #24292f; }
-    #dmh-app .dmh-template-reset-cancel:hover { background: #eaeef2; color: #24292f; }
-    #dmh-app .dmh-template-reset-apply { border: 1px solid #cf222e; background: #cf222e; color: #fff; }
-    #dmh-app .dmh-template-reset-apply:hover { border-color: #a40e26; background: #a40e26; color: #fff; }
-    #dmh-app .dmh-template-reset-cancel:focus-visible, #dmh-app .dmh-template-reset-apply:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
+    .dmh-download-template-buttons, .dmh-blacklist-buttons { display: flex; flex-shrink: 0; justify-content: flex-end; align-items: center; gap: 8px; }
+
+
     #dmh-app .dmh-template-reset { min-height: 32px; padding: 0 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: none; }
     #dmh-app .dmh-template-reset { border: 1px solid #d0d7de; background: #f6f8fa; color: #24292f; }
     #dmh-app .dmh-template-reset:hover { border-color: #afb8c1; background: #eaeef2; color: #24292f; }

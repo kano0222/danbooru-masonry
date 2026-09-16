@@ -11,8 +11,9 @@ const VIEWER_WHEEL_NAVIGATION_STORAGE_KEY = 'danbooru-masonry.viewerWheelNavigat
 const SHOW_SCROLLBAR_STORAGE_KEY = 'danbooru-masonry.showScrollbar';
 const SHOW_BACK_TO_TOP_STORAGE_KEY = 'danbooru-masonry.showBackToTop';
 const DOWNLOAD_FILENAME_TEMPLATES_STORAGE_KEY = 'danbooru-masonry.downloadFilenameTemplates';
+const HIDE_NSFW_STORAGE_KEY = 'danbooru-masonry.hideNsfw';
 const SHOW_VIEWER_TAGS_STORAGE_KEY = 'danbooru-masonry.showViewerTags';
-const OPEN_VIEWER_TAGS_BY_DEFAULT_STORAGE_KEY = 'danbooru-masonry.openViewerTagsByDefault';
+const VIEWER_TAGS_OPEN_STORAGE_KEY = 'danbooru-masonry.viewerTagsOpen';
 const TAG_CLICK_BEHAVIOR_STORAGE_KEY = 'danbooru-masonry.tagClickBehavior';
 export type TagClickBehavior = 'original-new-tab' | 'masonry-current-tab' | 'masonry-new-tab';
 
@@ -27,12 +28,16 @@ export function parseTagClickBehavior(value: unknown): TagClickBehavior {
   return 'masonry-new-tab';
 }
 
+export function saveHideNsfw(value: boolean): void {
+  saveSetting(HIDE_NSFW_STORAGE_KEY, value);
+}
+
 export function saveShowViewerTags(value: boolean): void {
   saveSetting(SHOW_VIEWER_TAGS_STORAGE_KEY, value);
 }
 
-export function saveOpenViewerTagsByDefault(value: boolean): void {
-  saveSetting(OPEN_VIEWER_TAGS_BY_DEFAULT_STORAGE_KEY, value);
+export function saveViewerTagsOpen(value: boolean): void {
+  saveSetting(VIEWER_TAGS_OPEN_STORAGE_KEY, value);
 }
 
 export function saveTagClickBehavior(value: TagClickBehavior): void {
@@ -42,14 +47,14 @@ export function saveTagClickBehavior(value: TagClickBehavior): void {
 const MISSING_VALUE = '__dmh_missing__';
 
 export const DOWNLOAD_FILENAME_TEMPLATE_OPTIONS = [
-  { key: 'pixiv', label: 'Pixiv', template: 'pixiv[{artist}]_{original}.{ext}' },
-  { key: 'fanbox', label: 'Fanbox', template: 'fanbox[{username}]_{id}.{ext}' },
-  { key: 'fantia', label: 'Fantia', template: 'fantia[{artist}]_{id}.{ext}' },
-  { key: 'patreon', label: 'Patreon', template: 'patreon[{artist}]_{id}.{ext}' },
-  { key: 'weibo', label: 'Weibo', template: 'weibo[{artist}]({userid})_{id}.{ext}' },
-  { key: 'twitter', label: 'X / Twitter', template: 'twitter[{username}]_{id}.{ext}' },
-  { key: 'bilibili', label: 'Bilibili', template: 'bilibili[{artist}]_{id}.{ext}' },
-  { key: 'danbooru', label: '其他', template: 'danbooru[{artist}]_{postid}.{ext}' },
+  { key: 'pixiv', label: 'Pixiv', template: 'pixiv[{artist}]_{original}' },
+  { key: 'fanbox', label: 'Fanbox', template: 'fanbox[{username}]_{id}' },
+  { key: 'fantia', label: 'Fantia', template: 'fantia[{artist}]_{id}' },
+  { key: 'patreon', label: 'Patreon', template: 'patreon[{artist}]_{id}' },
+  { key: 'weibo', label: 'Weibo', template: 'weibo[{artist}]({userid})_{id}' },
+  { key: 'twitter', label: 'X / Twitter', template: 'twitter[{username}]_{id}' },
+  { key: 'bilibili', label: 'Bilibili', template: 'bilibili[{artist}]_{id}' },
+  { key: 'danbooru', label: '其他', template: 'danbooru[{artist}]_{postid}' },
 ] as const;
 
 export type DownloadFilenamePlatform = (typeof DOWNLOAD_FILENAME_TEMPLATE_OPTIONS)[number]['key'];
@@ -68,6 +73,7 @@ export interface AppState {
   blacklist: BlacklistConfig;
   blacklistText: string;
   blacklistSaving: boolean;
+  blacklistAvailable: boolean;
   loading: boolean;
   done: boolean;
   started: boolean;
@@ -79,8 +85,8 @@ export interface AppState {
   autocompleteTimer: number;
   autocompleteToken: number;
   autocompleteIndex: number;
+  hideNsfw: boolean;
   showViewerTags: boolean;
-  openViewerTagsByDefault: boolean;
   viewerTagsOpen: boolean;
   tagClickBehavior: TagClickBehavior;
   viewerIndex: number;
@@ -121,6 +127,7 @@ export function createState(adapter: BooruAdapter): AppState {
     blacklist: { enabled: false, rules: [] },
     blacklistText: '',
     blacklistSaving: false,
+    blacklistAvailable: false,
     loading: false,
     done: false,
     started: false,
@@ -132,12 +139,9 @@ export function createState(adapter: BooruAdapter): AppState {
     autocompleteTimer: 0,
     autocompleteToken: 0,
     autocompleteIndex: -1,
+    hideNsfw: getInitialBooleanSetting(HIDE_NSFW_STORAGE_KEY, false),
     showViewerTags: getInitialBooleanSetting(SHOW_VIEWER_TAGS_STORAGE_KEY, true),
-    openViewerTagsByDefault: getInitialBooleanSetting(
-      OPEN_VIEWER_TAGS_BY_DEFAULT_STORAGE_KEY,
-      false,
-    ),
-    viewerTagsOpen: false,
+    viewerTagsOpen: getInitialBooleanSetting(VIEWER_TAGS_OPEN_STORAGE_KEY, false),
     tagClickBehavior: parseTagClickBehavior(getStoredSetting(TAG_CLICK_BEHAVIOR_STORAGE_KEY)),
     viewerIndex: -1,
     viewerChromeHidden: false,
@@ -223,7 +227,9 @@ function getInitialDownloadFilenameTemplates(): DownloadFilenameTemplates {
   if (value && typeof value === 'object') {
     for (const option of DOWNLOAD_FILENAME_TEMPLATE_OPTIONS) {
       const template = (value as Partial<DownloadFilenameTemplates>)[option.key];
-      if (typeof template === 'string' && template.trim()) templates[option.key] = template;
+      if (typeof template === 'string' && template.trim()) {
+        templates[option.key] = template.replace(/\.\{ext\}\s*$/, '');
+      }
     }
   }
   return templates;
