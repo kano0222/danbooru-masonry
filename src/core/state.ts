@@ -66,6 +66,7 @@ export const DEFAULT_DOWNLOAD_FILENAME_TEMPLATES = Object.fromEntries(
 export interface AppState {
   adapter: BooruAdapter;
   page: number;
+  visiblePage: number;
   tags: string;
   posts: Post[];
   sourcePosts: Post[];
@@ -117,9 +118,11 @@ export interface AppState {
 }
 
 export function createState(adapter: BooruAdapter): AppState {
+  const initialPage = getInitialPage();
   return {
     adapter,
-    page: getInitialPage(),
+    page: initialPage,
+    visiblePage: initialPage,
     tags: new URLSearchParams(location.search).get('tags') || '',
     posts: [],
     sourcePosts: [],

@@ -128,6 +128,32 @@ afterEach(() => {
 });
 
 describe('masonry launch and tag search', () => {
+  it('uses the confirmed page for arrow navigation but typed input for Enter', async () => {
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    const input = nodes.get('dmh-page')!;
+    const press = (key: string) => input.handlers.get('keydown')!.forEach((handler) =>
+      handler({ key, preventDefault: vi.fn() }),
+    );
+    input.value = '77';
+    press('ArrowDown');
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 2 }),
+    ));
+    expect(input.value).toBe('2');
+    input.value = '77';
+    press('ArrowUp');
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 1 }),
+    ));
+    expect(input.value).toBe('1');
+    input.value = '12';
+    press('Enter');
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 12 }),
+    ));
+    expect(input.value).toBe('12');
+  });
   it('closes suggestions and blurs the input immediately on search submission', async () => {
     boot(adapter);
     await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
