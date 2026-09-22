@@ -39,7 +39,7 @@ export function renderShell(state: AppState): void {
             <div class="dmh-page-group">
               <span class="dmh-page-label">页码</span>
               <label class="dmh-page-control" title="页码" aria-label="页码">
-                <input class="dmh-page-input" id="dmh-page" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" size="1" value="${state.visiblePage}">
+                <input class="dmh-page-input" id="dmh-page" type="text" inputmode="numeric" pattern="[0-9]*" size="1" value="${state.page}">
               </label>
             </div>
           </div>

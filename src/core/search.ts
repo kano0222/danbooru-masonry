@@ -4,7 +4,6 @@ import { setText } from '../utils/dom';
 export function resetSearch(state: AppState, tags: string, page = 1): void {
   state.tags = tags.trim();
   state.page = page;
-  state.visiblePage = page;
   state.posts = [];
   state.sourcePosts = [];
   state.done = false;

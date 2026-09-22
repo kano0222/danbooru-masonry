@@ -410,7 +410,6 @@ async function loadNextPage(state: AppState): Promise<void> {
     layoutMasonry(state);
     scheduleScrollControlsUpdate(state);
     state.page = loadedPage + 1;
-    state.visiblePage = loadedPage;
     setPageInputValue(loadedPage);
     updatePageParam(state, loadedPage);
     setText('dmh-status', `已加载 ${state.posts.length} 张`);
@@ -516,7 +515,7 @@ function getSearchPageInput(): number {
 }
 
 function turnSearchPage(state: AppState, direction: 1 | -1): void {
-  const currentPage = state.visiblePage;
+  const currentPage = getSearchPageInput();
   const nextPage = Math.max(1, currentPage + direction);
   if (nextPage === currentPage) return;
   setPageInputValue(nextPage);
