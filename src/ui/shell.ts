@@ -2,6 +2,7 @@ import { icons } from './icons';
 import { escapeAttr, escapeHtml } from '../utils/escape';
 import { DOWNLOAD_FILENAME_TEMPLATE_OPTIONS, type AppState } from '../core/state';
 import { CARD_SIZE_OPTIONS } from '../core/masonry';
+import { getFavoriteSearchTag } from '../core/search';
 
 export function renderShell(state: AppState): void {
   document.title = 'Danbooru Masonry';
@@ -9,6 +10,11 @@ export function renderShell(state: AppState): void {
     state.blacklistAvailable && document.body.dataset.currentUserId &&
       document.body.dataset.currentUserIsAnonymous !== 'true',
   );
+  const canSearchFavorites = Boolean(getFavoriteSearchTag(
+    document.body.dataset.currentUserId || '',
+    document.body.dataset.currentUserName || '',
+    document.body.dataset.currentUserIsAnonymous === 'true',
+  ));
   const cardSize = CARD_SIZE_OPTIONS.find((option) => option.value === state.cardWidth)?.key || 'medium';
   const cardSizeOptions = CARD_SIZE_OPTIONS.map(
     (option) =>
@@ -41,6 +47,8 @@ export function renderShell(state: AppState): void {
             <form class="dmh-search-form" id="dmh-search">
               <input id="dmh-tags" type="search" autocomplete="off" placeholder="搜索标签" value="${escapeAttr(state.tags)}">
               <button class="dmh-button dmh-icon-button" type="submit" data-dmh-tooltip="搜索" aria-label="搜索">${icons.search}</button>
+              <button class="dmh-button dmh-icon-button dmh-hot-button" id="dmh-hot-search" type="button" data-dmh-tooltip="热门" aria-label="热门">${icons.hot}</button>
+              <button class="dmh-button dmh-icon-button" id="dmh-favorites-search" type="button" data-dmh-tooltip="${canSearchFavorites ? '我的收藏' : '登录后可查看收藏'}" aria-label="我的收藏" ${canSearchFavorites ? '' : 'disabled'}>${icons.favoriteStar}</button>
               <div class="dmh-ac" id="dmh-ac"></div>
             </form>
           </div>

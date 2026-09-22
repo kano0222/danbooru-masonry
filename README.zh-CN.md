@@ -20,7 +20,7 @@
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- 瀑布流支持滚动加载、标签搜索、页码跳转和标签自动补全，并遵循登录用户的 Danbooru 黑名单。
+- 瀑布流支持滚动加载、标签搜索、热门与个人收藏快捷搜索、页码跳转和标签自动补全，并遵循登录用户的 Danbooru 黑名单。
 
 - 缩略图提供来源和下载入口，可显示图片 ID 和尺寸。
 

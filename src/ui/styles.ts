@@ -21,7 +21,7 @@ export function installStyles(): void {
     .dmh-brand { display: flex; align-items: center; justify-self: start; gap: 25px; min-width: 0; }
     #dmh-app .dmh-title, #dmh-app .dmh-title:hover, #dmh-app .dmh-title:active, #dmh-app .dmh-title:focus, #dmh-app .dmh-title:focus-visible { margin: -11px -12px; padding: 11px 12px; border: 0; border-radius: 0; outline: 0; background: transparent; color: inherit; box-shadow: none; font: inherit; font-size: 22px; font-weight: 700; line-height: 1; white-space: nowrap; cursor: pointer; appearance: none; -webkit-tap-highlight-color: transparent; user-select: none; }
     .dmh-search { display: block; justify-self: center; width: min(496px, 100%); min-width: 0; max-width: 496px; }
-    .dmh-search-form { position: relative; display: grid; grid-template-columns: minmax(0, 450px) 38px; align-items: center; gap: 8px; width: 100%; min-width: 0; }
+    .dmh-search-form { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, 38px); align-items: center; gap: 8px; width: 100%; min-width: 0; }
     #dmh-app .dmh-search input { width: 100%; height: 36px; padding: 0 12px; border: 1px solid #afb8c1; border-radius: 6px; background: #fff; color: inherit; }
     .dmh-page-group { display: flex; align-items: center; gap: 6px; min-width: 0; color: #57606a; font-size: 12px; font-weight: 700; }
     .dmh-page-label { user-select: none; }
@@ -32,12 +32,15 @@ export function installStyles(): void {
     #dmh-app .dmh-search-form > button, #dmh-app .dmh-settings-button, #dmh-app .dmh-exit-button { height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #57606a; cursor: pointer; box-shadow: none; }
     #dmh-app .dmh-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 38px; min-width: 38px; padding: 0; }
     .dmh-icon-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; }
+    .dmh-hot-button svg { fill: currentColor; stroke: none; }
     .dmh-settings-button svg { fill: currentColor; stroke: none; }
     #dmh-app [data-dmh-tooltip] { position: relative; }
     #dmh-app [data-dmh-tooltip]::after { content: attr(data-dmh-tooltip); position: absolute; top: calc(100% + 8px); left: 50%; z-index: 200; max-width: min(520px, 90vw); padding: 6px 10px; border-radius: 4px; background: rgba(33,33,33,.95); color: #fff; font-size: 12px; font-weight: 500; line-height: 1.35; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; pointer-events: none; transform: translate(-50%, -4px); transition: opacity .14s ease, transform .14s ease; }
     #dmh-app [data-dmh-tooltip]:hover::after, #dmh-app [data-dmh-tooltip]:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
     #dmh-app .dmh-search-form > button:hover, #dmh-app .dmh-settings-button:hover, #dmh-app .dmh-exit-button:hover { background: rgba(9,105,218,.08); color: #0969da; }
     #dmh-app .dmh-search-form > button:focus-visible, #dmh-app .dmh-settings-button:focus-visible, #dmh-app .dmh-exit-button:focus-visible { outline: 2px solid rgba(9,105,218,.38); outline-offset: 2px; }
+    #dmh-app .dmh-search-form > button:disabled { color: #afb8c1; cursor: not-allowed; }
+    #dmh-app .dmh-search-form > button:disabled:hover { background: transparent; color: #afb8c1; }
     .dmh-exit-button { flex: 0 0 auto; }
     .dmh-toolbar-actions { display: flex; align-items: center; justify-self: end; gap: 8px; min-width: 0; }
     .dmh-status { min-width: 112px; overflow: hidden; color: #57606a; font-size: 13px; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
@@ -245,7 +248,7 @@ export function installStyles(): void {
     .dmh-tag-character { background: rgba(102, 187, 106, .9); }
     .dmh-tag-meta { background: rgba(84, 110, 122, .9); }
     @media (max-width: 980px) { .dmh-title { display: none; } .dmh-brand { gap: 0; } }
-    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, .6fr) minmax(120px, 1fr) max-content; gap: 8px; padding: 10px; } .dmh-search { justify-self: stretch; max-width: none; } .dmh-search-form { grid-template-columns: minmax(0, 1fr) 38px; } .dmh-status { display: none; } #dmh-app .dmh-back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: calc(100vh - 104px); font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 50px; height: 50px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
+    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, 1fr) max-content; gap: 8px; padding: 8px 10px; } .dmh-search { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; width: 100%; max-width: none; } .dmh-search-form { grid-template-columns: minmax(0, 1fr) repeat(3, 38px); } .dmh-status { display: none; } .dmh-grid { margin-top: 108px; } #dmh-app .dmh-back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: calc(100vh - 104px); font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 50px; height: 50px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
     @media (prefers-reduced-motion: reduce) { #dmh-app .dmh-back-to-top { transition: none; } .dmh-loading-progress-bar { width: 100%; animation: none; transform: none; } }
   `;
   document.head.appendChild(style);

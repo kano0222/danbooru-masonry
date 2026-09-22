@@ -141,6 +141,31 @@ describe('masonry launch and tag search', () => {
     expect(input.blur).toHaveBeenCalledOnce();
     expect(renderedState().tags).toBe('new_tag');
   });
+  it('searches ranked posts from the hot shortcut', async () => {
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    vi.mocked(adapter.getPosts).mockClear();
+    nodes.get('dmh-hot-search')!.handlers.get('click')!.forEach((handler) => handler({}));
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    expect(renderedState().tags).toBe('order:rank');
+    expect(nodes.get('dmh-tags')!.value).toBe('order:rank');
+    expect(history.pushState).toHaveBeenLastCalledWith(null, '', adapter.getPostsPageUrl('order:rank', 1));
+  });
+  it('searches the current user favorites and ignores missing identity', async () => {
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    const click = () => nodes.get('dmh-favorites-search')!.handlers.get('click')!.forEach((handler) => handler({}));
+    vi.mocked(adapter.getPosts).mockClear();
+    click();
+    expect(adapter.getPosts).not.toHaveBeenCalled();
+    document.body.dataset.currentUserId = '42';
+    document.body.dataset.currentUserName = 'My Name';
+    click();
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    expect(renderedState().tags).toBe('ordfav:My_Name');
+    expect(nodes.get('dmh-tags')!.value).toBe('ordfav:My_Name');
+    expect(history.pushState).toHaveBeenLastCalledWith(null, '', adapter.getPostsPageUrl('ordfav:My_Name', 1));
+  });
   it('preserves dismissed suggestions across window focus restoration but opens on explicit entry', async () => {
     boot(adapter);
     await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
