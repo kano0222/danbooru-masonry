@@ -14,23 +14,31 @@ afterEach(() => {
 });
 
 describe('masonry settings', () => {
-  it('enables the scrollbar and disables automatic entry by default', () => {
+  it('defaults to big thumbnails without overriding a saved size', () => {
+    stubSettings(new Map());
+    expect(createState({} as BooruAdapter).cardWidth).toBe(280);
+
+    stubSettings(new Map([['danbooru-masonry.cardSize', 'medium']]));
+    expect(createState({} as BooruAdapter).cardWidth).toBe(220);
+  });
+
+  it('enables the scrollbar and automatic entry by default', () => {
     stubSettings(new Map());
     const state = createState({} as BooruAdapter);
     expect(state.showScrollbar).toBe(true);
-    expect(state.autoEnterMasonry).toBe(false);
+    expect(state.autoEnterMasonry).toBe(true);
   });
 
   it('restores scrollbar and automatic entry independently', () => {
     stubSettings(
       new Map([
         ['danbooru-masonry.showScrollbar', false],
-        ['danbooru-masonry.autoEnterMasonry', true],
+        ['danbooru-masonry.autoEnterMasonry', false],
       ]),
     );
     const state = createState({} as BooruAdapter);
     expect(state.showScrollbar).toBe(false);
-    expect(state.autoEnterMasonry).toBe(true);
+    expect(state.autoEnterMasonry).toBe(false);
   });
 
   it('persists both controls under independent keys', () => {

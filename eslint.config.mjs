@@ -3,7 +3,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**', 'pnpm-lock.yaml'] },
+  { ignores: ['dist/**', 'preview-dist/**', 'node_modules/**', 'pnpm-lock.yaml'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

@@ -224,19 +224,19 @@ describe('masonry launch and tag search', () => {
     );
     expect(renderedState().started).toBe(true);
   });
-  it('leaves unmarked pages in manual mode', async () => {
+  it('respects a saved choice to enter manually', async () => {
     location.href = 'https://danbooru.donmai.us/posts?tags=old';
+    vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) =>
+      key === 'danbooru-masonry.autoEnterMasonry' ? false : fallback,
+    );
     boot(adapter);
     await Promise.resolve();
     expect(installLaunchButton).toHaveBeenCalledOnce();
     expect(renderShell).not.toHaveBeenCalled();
     expect(history.replaceState).not.toHaveBeenCalled();
   });
-  it('automatically enters on list pages when enabled', async () => {
+  it('automatically enters on list pages by default', async () => {
     location.href = 'https://danbooru.donmai.us/posts?tags=old';
-    vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) =>
-      key === 'danbooru-masonry.autoEnterMasonry' ? true : fallback,
-    );
     boot(adapter);
     await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
     expect(history.replaceState).not.toHaveBeenCalled();

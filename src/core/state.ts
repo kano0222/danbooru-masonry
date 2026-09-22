@@ -1,5 +1,5 @@
 import type { BooruAdapter, Post } from '../adapters/types';
-import { CARD_SIZE_OPTIONS, CARD_WIDTH } from './masonry';
+import { CARD_SIZE_OPTIONS, DEFAULT_CARD_WIDTH } from './masonry';
 import { TagTranslationStore } from '../data/tagTranslation';
 import type { BlacklistConfig } from './blacklist';
 
@@ -139,7 +139,7 @@ export function createState(adapter: BooruAdapter): AppState {
     autocompleteToken: 0,
     autocompleteIndex: -1,
     hideNsfw: getInitialBooleanSetting(HIDE_NSFW_STORAGE_KEY, false),
-    autoEnterMasonry: getInitialBooleanSetting(AUTO_ENTER_MASONRY_STORAGE_KEY, false),
+    autoEnterMasonry: getInitialBooleanSetting(AUTO_ENTER_MASONRY_STORAGE_KEY, true),
     viewerTagsOpen: getInitialBooleanSetting(VIEWER_TAGS_OPEN_STORAGE_KEY, false),
     tagClickBehavior: parseTagClickBehavior(getStoredSetting(TAG_CLICK_BEHAVIOR_STORAGE_KEY)),
     viewerIndex: -1,
@@ -179,7 +179,7 @@ function getInitialPage(): number {
 function getInitialCardWidth(): number {
   const storedValue = getStoredSetting(CARD_SIZE_STORAGE_KEY);
   const storedOption = getCardSizeOption(storedValue);
-  return storedOption?.value || CARD_WIDTH;
+  return storedOption?.value ?? DEFAULT_CARD_WIDTH;
 }
 
 export function saveCardWidth(value: number): void {

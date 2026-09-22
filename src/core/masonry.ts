@@ -2,11 +2,12 @@ import type { AppState } from './state';
 
 export const LOAD_OFFSET_PX = 900;
 export const CARD_WIDTH = 220;
+export const DEFAULT_CARD_WIDTH = 280;
 export const CARD_GAP = 12;
 export const CARD_SIZE_OPTIONS = [
   { key: 'small', label: '小', value: 180 },
   { key: 'medium', label: '中', value: CARD_WIDTH },
-  { key: 'big', label: '大', value: 280 },
+  { key: 'big', label: '大', value: DEFAULT_CARD_WIDTH },
 ] as const;
 
 export function layoutMasonry(state: AppState): void {

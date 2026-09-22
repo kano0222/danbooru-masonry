@@ -185,6 +185,7 @@ export function installStyles(): void {
     .dmh-viewer { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: #fff; }
     .dmh-viewer.dmh-open { display: flex; }
     .dmh-viewer img, .dmh-viewer video { display: block; max-width: 100vw; max-height: 100vh; object-fit: contain; }
+    .dmh-viewer img[hidden], .dmh-viewer video[hidden] { display: none; }
     .dmh-viewer video { background: #000; }
     .img_detail_loading { position: absolute; top: 0; left: 0; z-index: 1; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; margin: 0; pointer-events: none; }
     .img_detail_loading[hidden] { display: none; }

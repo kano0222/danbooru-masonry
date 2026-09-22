@@ -1,91 +1,93 @@
-# Danbooru Masonry
+# Danbooru 瀑布流浏览
 
-[中文说明](https://github.com/kano0222/danbooru-masonry/blob/main/README.zh-CN.md)
+[English](README.en.md)
 
-Adds masonry browsing, tag translation, immersive image viewing, and several helper features to Danbooru. This project is based on [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry), simplified and adapted for Danbooru.
+为 Danbooru 提供瀑布流浏览、标签翻译、沉浸式图片查看及其他辅助功能。本项目基于 [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry) 简化并适配 Danbooru。
 
-The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table). If you find an error, submit a correction through the [tag correction page](https://tagsuggest.zeabur.app).
+当前翻译来源于 [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table)，如有错误，可访问 [标签纠错页面](https://tagsuggest.zeabur.app) 提交纠错。
 
 <img src="https://count.getloli.com/@danbooru-masonry?theme=moebooru" alt="Moe Counter">
 
-## Install
+[静态预览](https://kano0222.github.io/danbooru-masonry/)
 
-[Install from Greasy Fork](https://greasyfork.org/scripts/585986) (login is required because the script is marked as adult content)
+## 安装
 
-[Install from Sleazy Fork](https://sleazyfork.org/scripts/585986) (login is not required)
+[从 Greasy Fork 安装](https://greasyfork.org/scripts/585986)（由于成人内容，需要登录才能安装）
 
-[Install from GitHub Release](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.user.js)
+[从 Sleazy Fork 安装](https://sleazyfork.org/scripts/585986)（不需要登录）
 
-## Features
+[从 GitHub Release 安装](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.user.js)
 
-- Adds a masonry mode entry in the upper-right corner of Danbooru pages. Tags in the original left sidebar are automatically shown with Chinese translations.
+## 主要功能
+
+- 在 Danbooru 页面右上角增加瀑布流模式入口，原页面左侧标签会自动显示中文翻译。
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- Masonry mode supports scroll loading, tag search, Hot and personal favorites shortcuts, page jumping, and tag autocomplete, and follows the logged-in user's Danbooru blacklist.
+- 瀑布流支持滚动加载、标签搜索、热门与个人收藏快捷搜索、页码跳转和标签自动补全，并遵循登录用户的 Danbooru 黑名单。
 
-- Thumbnails provide source and download links and can show image IDs and dimensions.
+- 缩略图提供来源和下载入口，可显示图片 ID 和尺寸。
 
 ![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
 
-- The settings panel supports:
+- 设置页支持以下配置：
 
-  - Masonry
-    - Automatically enter masonry mode (disabled by default)
-    - Thumbnail size: small / medium / big
-    - Show NSFW (enabled by default)
-    - Show thumbnail action buttons (enabled by default)
-    - Show thumbnail information (disabled by default)
-    - Show masonry scrollbar (enabled by default)
-  - Viewer
-    - Use the mouse wheel to navigate images (enabled by default)
-    - Load original files (disabled by default)
-    - Preload 0–5 following still images (default: 2; 0 disables preloading)
-    - Tag click behavior: new-tab masonry (default) or current-tab masonry
-  - Other
-    - Danbooru blacklist rule editing and account synchronization
-    - Download filename templates
+  - 瀑布流
+    - 自动进入瀑布流（默认开启）
+    - 缩略图大小：小 / 中 / 大（默认大）
+    - 显示 NSFW（默认开启）
+    - 显示缩略图操作按钮（默认开启）
+    - 显示缩略图信息（默认关闭）
+    - 显示瀑布流滚动条（默认开启）
+  - 详情页
+    - 使用滚轮切换图片（默认开启）
+    - 加载原图（默认关闭）
+    - 预加载后续 0–5 张静态图片（默认 2 张；0 表示关闭）
+    - 标签点击行为：新标签页瀑布流搜索（默认）、当前页瀑布流搜索
+  - 其他
+    - Danbooru 黑名单规则编辑与账号同步
+    - 下载文件名模板
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
 
-- The immersive viewer supports image and video previews, navigation, zooming, favorites, and downloads. Favorites require a Danbooru login.
+- 沉浸式查看器支持图片和视频预览、切换、缩放、收藏及下载。收藏需要登录 Danbooru。
 
-- Artist, character, and copyright tags are shown by default, with more tags available on expansion.
+- 默认显示画师、角色和版权标签，更多标签可展开查看。
 
 ![preview4](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview4.png)
 
-### Download Filename Templates
+### 下载文件名模板
 
-Download filename templates support the following placeholders:
+下载文件名模板支持以下占位符：
 
-- `{original}`: original filename without extension
-- `{artist}`: Danbooru artist tag
-- `{username}`: username parsed from the source URL, falling back to the artist tag
-- `{userid}`: user ID parsed from the source URL
-- `{id}`: source work/post ID, falling back to the Danbooru ID
-- `{postid}`: Danbooru ID
+- `{original}`：原文件名，不含后缀
+- `{artist}`：Danbooru 画师标签
+- `{username}`：来源 URL 可解析到的用户名，缺失时回退到画师标签
+- `{userid}`：来源 URL 可解析到的用户 ID
+- `{id}`：来源作品 ID，缺失时回退到 Danbooru ID
+- `{postid}`：Danbooru ID
 
-Templates use data from Danbooru and source URLs to generate filenames. Click **Save** after editing or restoring defaults.
+模板从 Danbooru 和来源 URL 获取数据生成文件名。修改或恢复默认后需点击“保存”。
 
-### Mirror Site Support
+### 镜像站支持
 
-This script supports gallery mirror sites based on [Danbooru](https://github.com/danbooru/danbooru).
+该脚本支持基于 [Danbooru](https://github.com/danbooru/danbooru) 的图库镜像站。
 
-If the script does not run on the domain you use, you can add the site URL to *User matches* yourself: script editor - Settings - Includes/Excludes - User matches - Add.
+如脚本没有在你使用的域名上运行，可自行将网址加入 _用户匹配_（脚本编辑 → 设置 → 包括/排除 → 用户匹配 → 添加）。
 
 ![userMatches](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/userMatches.png)
 
-## Notes
+## 注意事项
 
-- Masonry blacklist filtering supports positive and negative tags, `*` wildcards, and `rating`, `score`, and `status` metatags; other rules are saved to Danbooru but do not apply in masonry mode.
+- 瀑布流黑名单支持正负标签、`*` 通配符及 `rating`、`score`、`status` 元标签；其他规则仍会保存到 Danbooru，但不会在瀑布流中生效。
 
-## Credits
+## 致谢
 
-- [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry), the original project on which Danbooru Masonry is based.
-- [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table), for providing the Chinese tag translations.
+- [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry)：Danbooru Masonry 所基于的原始项目。
+- [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table)：提供中文标签翻译数据。
 
 ## License
 
-This project is open source under the [MIT License](https://github.com/kano0222/danbooru-masonry/blob/main/LICENSE).
+本项目采用 [MIT License](https://github.com/kano0222/danbooru-masonry/blob/main/LICENSE) 开源。
 
 Copyright © 2026 kano0222
