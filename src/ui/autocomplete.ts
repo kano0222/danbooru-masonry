@@ -90,7 +90,7 @@ export function renderAutocomplete(state: AppState, items: AutocompleteItem[]): 
       const cn = state.translations.translate(item.value) || DEFAULT_AUTOCOMPLETE_LABELS[item.value] || '';
       return `
         <button class="dmh-ac-item" type="button" data-tag="${escapeAttr(item.value)}" data-index="${index}">
-          <span class="dmh-ac-name">${escapeHtml(item.value)}${cn ? ` <span class="dmh-ac-cn">${escapeHtml(cn)}</span>` : ''}</span>
+          <span class="dmh-ac-name dmh-ac-${autocompleteCategory(item.category)}">${escapeHtml(item.value)}${cn ? ` <span class="dmh-ac-cn">[ ${escapeHtml(cn)} ]</span>` : ''}</span>
         </button>`;
     })
     .join('');
@@ -98,6 +98,16 @@ export function renderAutocomplete(state: AppState, items: AutocompleteItem[]): 
   container.classList.add('dmh-open');
   container.setAttribute('aria-hidden', 'false');
   updateAutocompleteSelection(state);
+}
+
+function autocompleteCategory(category: string): string {
+  switch (category.toLowerCase()) {
+    case '1': case 'artist': return 'artist';
+    case '3': case 'copyright': return 'copyright';
+    case '4': case 'character': return 'character';
+    case '5': case 'meta': return 'meta';
+    default: return 'general';
+  }
 }
 
 export function moveAutocompleteSelection(state: AppState, direction: 1 | -1): void {

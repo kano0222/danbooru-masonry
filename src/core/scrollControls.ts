@@ -75,8 +75,8 @@ export function scrollTopFromTrackPoint(
   return scrollTopFromThumbOffset(nonNegative(point) - nonNegative(thumbHeight) / 2, maxThumbOffset, maxScroll);
 }
 
-export function shouldShowBackToTop(showBackToTop: boolean, scrollY: number): boolean {
-  return showBackToTop && nonNegative(scrollY) > BACK_TO_TOP_THRESHOLD_PX;
+export function shouldShowBackToTop(scrollY: number): boolean {
+  return nonNegative(scrollY) > BACK_TO_TOP_THRESHOLD_PX;
 }
 
 export function bindScrollControls(state: AppState): void {
@@ -178,8 +178,8 @@ export function updateScrollControls(state: AppState): void {
   thumb.style.transform = `translateY(${metrics.thumbOffset}px)`;
   track.setAttribute('aria-valuenow', String(Math.round(metrics.progress * 100)));
 
-  backToTop.hidden = !state.showBackToTop;
-  backToTop.classList.toggle('dmh-visible', shouldShowBackToTop(state.showBackToTop, window.scrollY));
+  backToTop.hidden = false;
+  backToTop.classList.toggle('dmh-visible', shouldShowBackToTop(window.scrollY));
 }
 
 function currentMetrics(track: HTMLElement): ScrollMetrics {

@@ -92,6 +92,7 @@ beforeEach(() => {
     pathname: '/posts',
     search: '?tags=old&dmh=1',
     replace: vi.fn(),
+    assign: vi.fn(),
     reload: vi.fn(),
   });
   vi.stubGlobal('history', {
@@ -206,11 +207,34 @@ describe('masonry launch and tag search', () => {
     expect(renderShell).not.toHaveBeenCalled();
     expect(history.replaceState).not.toHaveBeenCalled();
   });
+  it('automatically enters on list pages when enabled', async () => {
+    location.href = 'https://danbooru.donmai.us/posts?tags=old';
+    vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) =>
+      key === 'danbooru-masonry.autoEnterMasonry' ? true : fallback,
+    );
+    boot(adapter);
+    await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
+    expect(history.replaceState).not.toHaveBeenCalled();
+  });
+  it('skips automatic entry once after an explicit exit', async () => {
+    location.href = 'https://danbooru.donmai.us/posts?tags=old&dmh=0';
+    vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) =>
+      key === 'danbooru-masonry.autoEnterMasonry' ? true : fallback,
+    );
+    boot(adapter);
+    await Promise.resolve();
+    expect(renderShell).not.toHaveBeenCalled();
+    expect(history.replaceState).toHaveBeenCalledWith(
+      { preserved: true }, '', 'https://danbooru.donmai.us/posts?tags=old',
+    );
+  });
   it('exits masonry when the title is clicked', async () => {
     boot(adapter);
     await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
     for (const handler of nodes.get('dmh-title-exit')!.handlers.get('click')!) handler({});
-    expect(location.reload).toHaveBeenCalledOnce();
+    expect(location.assign).toHaveBeenCalledWith(
+      'https://danbooru.donmai.us/posts?tags=old&dmh=0',
+    );
   });
   it('retries partial initialization by reloading instead of binding a second shell', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});

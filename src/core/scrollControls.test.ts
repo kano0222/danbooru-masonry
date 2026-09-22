@@ -40,8 +40,7 @@ describe('scroll controls metrics', () => {
   });
 
   it('shows the back-to-top button only after 300 pixels', () => {
-    expect(shouldShowBackToTop(true, 300)).toBe(false);
-    expect(shouldShowBackToTop(true, 301)).toBe(true);
-    expect(shouldShowBackToTop(false, 1000)).toBe(false);
+    expect(shouldShowBackToTop(300)).toBe(false);
+    expect(shouldShowBackToTop(301)).toBe(true);
   });
 });

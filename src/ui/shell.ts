@@ -69,8 +69,17 @@ export function renderShell(state: AppState): void {
         <div class="dmh-settings-content">
           <h3 class="dmh-settings-group-title">瀑布流</h3>
           <section class="dmh-setting-section">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">自动进入瀑布流</span><span class="dmh-setting-help">打开原站图片列表页时自动使用瀑布流浏览</span></span>
+              <label class="dmh-setting-switch" aria-label="自动进入瀑布流">
+                <input id="dmh-auto-enter-masonry" type="checkbox" ${state.autoEnterMasonry ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </label>
+            </div>
+          </section>
+          <section class="dmh-setting-section">
             <label class="dmh-setting-row" for="dmh-card-size">
-              <span class="dmh-setting-label">缩略图大小</span>
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">缩略图大小</span><span class="dmh-setting-help">调整列表中图片卡片的宽度</span></span>
               <select class="dmh-setting-select" id="dmh-card-size">
 ${cardSizeOptions}
               </select>
@@ -78,7 +87,7 @@ ${cardSizeOptions}
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-row">
-              <span class="dmh-setting-label">显示 NSFW</span>
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">显示 NSFW</span><span class="dmh-setting-help">包含敏感、限制级内容</span></span>
               <label class="dmh-setting-switch" aria-label="显示 NSFW">
                 <input id="dmh-show-nsfw" type="checkbox" ${!state.hideNsfw ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
@@ -87,7 +96,7 @@ ${cardSizeOptions}
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-row">
-              <span class="dmh-setting-label">显示缩略图操作按钮</span>
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">显示缩略图操作按钮</span><span class="dmh-setting-help">在图片卡片上显示收藏和下载按钮</span></span>
               <label class="dmh-setting-switch" aria-label="显示缩略图操作按钮">
                 <input id="dmh-show-thumbnail-buttons" type="checkbox" ${state.showThumbnailButtons ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
@@ -96,7 +105,7 @@ ${cardSizeOptions}
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-row">
-              <span class="dmh-setting-label">显示缩略图信息</span>
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">显示缩略图信息</span><span class="dmh-setting-help">在图片卡片上显示作品信息</span></span>
               <label class="dmh-setting-switch" aria-label="显示缩略图信息">
                 <input id="dmh-show-thumbnail-info" type="checkbox" ${state.showThumbnailInfo ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
@@ -105,26 +114,17 @@ ${cardSizeOptions}
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-row">
-              <span class="dmh-setting-label">显示瀑布流滚动条</span>
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">显示瀑布流滚动条</span><span class="dmh-setting-help">在页面右侧显示滚动条</span></span>
               <label class="dmh-setting-switch" aria-label="显示瀑布流滚动条">
                 <input id="dmh-show-scrollbar" type="checkbox" ${state.showScrollbar ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
               </label>
             </div>
           </section>
+          <h3 class="dmh-settings-group-title">详情页</h3>
           <section class="dmh-setting-section">
             <div class="dmh-setting-row">
-              <span class="dmh-setting-label">显示回到顶部按钮</span>
-              <label class="dmh-setting-switch" aria-label="显示回到顶部按钮">
-                <input id="dmh-show-back-to-top" type="checkbox" ${state.showBackToTop ? 'checked' : ''}>
-                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
-              </label>
-            </div>
-          </section>
-          <h3 class="dmh-settings-group-title">详情</h3>
-          <section class="dmh-setting-section">
-            <div class="dmh-setting-row">
-              <span class="dmh-setting-label">使用滚轮切换图片</span>
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">使用滚轮切换图片</span><span class="dmh-setting-help">在详情查看器中滚动切换上一张或下一张</span></span>
               <label class="dmh-setting-switch" aria-label="使用滚轮切换图片">
                 <input id="dmh-viewer-wheel-navigation" type="checkbox" ${state.viewerWheelNavigation ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
@@ -133,7 +133,7 @@ ${cardSizeOptions}
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-row">
-              <span class="dmh-setting-label">加载原图</span>
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">加载原图</span><span class="dmh-setting-help">打开详情页时直接加载高质量原图</span></span>
               <label class="dmh-setting-switch" aria-label="加载原图">
                 <input id="dmh-viewer-use-original" type="checkbox" ${state.viewerUseOriginal ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
@@ -141,20 +141,18 @@ ${cardSizeOptions}
             </div>
           </section>
           <section class="dmh-setting-section">
-            <div class="dmh-setting-row">
-              <span class="dmh-setting-label">显示详情标签入口</span>
-              <label class="dmh-setting-switch" aria-label="显示详情标签入口">
-                <input id="dmh-show-viewer-tags" type="checkbox" ${state.showViewerTags ? 'checked' : ''}>
-                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
-              </label>
-            </div>
+            <label class="dmh-setting-row" for="dmh-viewer-preload-count">
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">预加载数量</span><span class="dmh-setting-help">提前加载后续图片；设为 0 可关闭</span></span>
+              <select class="dmh-setting-select" id="dmh-viewer-preload-count">
+                ${[0, 1, 2, 3, 4, 5].map((count) => `<option value="${count}" ${state.viewerPreloadCount === count ? 'selected' : ''}>${count === 0 ? '0（关闭）' : count}</option>`).join('')}
+              </select>
+            </label>
           </section>
           <section class="dmh-setting-section">
             <div class="dmh-setting-row">
-              <label class="dmh-setting-label" for="dmh-tag-click-behavior">标签点击行为</label>
+              <label class="dmh-setting-copy" for="dmh-tag-click-behavior"><span class="dmh-setting-label">标签点击行为</span><span class="dmh-setting-help">选择点击详情标签后的搜索方式</span></label>
               <select class="dmh-setting-select dmh-tag-click-select" id="dmh-tag-click-behavior">
                 ${[
-                  ['original-new-tab', '新标签页打开原站搜索'],
                   ['masonry-current-tab', '当前页瀑布流搜索'],
                   ['masonry-new-tab', '新标签页瀑布流搜索'],
                 ]
@@ -167,8 +165,8 @@ ${cardSizeOptions}
             </div>
           </section>
           <h3 class="dmh-settings-group-title">其他</h3>
-          <button class="dmh-setting-editor-button" id="dmh-blacklist-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-blacklist-editor">Danbooru 黑名单规则 <span aria-hidden="true">›</span></button>
-          <button class="dmh-setting-editor-button" id="dmh-download-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-download-editor">下载文件名模板 <span aria-hidden="true">›</span></button>
+          <button class="dmh-setting-editor-button" id="dmh-blacklist-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-blacklist-editor"><span class="dmh-setting-copy"><span>Danbooru 黑名单规则</span><span class="dmh-setting-help">编辑用于过滤图片的原站规则</span></span><span aria-hidden="true">›</span></button>
+          <button class="dmh-setting-editor-button" id="dmh-download-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-download-editor"><span class="dmh-setting-copy"><span>下载文件名模板</span><span class="dmh-setting-help">按图片来源自定义下载文件名</span></span><span aria-hidden="true">›</span></button>
         </div>
         <div class="dmh-settings-footer">
           <a class="dmh-settings-github" href="https://github.com/kano0222/danbooru-masonry" target="_blank" rel="noreferrer" aria-label="打开 GitHub 仓库" title="GitHub">${icons.github}</a>

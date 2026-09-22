@@ -5,21 +5,20 @@ import type { BlacklistConfig } from './blacklist';
 
 const CARD_SIZE_STORAGE_KEY = 'danbooru-masonry.cardSize';
 const VIEWER_USE_ORIGINAL_STORAGE_KEY = 'danbooru-masonry.viewerUseOriginal';
+const VIEWER_PRELOAD_COUNT_STORAGE_KEY = 'danbooru-masonry.viewerPreloadCount';
 const SHOW_THUMBNAIL_INFO_STORAGE_KEY = 'danbooru-masonry.showThumbnailInfo';
 const SHOW_THUMBNAIL_BUTTONS_STORAGE_KEY = 'danbooru-masonry.showThumbnailButtons';
 const VIEWER_WHEEL_NAVIGATION_STORAGE_KEY = 'danbooru-masonry.viewerWheelNavigation';
 const SHOW_SCROLLBAR_STORAGE_KEY = 'danbooru-masonry.showScrollbar';
-const SHOW_BACK_TO_TOP_STORAGE_KEY = 'danbooru-masonry.showBackToTop';
+const AUTO_ENTER_MASONRY_STORAGE_KEY = 'danbooru-masonry.autoEnterMasonry';
 const DOWNLOAD_FILENAME_TEMPLATES_STORAGE_KEY = 'danbooru-masonry.downloadFilenameTemplates';
 const HIDE_NSFW_STORAGE_KEY = 'danbooru-masonry.hideNsfw';
-const SHOW_VIEWER_TAGS_STORAGE_KEY = 'danbooru-masonry.showViewerTags';
 const VIEWER_TAGS_OPEN_STORAGE_KEY = 'danbooru-masonry.viewerTagsOpen';
 const TAG_CLICK_BEHAVIOR_STORAGE_KEY = 'danbooru-masonry.tagClickBehavior';
-export type TagClickBehavior = 'original-new-tab' | 'masonry-current-tab' | 'masonry-new-tab';
+export type TagClickBehavior = 'masonry-current-tab' | 'masonry-new-tab';
 
 export function parseTagClickBehavior(value: unknown): TagClickBehavior {
   if (
-    value === 'original-new-tab' ||
     value === 'masonry-current-tab' ||
     value === 'masonry-new-tab'
   ) {
@@ -32,8 +31,8 @@ export function saveHideNsfw(value: boolean): void {
   saveSetting(HIDE_NSFW_STORAGE_KEY, value);
 }
 
-export function saveShowViewerTags(value: boolean): void {
-  saveSetting(SHOW_VIEWER_TAGS_STORAGE_KEY, value);
+export function saveAutoEnterMasonry(value: boolean): void {
+  saveSetting(AUTO_ENTER_MASONRY_STORAGE_KEY, value);
 }
 
 export function saveViewerTagsOpen(value: boolean): void {
@@ -86,7 +85,7 @@ export interface AppState {
   autocompleteToken: number;
   autocompleteIndex: number;
   hideNsfw: boolean;
-  showViewerTags: boolean;
+  autoEnterMasonry: boolean;
   viewerTagsOpen: boolean;
   tagClickBehavior: TagClickBehavior;
   viewerIndex: number;
@@ -108,11 +107,11 @@ export interface AppState {
   favoriteStateLoading: Set<string>;
   cardWidth: number;
   viewerUseOriginal: boolean;
+  viewerPreloadCount: number;
   showThumbnailInfo: boolean;
   showThumbnailButtons: boolean;
   viewerWheelNavigation: boolean;
   showScrollbar: boolean;
-  showBackToTop: boolean;
   downloadFilenameTemplates: DownloadFilenameTemplates;
   translations: TagTranslationStore;
 }
@@ -140,7 +139,7 @@ export function createState(adapter: BooruAdapter): AppState {
     autocompleteToken: 0,
     autocompleteIndex: -1,
     hideNsfw: getInitialBooleanSetting(HIDE_NSFW_STORAGE_KEY, false),
-    showViewerTags: getInitialBooleanSetting(SHOW_VIEWER_TAGS_STORAGE_KEY, true),
+    autoEnterMasonry: getInitialBooleanSetting(AUTO_ENTER_MASONRY_STORAGE_KEY, false),
     viewerTagsOpen: getInitialBooleanSetting(VIEWER_TAGS_OPEN_STORAGE_KEY, false),
     tagClickBehavior: parseTagClickBehavior(getStoredSetting(TAG_CLICK_BEHAVIOR_STORAGE_KEY)),
     viewerIndex: -1,
@@ -162,11 +161,11 @@ export function createState(adapter: BooruAdapter): AppState {
     favoriteStateLoading: new Set(),
     cardWidth: getInitialCardWidth(),
     viewerUseOriginal: getInitialViewerUseOriginal(),
+    viewerPreloadCount: parseViewerPreloadCount(getStoredSetting(VIEWER_PRELOAD_COUNT_STORAGE_KEY)),
     showThumbnailInfo: getInitialBooleanSetting(SHOW_THUMBNAIL_INFO_STORAGE_KEY, false),
     showThumbnailButtons: getInitialBooleanSetting(SHOW_THUMBNAIL_BUTTONS_STORAGE_KEY, true),
     viewerWheelNavigation: getInitialBooleanSetting(VIEWER_WHEEL_NAVIGATION_STORAGE_KEY, true),
     showScrollbar: getInitialBooleanSetting(SHOW_SCROLLBAR_STORAGE_KEY, true),
-    showBackToTop: getInitialBooleanSetting(SHOW_BACK_TO_TOP_STORAGE_KEY, true),
     downloadFilenameTemplates: getInitialDownloadFilenameTemplates(),
     translations: new TagTranslationStore(),
   };
@@ -197,6 +196,15 @@ export function saveViewerUseOriginal(value: boolean): void {
   saveSetting(VIEWER_USE_ORIGINAL_STORAGE_KEY, value);
 }
 
+export function parseViewerPreloadCount(value: unknown): number {
+  const count = Number(value);
+  return Number.isInteger(count) && count >= 0 && count <= 5 ? count : 2;
+}
+
+export function saveViewerPreloadCount(value: number): void {
+  saveSetting(VIEWER_PRELOAD_COUNT_STORAGE_KEY, parseViewerPreloadCount(value));
+}
+
 export function saveShowThumbnailInfo(value: boolean): void {
   saveSetting(SHOW_THUMBNAIL_INFO_STORAGE_KEY, value);
 }
@@ -211,10 +219,6 @@ export function saveViewerWheelNavigation(value: boolean): void {
 
 export function saveShowScrollbar(value: boolean): void {
   saveSetting(SHOW_SCROLLBAR_STORAGE_KEY, value);
-}
-
-export function saveShowBackToTop(value: boolean): void {
-  saveSetting(SHOW_BACK_TO_TOP_STORAGE_KEY, value);
 }
 
 export function saveDownloadFilenameTemplates(value: DownloadFilenameTemplates): void {
