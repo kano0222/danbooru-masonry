@@ -4,7 +4,6 @@ import { normalizePost } from './normalizePost';
 import {
   createState,
   parseTagClickBehavior,
-  saveShowViewerTags,
   saveTagClickBehavior,
 } from './state';
 import {
@@ -32,25 +31,20 @@ function state() {
 describe('viewer tag settings and links', () => {
   it('uses the viewer tag defaults and persists preferences', () => {
     const value = state();
-    expect(value.showViewerTags).toBe(true);
     expect(value.viewerTagsOpen).toBe(false);
     expect(value.tagClickBehavior).toBe('masonry-new-tab');
     const save = vi.fn();
     vi.stubGlobal('GM_setValue', save);
-    saveShowViewerTags(false);
     saveTagClickBehavior('masonry-new-tab');
     expect(save.mock.calls).toEqual([
-      ['danbooru-masonry.showViewerTags', false],
       ['danbooru-masonry.tagClickBehavior', 'masonry-new-tab'],
     ]);
     vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) => {
-      if (key.endsWith('showViewerTags')) return false;
       if (key.endsWith('tagClickBehavior')) return 'original-new-tab';
       return fallback;
     });
     const restored = createState(adapter);
-    expect(restored.showViewerTags).toBe(false);
-    expect(restored.tagClickBehavior).toBe('original-new-tab');
+    expect(restored.tagClickBehavior).toBe('masonry-new-tab');
   });
   it.each([undefined, null, 'invalid', 1])('rejects invalid behavior %s', (value) => {
     expect(parseTagClickBehavior(value)).toBe('masonry-new-tab');
@@ -70,7 +64,7 @@ describe('viewer tag settings and links', () => {
     expect(getViewerTags(post)).toEqual(['z', 'a']);
     expect(getViewerTags(normalizePost({ id: 2 }, adapter.origin))).toEqual([]);
   });
-  it.each(['original-new-tab', 'masonry-current-tab', 'masonry-new-tab'] as const)(
+  it.each(['masonry-current-tab', 'masonry-new-tab'] as const)(
     'encodes a single raw tag for %s',
     (behavior) => {
       const tag = 'a&b_(日本語)+#';
@@ -91,7 +85,6 @@ describe('viewer tag settings and links', () => {
       false,
     );
     expect(shouldSearchInCurrentTab(click, 'masonry-new-tab')).toBe(false);
-    expect(shouldSearchInCurrentTab(click, 'original-new-tab')).toBe(false);
   });
   it('consumes only exact launch flags on list pages while preserving other URL data', () => {
     const clean = consumeMasonryLaunchUrl(
@@ -149,10 +142,10 @@ describe('viewer tag panel', () => {
     value.tagClickBehavior = 'masonry-new-tab';
     refreshViewerTags(value);
     expect(nodes.get('dmh-viewer-info')!.innerHTML).toContain('dmh=1');
-    value.showViewerTags = false;
+    value.posts[0].tagGroups.general = [];
     refreshViewerTags(value);
     expect(nodes.get('dmh-viewer-tags')!.hidden).toBe(true);
-    expect(value.viewerTagsOpen).toBe(false);
+    expect(value.viewerTagsOpen).toBe(true);
   });
   it.each([true, false])('restores the last tag panel choice %s after reload', (open) => {
     const { value } = setup();

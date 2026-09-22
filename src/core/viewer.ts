@@ -11,6 +11,13 @@ import type { DanbooruRawPost } from '../types/danbooru';
 import { escapeAttr, escapeHtml } from '../utils/escape';
 import { byId, openInTab } from '../utils/dom';
 import { isHttpUrl } from '../utils/url';
+import { getPostThumbnailUrl } from './postImage';
+import {
+  clearViewerImages,
+  forgetViewerImage,
+  getViewerImage,
+  preloadViewerImages,
+} from './viewerPreload';
 
 export function showViewer(state: AppState, index: number): void {
   if (index < 0 || index >= state.posts.length) return;
@@ -42,7 +49,7 @@ export function showViewer(state: AppState, index: number): void {
     video.removeAttribute('poster');
     video.load();
     const imageUrl = getViewerImageUrl(state, post);
-    const placeholderUrl = getViewerPlaceholderUrl(post, imageUrl);
+    const placeholderUrl = getPostThumbnailUrl(post);
     if (placeholderUrl) {
       img.onload = null;
       img.onerror = null;
@@ -53,10 +60,15 @@ export function showViewer(state: AppState, index: number): void {
       img.removeAttribute('src');
     }
     showImageLoading(loading);
-    const fullImage = new Image();
+    const fullImage = getViewerImage(state, imageUrl);
+    const isCurrentImage = () =>
+      viewer.classList.contains('dmh-open') &&
+      state.posts[state.viewerIndex]?.id === post.id &&
+      getViewerImageUrl(state, post) === imageUrl;
     const showIfCurrentImage = () => {
-      if (state.posts[state.viewerIndex]?.id !== post.id) return;
+      if (!isCurrentImage()) return;
       if (!fullImage.naturalWidth) {
+        forgetViewerImage(state, imageUrl);
         showImageError(loading);
         return;
       }
@@ -67,15 +79,18 @@ export function showViewer(state: AppState, index: number): void {
       hideImageLoading(loading);
     };
     const showErrorIfCurrentImage = () => {
-      if (state.posts[state.viewerIndex]?.id !== post.id) return;
+      if (!isCurrentImage()) return;
+      forgetViewerImage(state, imageUrl);
       if (!placeholderUrl) img.hidden = true;
       showImageError(loading);
     };
     fullImage.onload = showIfCurrentImage;
     fullImage.onerror = showErrorIfCurrentImage;
-    fullImage.src = imageUrl;
-    if (fullImage.complete && fullImage.naturalWidth)
-      window.requestAnimationFrame(showIfCurrentImage);
+    if (fullImage.complete) {
+      window.requestAnimationFrame(
+        fullImage.naturalWidth ? showIfCurrentImage : showErrorIfCurrentImage,
+      );
+    }
   }
 
   refreshViewerTags(state);
@@ -96,6 +111,28 @@ export function showViewer(state: AppState, index: number): void {
   viewer.classList.add('dmh-open');
   viewer.setAttribute('aria-hidden', 'false');
   document.documentElement.classList.add('dmh-no-scroll');
+  refreshViewerPreload(state);
+}
+
+export function refreshViewerPreload(state: AppState): void {
+  const index = state.viewerIndex;
+  const post = state.posts[index];
+  if (!post) return;
+  const currentUrl = post.playbackUrl ? '' : getViewerImageUrl(state, post);
+  const followingUrls: string[] = [];
+  if (!post.playbackUrl && state.viewerPreloadCount > 0) {
+    for (
+      let nextIndex = index + 1;
+      nextIndex < state.posts.length && followingUrls.length < state.viewerPreloadCount;
+      nextIndex++
+    ) {
+      const next = state.posts[nextIndex];
+      if (next.playbackUrl) continue;
+      const url = getViewerImageUrl(state, next);
+      if (url) followingUrls.push(url);
+    }
+  }
+  void preloadViewerImages(state, currentUrl, followingUrls);
 }
 
 export function closeViewer(state: AppState): void {
@@ -106,6 +143,7 @@ export function closeViewer(state: AppState): void {
   if (!viewer || !img || !video || !loading) return;
   viewer.classList.remove('dmh-open');
   viewer.setAttribute('aria-hidden', 'true');
+  clearViewerImages(state);
   setZoomMode(state, false);
   hideImageLoading(loading);
   img.onload = null;
@@ -465,12 +503,6 @@ function showImageError(loading: HTMLElement): void {
   byId('dmh-viewer-error')?.removeAttribute('hidden');
 }
 
-function getViewerPlaceholderUrl(post: Post, imageUrl: string): string {
-  return (
-    [post.thumbnailUrl, post.previewUrl, post.listUrl].find((url) => url && url !== imageUrl) || ''
-  );
-}
-
 function getViewerImageUrl(state: AppState, post: Post): string {
   if (state.viewerUseOriginal && !post.isUgoira)
     return post.fileUrl || post.thumbnailUrl || post.previewUrl || '';
@@ -814,7 +846,7 @@ function renderViewerInfo(state: AppState, post: Post): string {
 }
 
 export function setViewerTagsOpen(state: AppState, open: boolean, restoreFocus = false): void {
-  const nextOpen = open && state.showViewerTags;
+  const nextOpen = open;
   if (state.viewerTagsOpen !== nextOpen) {
     state.viewerTagsOpen = nextOpen;
     saveViewerTagsOpen(nextOpen);
@@ -833,9 +865,8 @@ export function refreshViewerTags(state: AppState): void {
   const list = byId('dmh-viewer-tags-list');
   if (!root || !list) return;
   const tags = post ? getViewerTags(post) : [];
-  root.hidden = !state.showViewerTags || !tags.length;
-  if (!state.showViewerTags) setViewerTagsOpen(state, false);
-  else setViewerTagsOpen(state, state.viewerTagsOpen);
+  root.hidden = !tags.length;
+  setViewerTagsOpen(state, state.viewerTagsOpen);
   if (post) {
     const info = byId('dmh-viewer-info');
     if (info) info.innerHTML = renderViewerInfo(state, post);

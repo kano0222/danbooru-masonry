@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AutocompleteItem, BooruAdapter } from '../adapters/types';
 import { createState, type AppState } from '../core/state';
-import { closeAutocomplete, openAutocomplete, scheduleAutocomplete } from './autocomplete';
+import { closeAutocomplete, openAutocomplete, renderAutocomplete, scheduleAutocomplete } from './autocomplete';
 
 let state: AppState;
 let container: { innerHTML: string; classList: { add: ReturnType<typeof vi.fn>; remove: ReturnType<typeof vi.fn>; contains: () => boolean }; setAttribute: ReturnType<typeof vi.fn> };
@@ -29,6 +29,23 @@ afterEach(() => {
 });
 
 describe('autocomplete request lifecycle', () => {
+  it('uses category text classes without changing suggestion backgrounds', () => {
+    renderAutocomplete(state, [
+      { value: 'artist', count: '', category: '1' },
+      { value: 'series', count: '', category: 'copyright' },
+      { value: 'hero', count: '', category: '4' },
+      { value: 'tag', count: '', category: '0' },
+    ]);
+    expect(container.innerHTML).toContain('dmh-ac-name dmh-ac-artist');
+    expect(container.innerHTML).toContain('dmh-ac-name dmh-ac-copyright');
+    expect(container.innerHTML).toContain('dmh-ac-name dmh-ac-character');
+    expect(container.innerHTML).toContain('dmh-ac-name dmh-ac-general');
+  });
+  it('wraps translated suggestions in brackets like viewer tags', () => {
+    vi.spyOn(state.translations, 'translate').mockReturnValue('画师');
+    renderAutocomplete(state, [{ value: 'artist', count: '', category: 'artist' }]);
+    expect(container.innerHTML).toContain('<span class="dmh-ac-cn">[ 画师 ]</span>');
+  });
   it('ignores an old response while the next input is still debouncing', async () => {
     openAutocomplete(state, 'old');
     scheduleAutocomplete(state, 'new');

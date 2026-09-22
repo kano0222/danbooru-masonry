@@ -4,7 +4,7 @@ import type { BooruAdapter } from './adapters/types';
 import {
   createState,
   saveHideNsfw,
-  saveShowViewerTags,
+  saveAutoEnterMasonry,
   saveTagClickBehavior,
   parseTagClickBehavior,
   DEFAULT_DOWNLOAD_FILENAME_TEMPLATES,
@@ -13,9 +13,9 @@ import {
   saveDownloadFilenameTemplates,
   saveShowThumbnailButtons,
   saveShowThumbnailInfo,
-  saveShowBackToTop,
   saveShowScrollbar,
   saveViewerUseOriginal,
+  saveViewerPreloadCount,
   saveViewerWheelNavigation,
   type DownloadFilenameTemplates,
 } from './core/state';
@@ -64,6 +64,7 @@ import {
   downloadCurrentPost,
   showAdjacentViewerPost,
   showViewer,
+  refreshViewerPreload,
   toggleZoomMode,
 } from './core/viewer';
 import { byId, setText } from './utils/dom';
@@ -79,9 +80,16 @@ export function boot(adapter: BooruAdapter): void {
   void state.translations.load().then(() => translateOriginalPageTags(state));
   if (canShowLaunchButton(location)) {
     installLaunchButton(() => void startMasonry(state));
+    const skipAutoEnter = new URL(location.href).searchParams.get('dmh') === '0';
     const launchUrl = consumeMasonryLaunchUrl(location.href);
     if (launchUrl) {
       history.replaceState(history.state, '', launchUrl);
+      void startMasonry(state);
+    } else if (skipAutoEnter) {
+      const cleanUrl = new URL(location.href);
+      cleanUrl.searchParams.delete('dmh');
+      history.replaceState(history.state, '', cleanUrl.toString());
+    } else if (state.autoEnterMasonry) {
       void startMasonry(state);
     }
   }
@@ -150,10 +158,9 @@ function bindShellEvents(state: AppState): void {
     window.scrollTo({ top: 0, behavior: 'instant' });
     void loadNextPage(state);
   });
-  byId('dmh-show-viewer-tags')?.addEventListener('change', (event) => {
-    state.showViewerTags = (event.target as HTMLInputElement).checked;
-    saveShowViewerTags(state.showViewerTags);
-    refreshViewerTags(state);
+  byId('dmh-auto-enter-masonry')?.addEventListener('change', (event) => {
+    state.autoEnterMasonry = (event.target as HTMLInputElement).checked;
+    saveAutoEnterMasonry(state.autoEnterMasonry);
   });
   byId('dmh-tag-click-behavior')?.addEventListener('change', (event) => {
     state.tagClickBehavior = parseTagClickBehavior((event.target as HTMLSelectElement).value);
@@ -185,8 +192,8 @@ function bindShellEvents(state: AppState): void {
     resetSearch(state, tags);
     void loadNextPage(state);
   });
-  byId('dmh-title-exit')?.addEventListener('click', () => location.reload());
-  byId('dmh-exit')?.addEventListener('click', () => location.reload());
+  byId('dmh-title-exit')?.addEventListener('click', () => exitMasonry());
+  byId('dmh-exit')?.addEventListener('click', () => exitMasonry());
   byId('dmh-settings-toggle')?.addEventListener('click', () => openSettingsPanel());
   byId('dmh-settings-overlay')?.addEventListener('click', () => closeSettingsPanel());
   byId('dmh-settings-close')?.addEventListener('click', () => closeSettingsPanel());
@@ -210,6 +217,11 @@ function bindShellEvents(state: AppState): void {
   byId<HTMLInputElement>('dmh-viewer-use-original')?.addEventListener('change', (event) => {
     setViewerUseOriginal(state, (event.currentTarget as HTMLInputElement).checked);
   });
+  byId<HTMLSelectElement>('dmh-viewer-preload-count')?.addEventListener('change', (event) => {
+    state.viewerPreloadCount = Number((event.currentTarget as HTMLSelectElement).value);
+    saveViewerPreloadCount(state.viewerPreloadCount);
+    if (isViewerOpen()) refreshViewerPreload(state);
+  });
   byId<HTMLInputElement>('dmh-show-thumbnail-buttons')?.addEventListener('change', (event) => {
     setShowThumbnailButtons(state, (event.currentTarget as HTMLInputElement).checked);
   });
@@ -221,9 +233,6 @@ function bindShellEvents(state: AppState): void {
   });
   byId<HTMLInputElement>('dmh-show-scrollbar')?.addEventListener('change', (event) => {
     setShowScrollbar(state, (event.currentTarget as HTMLInputElement).checked);
-  });
-  byId<HTMLInputElement>('dmh-show-back-to-top')?.addEventListener('change', (event) => {
-    setShowBackToTop(state, (event.currentTarget as HTMLInputElement).checked);
   });
   const tagsInput = byId<HTMLInputElement>('dmh-tags');
   const searchForm = byId('dmh-search');
@@ -655,13 +664,10 @@ function setShowScrollbar(state: AppState, showScrollbar: boolean): void {
   updateScrollControls(state);
 }
 
-function setShowBackToTop(state: AppState, showBackToTop: boolean): void {
-  if (state.showBackToTop === showBackToTop) return;
-  state.showBackToTop = showBackToTop;
-  saveShowBackToTop(showBackToTop);
-  const input = byId<HTMLInputElement>('dmh-show-back-to-top');
-  if (input) input.checked = showBackToTop;
-  updateScrollControls(state);
+function exitMasonry(): void {
+  const url = new URL(location.href);
+  url.searchParams.set('dmh', '0');
+  location.assign(url.toString());
 }
 
 function resetDownloadFilenameTemplates(): void {

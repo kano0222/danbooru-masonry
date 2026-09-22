@@ -30,18 +30,18 @@ The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translati
 
 - The settings panel supports:
 
-  - Thumbnails
+  - Masonry
+    - Automatically enter masonry mode (disabled by default)
     - Thumbnail size: small / medium / big
     - Show NSFW (enabled by default)
     - Show thumbnail action buttons (enabled by default)
     - Show thumbnail information (disabled by default)
     - Show masonry scrollbar (enabled by default)
-    - Show back-to-top button (enabled by default)
   - Viewer
     - Use the mouse wheel to navigate images (enabled by default)
     - Load original files (disabled by default)
-    - Show viewer tag entry (enabled by default)
-    - Tag click behavior: new-tab masonry (default), original search in a new tab, or current-tab masonry
+    - Preload 0–5 following still images (default: 2; 0 disables preloading)
+    - Tag click behavior: new-tab masonry (default) or current-tab masonry
   - Other
     - Danbooru blacklist rule editing and account synchronization
     - Download filename templates

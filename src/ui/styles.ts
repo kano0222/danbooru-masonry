@@ -87,7 +87,7 @@ export function installStyles(): void {
     .dmh-message { padding: 24px; text-align: center; color: #57606a; }
     .dmh-settings-overlay { position: fixed; inset: 0; z-index: 300; background: rgba(31,35,40,.32); opacity: 0; pointer-events: none; transition: opacity .22s ease; }
     .dmh-settings-overlay.dmh-open { opacity: 1; pointer-events: auto; }
-    .dmh-settings-panel { position: fixed; top: 50%; right: 12px; bottom: auto; z-index: 301; display: flex; flex-direction: column; height: fit-content; max-height: calc(100dvh - 24px); width: min(360px, calc(100vw - 32px)); padding: 0; border-left: 1px solid #d8dee4; background: #fff; box-shadow: -8px 0 24px rgba(27,31,36,.18); opacity: 0; pointer-events: none; transform: translate(100%, -50%); transition: transform .22s ease, opacity .22s ease; }
+    .dmh-settings-panel { position: fixed; top: 50%; right: 12px; bottom: auto; z-index: 301; display: flex; flex-direction: column; height: fit-content; max-height: calc(100dvh - 24px); width: min(440px, calc(100vw - 32px)); padding: 0; border-left: 1px solid #d8dee4; background: #fff; box-shadow: -8px 0 24px rgba(27,31,36,.18); opacity: 0; pointer-events: none; transform: translate(100%, -50%); transition: transform .22s ease, opacity .22s ease; }
     .dmh-settings-panel.dmh-open { opacity: 1; pointer-events: auto; transform: translate(0, -50%); }
     .dmh-settings-header { display: flex; align-items: center; justify-content: space-between; min-height: 56px; flex: 0 0 auto; padding: 0 16px; border-bottom: 1px solid #d8dee4; }
     .dmh-settings-header h2 { margin: 0; font-size: 18px; font-weight: 700; line-height: 1; color: #24292f; }
@@ -126,8 +126,10 @@ export function installStyles(): void {
     #dmh-app .dmh-blacklist-save:disabled, #dmh-app .dmh-blacklist-save:disabled:hover { border-color: #0969da; background: #0969da; color: #fff; opacity: .6; cursor: default; }
     .dmh-setting-section { display: flex; flex-direction: column; gap: 10px; }
     .dmh-setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; }
+    .dmh-setting-copy { display: flex; flex: 1 1 auto; min-width: 0; flex-direction: column; gap: 3px; text-align: left; }
+    .dmh-setting-copy .dmh-setting-help { overflow-wrap: anywhere; }
     .dmh-setting-stack { display: flex; flex-direction: column; gap: 10px; }
-    .dmh-setting-label { color: #24292f; font-size: 13px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+    .dmh-setting-label { color: #24292f; font-size: 13px; font-weight: 700; line-height: 1.3; }
     .dmh-setting-select { width: 148px; height: 34px; padding: 0 30px 0 10px; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; color: #24292f; font: 700 13px Arial, "Helvetica Neue", sans-serif; outline: 0; cursor: pointer; }
     .dmh-setting-select option { font: 700 13px Arial, "Helvetica Neue", sans-serif; }
     .dmh-setting-select:focus-visible { border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.12); }
@@ -171,14 +173,18 @@ export function installStyles(): void {
     .dmh-ac-item:hover { background: #f6f8fa; box-shadow: none; }
     .dmh-ac-item.dmh-selected, .dmh-ac-item.dmh-selected:hover { background: #eef6ff; box-shadow: inset 3px 0 0 #0969da; }
     .dmh-ac-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-    .dmh-ac-cn { color: #57606a; font-size: 12px; white-space: nowrap; }
+    .dmh-ac-artist { color: rgb(201, 112, 0); }
+    .dmh-ac-copyright { color: rgb(174, 63, 193); }
+    .dmh-ac-character { color: rgb(12, 147, 18); }
+    .dmh-ac-general { color: #0969da; }
+    .dmh-ac-meta { color: #57606a; }
+    .dmh-ac-cn { color: inherit; font-size: 12px; white-space: nowrap; }
     .dmh-viewer { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: #fff; }
     .dmh-viewer.dmh-open { display: flex; }
     .dmh-viewer img, .dmh-viewer video { display: block; max-width: 100vw; max-height: 100vh; object-fit: contain; }
     .dmh-viewer video { background: #000; }
     .img_detail_loading { position: absolute; top: 0; left: 0; z-index: 1; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; margin: 0; pointer-events: none; }
     .img_detail_loading[hidden] { display: none; }
-    .img_detail_loading::after { content: ''; position: absolute; z-index: 1; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(2px); }
     #dmh-viewer-progress { position: absolute; top: 50%; left: 50%; z-index: 10; transform: translate(-50%, -50%); }
     .img_detail_loading .v-progress-circular { width: 100px; height: 100px; border: 6px solid rgba(26, 115, 232, .18); border-top-color: #1a73e8; border-radius: 50%; color: #1a73e8 !important; caret-color: #1a73e8 !important; animation: dmh-progress-circular .82s linear infinite; }
     @keyframes dmh-progress-circular { to { transform: translate(-50%, -50%) rotate(360deg); } }
