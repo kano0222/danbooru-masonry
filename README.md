@@ -22,7 +22,7 @@ The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translati
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- Masonry mode supports scroll loading, tag search, page jumping, and tag autocomplete, and follows the logged-in user's Danbooru blacklist.
+- Masonry mode supports scroll loading, tag search, Hot and personal favorites shortcuts, page jumping, and tag autocomplete, and follows the logged-in user's Danbooru blacklist.
 
 - Thumbnails provide source and download links and can show image IDs and dimensions.
 

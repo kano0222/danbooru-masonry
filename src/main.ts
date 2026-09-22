@@ -36,7 +36,7 @@ import {
   scheduleLayoutMasonry,
   shouldLoadMore,
 } from './core/masonry';
-import { getRequestTags, resetSearch } from './core/search';
+import { getFavoriteSearchTag, getRequestTags, resetSearch } from './core/search';
 import {
   captureBlacklist,
   createBlacklistConfigFromText,
@@ -183,14 +183,26 @@ function bindShellEvents(state: AppState): void {
     window.scrollTo({ top: 0, behavior: 'instant' });
     void loadNextPage(state);
   });
-  byId('dmh-search')?.addEventListener('submit', (event) => {
-    event.preventDefault();
+  const searchTags = (tags: string) => {
     closeAutocomplete(state);
     const input = byId<HTMLInputElement>('dmh-tags');
-    const tags = (input?.value || '').trim();
     input?.blur();
-    resetSearch(state, tags);
+    resetSearch(state, tags.trim());
+    window.scrollTo({ top: 0, behavior: 'instant' });
     void loadNextPage(state);
+  };
+  byId('dmh-search')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    searchTags(byId<HTMLInputElement>('dmh-tags')?.value || '');
+  });
+  byId('dmh-hot-search')?.addEventListener('click', () => searchTags('order:rank'));
+  byId('dmh-favorites-search')?.addEventListener('click', () => {
+    const tag = getFavoriteSearchTag(
+      currentUserId(),
+      document.body.dataset.currentUserName || '',
+      document.body.dataset.currentUserIsAnonymous === 'true',
+    );
+    if (tag) searchTags(tag);
   });
   byId('dmh-title-exit')?.addEventListener('click', () => exitMasonry());
   byId('dmh-exit')?.addEventListener('click', () => exitMasonry());

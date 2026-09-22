@@ -28,3 +28,8 @@ export function getRequestTags(tags: string, hideNsfw: boolean): string {
   const query = tags.trim();
   return query ? '( ' + query + ' ) rating:g' : 'rating:g';
 }
+
+export function getFavoriteSearchTag(userId: string, username: string, isAnonymous: boolean): string {
+  if (!userId || isAnonymous || !username.trim()) return '';
+  return `ordfav:${username.trim().replace(/\s+/g, '_')}`;
+}
