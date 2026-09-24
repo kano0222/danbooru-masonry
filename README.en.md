@@ -24,9 +24,16 @@ The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translati
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- Masonry mode supports scroll loading, tag search, Hot and personal favorites shortcuts, page jumping, and tag autocomplete, and follows the logged-in user's Danbooru blacklist.
-
-- Thumbnails provide source and download links and can show image IDs and dimensions.
+- Masonry
+  - Infinite scrolling
+  - Tag search and autocomplete
+  - Hot and personal favorites shortcuts
+  - Page navigation
+  - Honors the logged-in user's Danbooru blacklist
+  - Dark mode
+- Thumbnails
+  - Source and download actions
+  - Optional image IDs and dimensions
 
 ![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
 
@@ -80,6 +87,10 @@ If the script does not run on the domain you use, you can add the site URL to _U
 ## Notes
 
 - Masonry blacklist filtering supports positive and negative tags, `*` wildcards, and `rating`, `score`, and `status` metatags; other rules are saved to Danbooru but do not apply in masonry mode.
+
+## TODO
+
+- Add more image list layouts.
 
 ## Credits
 

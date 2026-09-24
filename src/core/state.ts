@@ -15,7 +15,17 @@ const DOWNLOAD_FILENAME_TEMPLATES_STORAGE_KEY = 'danbooru-masonry.downloadFilena
 const HIDE_NSFW_STORAGE_KEY = 'danbooru-masonry.hideNsfw';
 const VIEWER_TAGS_OPEN_STORAGE_KEY = 'danbooru-masonry.viewerTagsOpen';
 const TAG_CLICK_BEHAVIOR_STORAGE_KEY = 'danbooru-masonry.tagClickBehavior';
+const THEME_MODE_STORAGE_KEY = 'danbooru-masonry.themeMode';
 export type TagClickBehavior = 'masonry-current-tab' | 'masonry-new-tab';
+export type ThemeMode = 'light' | 'dark';
+
+export function parseThemeMode(value: unknown): ThemeMode {
+  return value === 'dark' ? 'dark' : 'light';
+}
+
+export function saveThemeMode(value: ThemeMode): void {
+  saveSetting(THEME_MODE_STORAGE_KEY, value);
+}
 
 export function parseTagClickBehavior(value: unknown): TagClickBehavior {
   if (
@@ -88,6 +98,7 @@ export interface AppState {
   autoEnterMasonry: boolean;
   viewerTagsOpen: boolean;
   tagClickBehavior: TagClickBehavior;
+  themeMode: ThemeMode;
   viewerIndex: number;
   viewerChromeHidden: boolean;
   zoomMode: boolean;
@@ -142,6 +153,7 @@ export function createState(adapter: BooruAdapter): AppState {
     autoEnterMasonry: getInitialBooleanSetting(AUTO_ENTER_MASONRY_STORAGE_KEY, true),
     viewerTagsOpen: getInitialBooleanSetting(VIEWER_TAGS_OPEN_STORAGE_KEY, false),
     tagClickBehavior: parseTagClickBehavior(getStoredSetting(TAG_CLICK_BEHAVIOR_STORAGE_KEY)),
+    themeMode: parseThemeMode(getStoredSetting(THEME_MODE_STORAGE_KEY)),
     viewerIndex: -1,
     viewerChromeHidden: false,
     zoomMode: false,

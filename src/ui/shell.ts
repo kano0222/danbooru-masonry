@@ -3,6 +3,7 @@ import { escapeAttr, escapeHtml } from '../utils/escape';
 import { DOWNLOAD_FILENAME_TEMPLATE_OPTIONS, type AppState } from '../core/state';
 import { CARD_SIZE_OPTIONS } from '../core/masonry';
 import { getFavoriteSearchTag } from '../core/search';
+import { getThemeToggleIcon, getThemeToggleLabel } from './theme';
 
 export function renderShell(state: AppState): void {
   document.title = 'Danbooru Masonry';
@@ -20,6 +21,7 @@ export function renderShell(state: AppState): void {
     (option) =>
       `<option value="${option.key}"${option.value === state.cardWidth ? ' selected' : ''}>${option.label}</option>`,
   ).join('');
+  const themeToggleLabel = getThemeToggleLabel(state.themeMode);
   const downloadFilenameTemplateInputs = DOWNLOAD_FILENAME_TEMPLATE_OPTIONS.map(
     (option) => `
               <label class="dmh-download-template-row" for="dmh-download-template-${option.key}">
@@ -54,6 +56,7 @@ export function renderShell(state: AppState): void {
           </div>
           <div class="dmh-toolbar-actions">
             <div class="dmh-status" id="dmh-status">已加载 0 张</div>
+            <button class="dmh-theme-button dmh-icon-button" id="dmh-theme-toggle" type="button" data-dmh-tooltip="${themeToggleLabel}" aria-label="${themeToggleLabel}">${getThemeToggleIcon(state.themeMode)}</button>
             <button class="dmh-settings-button dmh-icon-button" id="dmh-settings-toggle" type="button" data-dmh-tooltip="设置" aria-label="设置" aria-expanded="false" aria-controls="dmh-settings-panel">${icons.settings}</button>
             <button class="dmh-exit-button dmh-icon-button" id="dmh-exit" type="button" data-dmh-tooltip="退出瀑布流" aria-label="退出瀑布流">${icons.exit}</button>
           </div>

@@ -5,14 +5,30 @@ import { renderShell } from './shell';
 
 afterEach(() => vi.unstubAllGlobals());
 
-function renderWithUser(dataset: Record<string, string>): string {
+function renderWithUser(
+  dataset: Record<string, string>,
+  settings = new Map<string, unknown>(),
+): string {
   const body = { dataset, innerHTML: '' };
   vi.stubGlobal('location', { search: '' });
-  vi.stubGlobal('GM_getValue', (_key: string, fallback: unknown) => fallback);
+  vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) =>
+    settings.has(key) ? settings.get(key) : fallback,
+  );
   vi.stubGlobal('document', { body, title: '' });
   renderShell(createState(new DanbooruAdapter()));
   return body.innerHTML;
 }
+
+describe('theme settings', () => {
+  it('renders a toolbar action for the saved theme', () => {
+    const html = renderWithUser(
+      {},
+      new Map([['danbooru-masonry.themeMode', 'dark']]),
+    );
+    expect(html).toMatch(/id="dmh-theme-toggle"[^>]*data-dmh-tooltip="切换到浅色模式"/);
+    expect(html).not.toContain('id="dmh-theme-mode"');
+  });
+});
 
 describe('search shortcuts', () => {
   it('places Hot and favorites to the right of the search button', () => {

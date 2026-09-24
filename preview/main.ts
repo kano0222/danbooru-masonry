@@ -19,6 +19,7 @@ import { installShortcuts } from '../src/core/shortcuts';
 import { renderPosts } from '../src/ui/cards';
 import { renderShell } from '../src/ui/shell';
 import { installStyles } from '../src/ui/styles';
+import { applyTheme, getNextThemeMode } from '../src/ui/theme';
 
 const previewImages = [
   {
@@ -111,6 +112,7 @@ state.tags = 'landscape 1girl';
 state.cardWidth = CARD_SIZE_OPTIONS.find((option) => option.key === 'big')?.value ?? state.cardWidth;
 state.loadMore = loadNextPreviewPage;
 
+applyTheme(state.themeMode);
 installStyles();
 renderShell(state);
 const viewerInfo = document.getElementById('dmh-viewer-info');
@@ -258,6 +260,11 @@ function bindPreviewControls(): void {
     state.cardWidth = option.value;
     app.dataset.cardSize = option.key;
     layoutMasonry(state);
+  });
+
+  document.getElementById('dmh-theme-toggle')?.addEventListener('click', () => {
+    state.themeMode = getNextThemeMode(state.themeMode);
+    applyTheme(state.themeMode);
   });
 
   bindDataToggle('dmh-show-thumbnail-buttons', 'showThumbnailButtons');

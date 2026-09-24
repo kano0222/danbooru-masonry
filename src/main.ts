@@ -7,6 +7,7 @@ import {
   saveAutoEnterMasonry,
   saveTagClickBehavior,
   parseTagClickBehavior,
+  saveThemeMode,
   DEFAULT_DOWNLOAD_FILENAME_TEMPLATES,
   DOWNLOAD_FILENAME_TEMPLATE_OPTIONS,
   saveCardWidth,
@@ -20,6 +21,7 @@ import {
   type DownloadFilenameTemplates,
 } from './core/state';
 import { installStyles } from './ui/styles';
+import { applyTheme, getNextThemeMode } from './ui/theme';
 import { installLaunchButton, renderShell } from './ui/shell';
 import { renderPosts } from './ui/cards';
 import {
@@ -111,6 +113,7 @@ async function startMasonry(state: AppState): Promise<void> {
     state.blacklist = capturedBlacklist.config;
     state.blacklistText = capturedBlacklist.text;
     state.blacklistAvailable = capturedBlacklist.available;
+    applyTheme(state.themeMode);
     installStyles();
     shellAttempted = true;
     renderShell(state);
@@ -166,6 +169,11 @@ function bindShellEvents(state: AppState): void {
     state.tagClickBehavior = parseTagClickBehavior((event.target as HTMLSelectElement).value);
     saveTagClickBehavior(state.tagClickBehavior);
     refreshViewerTags(state);
+  });
+  byId('dmh-theme-toggle')?.addEventListener('click', () => {
+    state.themeMode = getNextThemeMode(state.themeMode);
+    saveThemeMode(state.themeMode);
+    applyTheme(state.themeMode);
   });
   byId('dmh-viewer-tags-toggle')?.addEventListener('click', () =>
     setViewerTagsOpen(state, !state.viewerTagsOpen),

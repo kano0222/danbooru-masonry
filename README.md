@@ -24,9 +24,16 @@
 
 ![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
 
-- 瀑布流支持滚动加载、标签搜索、热门与个人收藏快捷搜索、页码跳转和标签自动补全，并遵循登录用户的 Danbooru 黑名单。
-
-- 缩略图提供来源和下载入口，可显示图片 ID 和尺寸。
+- 瀑布流
+  - 滚动加载
+  - 标签搜索和标签自动补全
+  - 热门与个人收藏快捷搜索
+  - 页码跳转
+  - 遵循登录用户的 Danbooru 黑名单
+  - 夜间模式
+- 缩略图
+  - 提供来源和下载入口
+  - 可显示图片 ID 和尺寸
 
 ![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
 
@@ -80,6 +87,10 @@
 ## 注意事项
 
 - 瀑布流黑名单支持正负标签、`*` 通配符及 `rating`、`score`、`status` 元标签；其他规则仍会保存到 Danbooru，但不会在瀑布流中生效。
+
+## TODO
+
+- 增加其他图片列表布局。
 
 ## 致谢
 

@@ -114,7 +114,7 @@ beforeEach(() => {
     hasFocus: vi.fn(() => true),
     addEventListener: vi.fn(),
     body: { dataset: {} },
-    documentElement: { classList: { remove: vi.fn() } },
+    documentElement: { classList: { add: vi.fn(), remove: vi.fn() }, dataset: {} },
   });
   vi.stubGlobal('window', { addEventListener: vi.fn(), scrollY: 0, scrollTo: vi.fn() });
   vi.stubGlobal('GM_getValue', (_key: string, fallback: unknown) => fallback);
@@ -306,6 +306,21 @@ describe('masonry launch and tag search', () => {
 });
 
 describe('settings editors and content filtering', () => {
+  it('applies and persists theme changes', async () => {
+    const save = vi.fn();
+    vi.stubGlobal('GM_setValue', save);
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+
+    const button = nodes.get('dmh-theme-toggle')!;
+    button.handlers.get('click')!.forEach((handler) => handler({}));
+
+    expect(document.documentElement.dataset.dmhTheme).toBe('dark');
+    expect(save).toHaveBeenCalledWith('danbooru-masonry.themeMode', 'dark');
+    expect(button.setAttribute).toHaveBeenCalledWith('aria-label', '切换到浅色模式');
+    expect(button.innerHTML).toContain('<circle');
+  });
+
   it.each(['blacklist', 'download'])('opens and closes the %s editor and restores focus', async (name) => {
     boot(adapter);
     await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());

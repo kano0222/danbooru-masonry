@@ -3,14 +3,35 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BooruAdapter } from '../adapters/types';
 import {
   createState,
+  parseThemeMode,
   parseViewerPreloadCount,
   saveAutoEnterMasonry,
   saveShowScrollbar,
+  saveThemeMode,
   saveViewerPreloadCount,
 } from './state';
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+describe('theme settings', () => {
+  it('defaults invalid, missing, or legacy system values to the light theme', () => {
+    stubSettings(new Map());
+    expect(createState({} as BooruAdapter).themeMode).toBe('light');
+    expect(parseThemeMode('invalid')).toBe('light');
+    expect(parseThemeMode('system')).toBe('light');
+  });
+
+  it('restores and persists an explicit theme', () => {
+    stubSettings(new Map([['danbooru-masonry.themeMode', 'dark']]));
+    expect(createState({} as BooruAdapter).themeMode).toBe('dark');
+
+    const setValue = vi.fn();
+    vi.stubGlobal('GM_setValue', setValue);
+    saveThemeMode('light');
+    expect(setValue).toHaveBeenCalledWith('danbooru-masonry.themeMode', 'light');
+  });
 });
 
 describe('masonry settings', () => {
