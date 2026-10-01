@@ -112,6 +112,7 @@ export function showViewer(state: AppState, index: number): void {
   viewer.setAttribute('aria-hidden', 'false');
   document.documentElement.classList.add('dmh-no-scroll');
   refreshViewerPreload(state);
+  state.onViewerShown?.(post.id);
 }
 
 export function refreshViewerPreload(state: AppState): void {
@@ -356,7 +357,10 @@ export function onViewerKeydown(state: AppState, event: KeyboardEvent): void {
     setViewerTagsOpen(state, false, true);
     return;
   }
-  if (event.key === 'Escape') closeViewer(state);
+  if (event.key === 'Escape') {
+    if (state.requestViewerClose) state.requestViewerClose();
+    else closeViewer(state);
+  }
   if (event.key === 'ArrowLeft') void showAdjacentViewerPost(state, -1);
   if (event.key === 'ArrowRight') void showAdjacentViewerPost(state, 1);
   if (event.key.toLowerCase() === 'e' && !state.posts[state.viewerIndex]?.isVideo)
@@ -472,13 +476,19 @@ function normalizeFavoriteLabel(title: string, favorited: boolean): string {
   return favorited ? '取消收藏' : '收藏';
 }
 
-function showSnackbar(message: string): void {
+export function showSnackbar(message: string): void {
   const snackbar = byId('dmh-snackbar');
   if (!snackbar) return;
-  snackbar.textContent = message;
+  snackbar.innerHTML = '';
+  const label = document.createElement('span');
+  label.textContent = message;
+  snackbar.appendChild(label);
   snackbar.classList.add('dmh-open');
   window.clearTimeout(Number(snackbar.dataset.timer || 0));
-  const timer = window.setTimeout(() => snackbar.classList.remove('dmh-open'), 2600);
+  const timer = window.setTimeout(
+    () => snackbar.classList.remove('dmh-open'),
+    2600,
+  );
   snackbar.dataset.timer = String(timer);
 }
 
@@ -828,6 +838,16 @@ function extractSourceId(url: URL): string {
   return last.replace(/\.[^.]+$/, '');
 }
 
+function renderViewerTag(
+  state: AppState,
+  tag: string,
+  label: string,
+  className: string,
+): string {
+  return `<a class="dmh-info-pill ${escapeAttr(className)}" data-viewer-tag="${escapeAttr(tag)}" href="${escapeAttr(getTagSearchUrl(state.adapter, tag, state.tagClickBehavior))}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`;
+}
+
+
 function renderViewerInfo(state: AppState, post: Post): string {
   const pills = [
     `<a class="dmh-info-pill dmh-pill-id" href="${escapeAttr(state.adapter.getPostUrl(post.id, state.tags))}" target="_blank" rel="noreferrer">#${escapeHtml(post.id)}</a>`,
@@ -837,9 +857,7 @@ function renderViewerInfo(state: AppState, post: Post): string {
     for (const tag of post.tagGroups[type]) {
       const translated = state.translations.translate(tag);
       const label = `[ ${labels[type]} ] ${tag}${translated ? ` [ ${translated} ]` : ''}`;
-      pills.push(
-        `<a class="dmh-info-pill dmh-pill-${escapeAttr(type)}" data-viewer-tag="${escapeAttr(tag)}" href="${escapeAttr(getTagSearchUrl(state.adapter, tag, state.tagClickBehavior))}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`,
-      );
+      pills.push(renderViewerTag(state, tag, label, `dmh-pill-${type}`));
     }
   }
   return pills.join('');
@@ -874,12 +892,36 @@ export function refreshViewerTags(state: AppState): void {
   list.innerHTML = tags
     .map((tag) => {
       const translated = state.translations.translate(tag);
-      return `<a class="dmh-info-pill dmh-pill-id" data-viewer-tag="${escapeAttr(tag)}" href="${escapeAttr(getTagSearchUrl(state.adapter, tag, state.tagClickBehavior))}" target="_blank" rel="noreferrer">${escapeHtml(tag)}${translated ? ` [ ${escapeHtml(translated)} ]` : ''}</a>`;
+      return renderViewerTag(state, tag, `${tag}${translated ? ` [ ${translated} ]` : ''}`, 'dmh-pill-id');
     })
     .join('');
   list.scrollTop = 0;
   const toggle = byId('dmh-viewer-tags-toggle');
   if (toggle) toggle.textContent = state.viewerTagsOpen ? '隐藏标签' : '显示标签';
+}
+
+export function renderViewerBlacklistChoices(state: AppState): string {
+  const post = state.posts[state.viewerIndex];
+  if (!post) return '';
+  const entries = [
+    ...post.tagGroups.artist.map((tag) => ({ tag, className: 'dmh-pill-artist' })),
+    ...post.tagGroups.copyright.map((tag) => ({ tag, className: 'dmh-pill-copyright' })),
+    ...post.tagGroups.character.map((tag) => ({ tag, className: 'dmh-pill-character' })),
+    ...getViewerTags(post).map((tag) => ({ tag, className: 'dmh-pill-id' })),
+  ];
+  const seen = new Set<string>();
+  return entries
+    .filter(({ tag }) => {
+      if (!tag || seen.has(tag)) return false;
+      seen.add(tag);
+      return true;
+    })
+    .map(({ tag, className }) => {
+      const translated = state.translations.translate(tag);
+      const label = `${tag}${translated ? ` [ ${translated} ]` : ''}`;
+      return `<button class="dmh-viewer-blacklist-choice ${className}" type="button" data-blacklist-choice="${escapeAttr(tag)}" aria-pressed="false">${escapeHtml(label)}</button>`;
+    })
+    .join('');
 }
 
 export function validateDownloadFilenameTemplate(template: string): string {

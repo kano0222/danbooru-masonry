@@ -52,12 +52,12 @@ The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translati
     - Preload 0–5 following still images (default: 2; 0 disables preloading)
     - Tag click behavior: new-tab masonry (default) or current-tab masonry
   - Other
-    - Danbooru blacklist rule editing and account synchronization
+    - Danbooru blacklist rule creation, autocomplete, removal confirmation, batch editing, and account synchronization
     - Download filename templates
 
 ![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
 
-- The immersive viewer supports image and video previews, navigation, zooming, favorites, and downloads. Favorites require a Danbooru login.
+- The immersive viewer supports image and video previews, navigation, zooming, favorites, downloads, and adding tags from the current post to the blacklist. Favorites and blacklist changes require a Danbooru login.
 
 - Artist, character, and copyright tags are shown by default, with more tags available on expansion.
 
@@ -91,6 +91,7 @@ If the script does not run on the domain you use, you can add the site URL to _U
 ## TODO
 
 - Add more image list layouts.
+- Viewer action layout.
 
 ## Credits
 

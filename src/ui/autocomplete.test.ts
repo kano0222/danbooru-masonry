@@ -1,7 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AutocompleteItem, BooruAdapter } from '../adapters/types';
 import { createState, type AppState } from '../core/state';
-import { closeAutocomplete, openAutocomplete, renderAutocomplete, scheduleAutocomplete } from './autocomplete';
+import {
+  applyBlacklistAutocompleteTag,
+  closeAutocomplete,
+  openAutocomplete,
+  openBlacklistAutocomplete,
+  renderAutocomplete,
+  scheduleAutocomplete,
+} from './autocomplete';
 
 let state: AppState;
 let container: { innerHTML: string; classList: { add: ReturnType<typeof vi.fn>; remove: ReturnType<typeof vi.fn>; contains: () => boolean }; setAttribute: ReturnType<typeof vi.fn> };
@@ -75,5 +82,34 @@ describe('autocomplete request lifecycle', () => {
     closeAutocomplete(state);
     await vi.runAllTimersAsync();
     expect(state.adapter.getAutocomplete).not.toHaveBeenCalled();
+  });
+
+  it('queries blacklist suggestions without the negative prefix', async () => {
+    openBlacklistAutocomplete(state, '-dra');
+    expect(state.adapter.getAutocomplete).toHaveBeenCalledWith('dra');
+    resolveRequest([{ value: 'dragon', count: '', category: 'general' }]);
+    await Promise.resolve();
+    expect(container.innerHTML).toContain('dragon');
+  });
+
+  it('does not show search defaults for an empty blacklist rule', () => {
+    openBlacklistAutocomplete(state, '');
+    expect(state.adapter.getAutocomplete).not.toHaveBeenCalled();
+    expect(container.classList.remove).toHaveBeenCalledWith('dmh-open');
+  });
+
+  it('replaces the active blacklist token and preserves its negative prefix', () => {
+    const input = {
+      value: 'cat -dra dog',
+      selectionStart: 8,
+      setRangeText: vi.fn(),
+      focus: vi.fn(),
+    };
+    vi.stubGlobal('document', {
+      getElementById: (id: string) => id === 'dmh-blacklist-new-rule' ? input : container,
+    });
+    applyBlacklistAutocompleteTag(state, 'dragon');
+    expect(input.setRangeText).toHaveBeenCalledWith('-dragon', 4, 8, 'end');
+    expect(input.focus).toHaveBeenCalled();
   });
 });

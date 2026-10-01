@@ -82,6 +82,26 @@ export function normalizeBlacklistText(text: string): string {
   return blacklistSources(text).join('\n');
 }
 
+export function getBlacklistRuleSources(text: string): string[] {
+  return blacklistSources(text);
+}
+
+export function addBlacklistRuleSource(text: string, source: string): string {
+  const rules = blacklistSources(text);
+  const normalizedSource = source.trim().replace(/\s+/g, ' ');
+  if (!normalizedSource || rules.includes(normalizedSource)) return rules.join('\n');
+  rules.push(normalizedSource);
+  return rules.join('\n');
+}
+
+export function removeBlacklistRuleSource(text: string, index: number): string {
+  const rules = blacklistSources(text);
+  if (index < 0 || index >= rules.length) return rules.join('\n');
+  rules.splice(index, 1);
+  return rules.join('\n');
+}
+
+
 export function filterBlacklistedPosts(posts: Post[], config: BlacklistConfig): Post[] {
   return posts.filter((post) => !isPostBlacklisted(post, config));
 }

@@ -5,6 +5,24 @@ import { CARD_SIZE_OPTIONS } from '../core/masonry';
 import { getFavoriteSearchTag } from '../core/search';
 import { getThemeToggleIcon, getThemeToggleLabel } from './theme';
 
+import { getBlacklistRuleSources } from '../core/blacklist';
+
+export function renderBlacklistRuleRows(text: string): string {
+  const rules = getBlacklistRuleSources(text);
+  if (!rules.length) return '<div class="dmh-blacklist-empty">尚无规则</div>';
+  return rules
+    .map(
+      (rule, index) => `
+        <div class="dmh-blacklist-rule">
+          <code>${escapeHtml(rule)}</code>
+          <button type="button" data-blacklist-remove="${index}" aria-label="删除规则 ${escapeAttr(rule)}">${icons.trash}</button>
+        </div>`,
+    )
+    .join('');
+}
+
+
+
 export function renderShell(state: AppState): void {
   document.title = 'Danbooru Masonry';
   const canSaveBlacklist = Boolean(
@@ -191,8 +209,27 @@ ${cardSizeOptions}
         <div class="dmh-settings-editor-content">
           <section class="dmh-setting-section">
             <div class="dmh-setting-stack">
-              <textarea class="dmh-blacklist-rules" id="dmh-blacklist-rules" aria-labelledby="dmh-blacklist-editor-title" rows="7" spellcheck="false" ${canSaveBlacklist ? '' : 'readonly'}>${escapeHtml(state.blacklistText)}</textarea>
-              <div class="dmh-template-help">每行一条规则，关闭窗口或取消会放弃未保存修改。</div>
+              <form class="dmh-blacklist-composer" id="dmh-blacklist-composer">
+                <input id="dmh-blacklist-new-rule" type="text" autocomplete="off" spellcheck="false" placeholder="添加单个标签或多个标签组合规则" ${canSaveBlacklist ? '' : 'disabled'}>
+                <button type="submit" aria-label="添加规则" data-dmh-tooltip="添加规则" ${canSaveBlacklist ? '' : 'disabled'}>${icons.plus}</button>
+                <div class="dmh-ac dmh-blacklist-ac" id="dmh-blacklist-ac" aria-hidden="true"></div>
+              </form>
+              <div class="dmh-blacklist-rule-list" id="dmh-blacklist-rule-list">
+                ${renderBlacklistRuleRows(state.blacklistText)}
+              </div>
+              <div class="dmh-blacklist-remove-confirm" id="dmh-blacklist-remove-confirm" role="alert" hidden>
+                <span>移除规则 <code id="dmh-blacklist-remove-rule"></code>？</span>
+                <div class="dmh-blacklist-remove-buttons">
+                  <button type="button" id="dmh-blacklist-remove-cancel">取消</button>
+                  <button class="dmh-blacklist-remove-confirm-button" id="dmh-blacklist-remove-confirm-button" type="button">
+                    移除
+                  </button>
+                </div>
+              </div>
+              <details class="dmh-blacklist-raw">
+                <summary>批量编辑</summary>
+                <textarea class="dmh-blacklist-rules" id="dmh-blacklist-rules" aria-labelledby="dmh-blacklist-editor-title" rows="7" spellcheck="false" ${canSaveBlacklist ? '' : 'readonly'}>${escapeHtml(state.blacklistText)}</textarea>
+              </details>
               <div class="dmh-blacklist-actions">
                 <span class="dmh-blacklist-status" id="dmh-blacklist-status" role="status">${!state.blacklistAvailable ? '未能读取原站黑名单，请刷新原站后重试' : canSaveBlacklist ? '' : '登录 Danbooru 后可修改'}</span>
                 <div class="dmh-blacklist-buttons">
@@ -247,6 +284,7 @@ ${downloadFilenameTemplateInputs}
         <div class="dmh-viewer-actions">
           <button class="dmh-viewer-button" id="dmh-open-source" type="button" data-dmh-tooltip="来源" aria-label="来源">${icons.external}</button>
           <button class="dmh-viewer-button" id="dmh-favorite" type="button" data-dmh-tooltip="收藏" aria-label="收藏">${icons.heart}</button>
+          <button class="dmh-viewer-button" id="dmh-viewer-blacklist" type="button" data-dmh-tooltip="加入黑名单" aria-label="加入黑名单" ${canSaveBlacklist ? '' : 'disabled'}>${icons.ban}</button>
           <button class="dmh-viewer-button" id="dmh-zoom-toggle" type="button" data-dmh-tooltip="查看大图" aria-label="查看大图">${icons.zoom}</button>
           <button class="dmh-viewer-button" id="dmh-open-post" type="button" data-dmh-tooltip="详情" aria-label="详情">${icons.info}</button>
           <button class="dmh-viewer-button" id="dmh-download" type="button" data-dmh-tooltip="下载原图" aria-label="下载原图">${icons.download}</button>
@@ -266,6 +304,23 @@ ${downloadFilenameTemplateInputs}
           </div>
         </div>
       </div>
+      <dialog class="dmh-viewer-blacklist-dialog" id="dmh-viewer-blacklist-dialog" aria-labelledby="dmh-viewer-blacklist-title">
+        <div class="dmh-settings-header">
+          <h2 id="dmh-viewer-blacklist-title">加入黑名单</h2>
+          <button class="dmh-settings-close" id="dmh-viewer-blacklist-close" type="button" aria-label="关闭加入黑名单">${icons.close}</button>
+        </div>
+        <div class="dmh-viewer-blacklist-content">
+          <p>选择要屏蔽的标签。确认后，匹配图片将从当前瀑布流中隐藏。</p>
+          <div class="dmh-viewer-blacklist-choices" id="dmh-viewer-blacklist-choices" role="group" aria-label="当前图片标签"></div>
+          <div class="dmh-viewer-blacklist-footer">
+            <span id="dmh-viewer-blacklist-status" role="status" aria-live="polite"></span>
+            <div class="dmh-blacklist-buttons">
+              <button class="dmh-template-reset" id="dmh-viewer-blacklist-cancel" type="button">取消</button>
+              <button class="dmh-blacklist-save" id="dmh-viewer-blacklist-confirm" type="button" disabled>确认加入</button>
+            </div>
+          </div>
+        </div>
+      </dialog>
       <div class="dmh-snackbar" id="dmh-snackbar" role="status" aria-live="polite"></div>
     </div>
   `;

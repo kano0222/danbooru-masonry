@@ -146,6 +146,149 @@ function autocompleteButtons(): HTMLButtonElement[] {
   return Array.from(container.querySelectorAll<HTMLButtonElement>('.dmh-ac-item'));
 }
 
+export function scheduleBlacklistAutocomplete(state: AppState, value: string): void {
+  window.clearTimeout(state.blacklistAutocompleteTimer);
+  state.blacklistAutocompleteToken += 1;
+  const fragment = getBlacklistTagFragment(value);
+  if (!fragment) {
+    closeBlacklistAutocomplete(state);
+    return;
+  }
+  state.blacklistAutocompleteTimer = window.setTimeout(() => {
+    void requestBlacklistAutocomplete(state, fragment);
+  }, AUTOCOMPLETE_DEBOUNCE_MS);
+}
+
+export function openBlacklistAutocomplete(state: AppState, value: string): void {
+  window.clearTimeout(state.blacklistAutocompleteTimer);
+  state.blacklistAutocompleteToken += 1;
+  const fragment = getBlacklistTagFragment(value);
+  if (!fragment) {
+    closeBlacklistAutocomplete(state);
+    return;
+  }
+  void requestBlacklistAutocomplete(state, fragment);
+}
+
+export function closeBlacklistAutocomplete(state: AppState): void {
+  window.clearTimeout(state.blacklistAutocompleteTimer);
+  state.blacklistAutocompleteToken += 1;
+  const container = document.getElementById('dmh-blacklist-ac');
+  if (!container) return;
+  state.blacklistAutocompleteIndex = -1;
+  container.classList.remove('dmh-open');
+  container.setAttribute('aria-hidden', 'true');
+}
+
+export function applyBlacklistAutocompleteTag(state: AppState, tag: string): void {
+  const input = document.getElementById('dmh-blacklist-new-rule') as HTMLInputElement | null;
+  if (!input || !tag) return;
+  const { start, end, prefix } = getActiveBlacklistToken(input);
+  input.setRangeText(`${prefix}${tag}`, start, end, 'end');
+  input.focus();
+  closeBlacklistAutocomplete(state);
+}
+
+export function renderBlacklistAutocomplete(
+  state: AppState,
+  items: AutocompleteItem[],
+): void {
+  const container = document.getElementById('dmh-blacklist-ac');
+  if (!container || !items.length) {
+    closeBlacklistAutocomplete(state);
+    return;
+  }
+  container.innerHTML = items
+    .map((item, index) => {
+      const cn = state.translations.translate(item.value) || '';
+      return `
+        <button class="dmh-ac-item" type="button" data-tag="${escapeAttr(item.value)}" data-index="${index}">
+          <span class="dmh-ac-name dmh-ac-${autocompleteCategory(item.category)}">${escapeHtml(item.value)}${cn ? ` <span class="dmh-ac-cn">[ ${escapeHtml(cn)} ]</span>` : ''}</span>
+        </button>`;
+    })
+    .join('');
+  state.blacklistAutocompleteIndex = -1;
+  container.classList.add('dmh-open');
+  container.setAttribute('aria-hidden', 'false');
+  updateBlacklistAutocompleteSelection(state);
+}
+
+export function moveBlacklistAutocompleteSelection(
+  state: AppState,
+  direction: 1 | -1,
+): void {
+  const items = blacklistAutocompleteButtons();
+  if (!items.length) return;
+  if (state.blacklistAutocompleteIndex < 0) {
+    state.blacklistAutocompleteIndex = direction === 1 ? 0 : items.length - 1;
+    updateBlacklistAutocompleteSelection(state);
+    return;
+  }
+  state.blacklistAutocompleteIndex = (
+    state.blacklistAutocompleteIndex + direction + items.length
+  ) % items.length;
+  updateBlacklistAutocompleteSelection(state);
+}
+
+export function applySelectedBlacklistAutocomplete(state: AppState): boolean {
+  const items = blacklistAutocompleteButtons();
+  if (!items.length || state.blacklistAutocompleteIndex < 0) return false;
+  const item = items[state.blacklistAutocompleteIndex];
+  if (!item) return false;
+  applyBlacklistAutocompleteTag(state, item.dataset.tag || '');
+  return true;
+}
+
+function getBlacklistTagFragment(value: string): string {
+  const input = document.getElementById('dmh-blacklist-new-rule') as HTMLInputElement | null;
+  const { start, end, prefix } = getActiveBlacklistToken(input, value);
+  return value.slice(start + prefix.length, end).trim();
+}
+
+function getActiveBlacklistToken(
+  input: HTMLInputElement | null,
+  fallbackValue = input?.value ?? '',
+): { start: number; end: number; prefix: string } {
+  const value = input?.value ?? fallbackValue;
+  const cursor = Math.max(0, Math.min(input?.selectionStart ?? value.length, value.length));
+  let start = cursor;
+  let end = cursor;
+  while (start > 0 && !/\s/.test(value[start - 1] || '')) start -= 1;
+  while (end < value.length && !/\s/.test(value[end] || '')) end += 1;
+  return { start, end, prefix: value[start] === '-' ? '-' : '' };
+}
+
+function updateBlacklistAutocompleteSelection(state: AppState): void {
+  const items = blacklistAutocompleteButtons();
+  items.forEach((item, index) => {
+    const selected = index === state.blacklistAutocompleteIndex;
+    item.classList.toggle('dmh-selected', selected);
+    if (selected) item.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function blacklistAutocompleteButtons(): HTMLButtonElement[] {
+  const container = document.getElementById('dmh-blacklist-ac');
+  if (!container?.classList.contains('dmh-open')) return [];
+  return Array.from(container.querySelectorAll<HTMLButtonElement>('.dmh-ac-item'));
+}
+
+async function requestBlacklistAutocomplete(
+  state: AppState,
+  fragment: string,
+): Promise<void> {
+  const token = ++state.blacklistAutocompleteToken;
+  try {
+    const items = await state.adapter.getAutocomplete(fragment);
+    if (token === state.blacklistAutocompleteToken) {
+      renderBlacklistAutocomplete(state, items);
+    }
+  } catch (error) {
+    if (token === state.blacklistAutocompleteToken) closeBlacklistAutocomplete(state);
+    console.warn('[Danbooru Masonry] blacklist autocomplete failed:', error);
+  }
+}
+
 function getLastTagFragment(value: string): string {
   const parts = value.split(/\s+/);
   return (parts[parts.length - 1] || '').trim();

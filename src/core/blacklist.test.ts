@@ -2,13 +2,16 @@ import { describe, expect, it } from 'vitest';
 
 import type { Post } from '../adapters/types';
 import {
+  addBlacklistRuleSource,
   captureBlacklist,
   createBlacklistConfig,
   createBlacklistConfigFromText,
   filterBlacklistedPosts,
+  getBlacklistRuleSources,
   isPostBlacklisted,
   normalizeBlacklistText,
   parseBlacklistRule,
+  removeBlacklistRuleSource,
 } from './blacklist';
 
 function post(overrides: Partial<Post> = {}): Post {
@@ -83,6 +86,14 @@ describe('Danbooru blacklist', () => {
 
   it('normalizes account rules to one trimmed non-empty rule per line', () => {
     expect(normalizeBlacklistText('  scat  \r\n\r\n guro ')).toBe('scat\nguro');
+  });
+
+  it('adds unique rules and removes them by their displayed index', () => {
+    const added = addBlacklistRuleSource('cat\ndog', '  rating:e   score:<0 ');
+    expect(added).toBe('cat\ndog\nrating:e score:<0');
+    expect(addBlacklistRuleSource(added, 'dog')).toBe(added);
+    expect(getBlacklistRuleSources(added)).toEqual(['cat', 'dog', 'rating:e score:<0']);
+    expect(removeBlacklistRuleSource(added, 1)).toBe('cat\nrating:e score:<0');
   });
 
   it('re-filters the same cached posts after rules change', () => {

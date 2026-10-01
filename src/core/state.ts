@@ -76,6 +76,8 @@ export const DEFAULT_DOWNLOAD_FILENAME_TEMPLATES = Object.fromEntries(
 export interface AppState {
   adapter: BooruAdapter;
   page: number;
+  searchStartPage: number;
+  loadedPage: number;
   tags: string;
   posts: Post[];
   sourcePosts: Post[];
@@ -94,12 +96,17 @@ export interface AppState {
   autocompleteTimer: number;
   autocompleteToken: number;
   autocompleteIndex: number;
+  blacklistAutocompleteTimer: number;
+  blacklistAutocompleteToken: number;
+  blacklistAutocompleteIndex: number;
   hideNsfw: boolean;
   autoEnterMasonry: boolean;
   viewerTagsOpen: boolean;
   tagClickBehavior: TagClickBehavior;
   themeMode: ThemeMode;
   viewerIndex: number;
+  onViewerShown: ((postId: string) => void) | null;
+  requestViewerClose: (() => void) | null;
   viewerChromeHidden: boolean;
   zoomMode: boolean;
   zoomScale: number;
@@ -125,12 +132,31 @@ export interface AppState {
   showScrollbar: boolean;
   downloadFilenameTemplates: DownloadFilenameTemplates;
   translations: TagTranslationStore;
+  historyKey: string;
+  historySequence: number;
+  searchSnapshots: Map<string, SearchSnapshot>;
+  postPages: Map<string, number>;
+}
+
+export interface SearchSnapshot {
+  tags: string;
+  startPage: number;
+  loadedPage: number;
+  nextPage: number;
+  posts: Post[];
+  sourcePosts: Post[];
+  postPages: Map<string, number>;
+  done: boolean;
+  scrollY: number;
 }
 
 export function createState(adapter: BooruAdapter): AppState {
+  const initialPage = getInitialPage();
   return {
     adapter,
-    page: getInitialPage(),
+    page: initialPage,
+    searchStartPage: initialPage,
+    loadedPage: initialPage - 1,
     tags: new URLSearchParams(location.search).get('tags') || '',
     posts: [],
     sourcePosts: [],
@@ -149,12 +175,17 @@ export function createState(adapter: BooruAdapter): AppState {
     autocompleteTimer: 0,
     autocompleteToken: 0,
     autocompleteIndex: -1,
+    blacklistAutocompleteTimer: 0,
+    blacklistAutocompleteToken: 0,
+    blacklistAutocompleteIndex: -1,
     hideNsfw: getInitialBooleanSetting(HIDE_NSFW_STORAGE_KEY, false),
     autoEnterMasonry: getInitialBooleanSetting(AUTO_ENTER_MASONRY_STORAGE_KEY, true),
     viewerTagsOpen: getInitialBooleanSetting(VIEWER_TAGS_OPEN_STORAGE_KEY, false),
     tagClickBehavior: parseTagClickBehavior(getStoredSetting(TAG_CLICK_BEHAVIOR_STORAGE_KEY)),
     themeMode: parseThemeMode(getStoredSetting(THEME_MODE_STORAGE_KEY)),
     viewerIndex: -1,
+    onViewerShown: null,
+    requestViewerClose: null,
     viewerChromeHidden: false,
     zoomMode: false,
     zoomScale: 1,
@@ -180,6 +211,10 @@ export function createState(adapter: BooruAdapter): AppState {
     showScrollbar: getInitialBooleanSetting(SHOW_SCROLLBAR_STORAGE_KEY, true),
     downloadFilenameTemplates: getInitialDownloadFilenameTemplates(),
     translations: new TagTranslationStore(),
+    historyKey: '',
+    historySequence: 0,
+    searchSnapshots: new Map(),
+    postPages: new Map(),
   };
 }
 

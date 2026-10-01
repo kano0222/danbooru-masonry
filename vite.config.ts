@@ -17,7 +17,7 @@ export default defineConfig({
           en: 'Danbooru Masonry',
         },
         namespace: 'https://github.com/kano0222',
-        version: '0.5.1',
+        version: '0.6.0',
         author: 'kano0222',
         license: 'MIT',
         description: {

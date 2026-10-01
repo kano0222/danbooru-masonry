@@ -17,6 +17,7 @@ import {
   onViewerKeydown,
   onViewerWheel,
   refreshViewerTags,
+  renderViewerBlacklistChoices,
   setViewerTagsOpen,
 } from './viewer';
 
@@ -131,6 +132,16 @@ describe('viewer tag panel', () => {
     value.viewerIndex = 0;
     return { value, nodes };
   }
+  it('renders plain viewer links and separate blacklist choices', () => {
+    const { value, nodes } = setup();
+    refreshViewerTags(value);
+    expect(nodes.get('dmh-viewer-info')!.innerHTML).not.toContain('data-blacklist-tag');
+    expect(nodes.get('dmh-viewer-tags-list')!.innerHTML).not.toContain('data-blacklist-tag');
+    const choices = renderViewerBlacklistChoices(value);
+    expect(choices).toContain('data-blacklist-choice="author"');
+    expect(choices).toContain('data-blacklist-choice="hello"');
+    expect(choices).toContain('&lt;unsafe&gt;');
+  });
   it('updates content, scroll and links while keeping expansion across posts', () => {
     const { value, nodes } = setup();
     setViewerTagsOpen(value, true);
@@ -227,6 +238,8 @@ describe('viewer tag panel', () => {
   it('does not consume Escape for a panel hidden by an empty tag list', () => {
     const { value, nodes } = setup();
     setViewerTagsOpen(value, true);
+    const requestViewerClose = vi.fn();
+    value.requestViewerClose = requestViewerClose;
     value.posts[0].tagGroups.general = [];
     refreshViewerTags(value);
     expect(nodes.get('dmh-viewer-tags')!.hidden).toBe(true);
@@ -235,5 +248,6 @@ describe('viewer tag panel', () => {
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(nodes.get('dmh-viewer-tags-toggle')!.focus).not.toHaveBeenCalled();
     expect(value.viewerTagsOpen).toBe(true);
+    expect(requestViewerClose).toHaveBeenCalledOnce();
   });
 });

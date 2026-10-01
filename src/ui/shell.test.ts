@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DanbooruAdapter } from '../adapters/danbooru';
 import { createState } from '../core/state';
-import { renderShell } from './shell';
+import { renderBlacklistRuleRows, renderShell } from './shell';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -37,9 +37,32 @@ describe('search shortcuts', () => {
     expect(html.indexOf('id="dmh-hot-search"')).toBeLessThan(html.indexOf('id="dmh-favorites-search"'));
     expect(html).toMatch(/id="dmh-favorites-search"[^>]*aria-label="我的收藏"[^>]*><svg/);
   });
-
   it('disables favorites without a signed-in username', () => {
     const html = renderWithUser({ currentUserIsAnonymous: 'true' });
     expect(html).toMatch(/id="dmh-favorites-search"[^>]*disabled/);
+  });
+});
+
+describe('blacklist editor', () => {
+  it('renders structured controls with batch editing as a secondary option', () => {
+    const html = renderWithUser({ currentUserId: '42' });
+    expect(html).toContain('id="dmh-blacklist-composer"');
+    expect(html).toContain('id="dmh-blacklist-ac"');
+    expect(html).toContain('id="dmh-blacklist-rule-list"');
+    expect(html).toContain('id="dmh-blacklist-remove-confirm"');
+    expect(html).toContain('<summary>批量编辑</summary>');
+  });
+  it('renders one viewer blacklist entry with an explicit confirmation dialog', () => {
+    const html = renderWithUser({ currentUserId: '42' });
+    expect(html.match(/id="dmh-viewer-blacklist"/g)).toHaveLength(1);
+    expect(html).toContain('id="dmh-viewer-blacklist-dialog"');
+    expect(html).toContain('id="dmh-viewer-blacklist-confirm"');
+  });
+
+
+  it('escapes rules and gives each row a remove action', () => {
+    const html = renderBlacklistRuleRows('cat\n<script>');
+    expect(html).toContain('data-blacklist-remove="1"');
+    expect(html).toContain('&lt;script&gt;');
   });
 });

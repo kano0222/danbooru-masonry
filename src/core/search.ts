@@ -6,6 +6,7 @@ export function resetSearch(state: AppState, tags: string, page = 1): void {
   state.page = page;
   state.posts = [];
   state.sourcePosts = [];
+  state.postPages.clear();
   state.done = false;
   state.loading = false;
   state.viewerIndex = -1;
@@ -20,7 +21,6 @@ export function resetSearch(state: AppState, tags: string, page = 1): void {
     grid.style.height = '0px';
   }
   setText('dmh-message', '');
-  history.pushState(null, '', state.adapter.getPostsPageUrl(state.tags, state.page));
 }
 
 export function getRequestTags(tags: string, hideNsfw: boolean): string {

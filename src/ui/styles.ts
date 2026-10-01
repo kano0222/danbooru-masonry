@@ -48,6 +48,11 @@ export function installStyles(): void {
       --dmh-tag-character-bg: rgb(196, 255, 199);
       --dmh-overlay: rgba(31,35,40,.32);
       --dmh-dialog-overlay: rgba(31,35,40,.4);
+      --dmh-tag-general-selected: #0969da;
+      --dmh-tag-artist-selected: #9a4d00;
+      --dmh-tag-copyright-selected: #8250df;
+      --dmh-tag-character-selected: #1a7f37;
+      --dmh-tag-selected-text: #fff;
       --dmh-shadow: rgba(27,31,36,.18);
       --dmh-shadow-strong: rgba(27,31,36,.24);
       color-scheme: light;
@@ -95,6 +100,11 @@ export function installStyles(): void {
       --dmh-tag-character-bg: rgba(63,185,80,.18);
       --dmh-overlay: rgba(1,4,9,.6);
       --dmh-dialog-overlay: rgba(1,4,9,.72);
+      --dmh-tag-general-selected: #79c0ff;
+      --dmh-tag-artist-selected: #e3b341;
+      --dmh-tag-copyright-selected: #d2a8ff;
+      --dmh-tag-character-selected: #56d364;
+      --dmh-tag-selected-text: #0d1117;
       --dmh-shadow: rgba(1,4,9,.55);
       --dmh-shadow-strong: rgba(1,4,9,.7);
       color-scheme: dark;
@@ -204,6 +214,21 @@ export function installStyles(): void {
     #dmh-app .dmh-settings-editor:not([open]) { display: none; }
     #dmh-app .dmh-settings-editor[open] { display: flex; flex-direction: column; }
     .dmh-settings-editor::backdrop { background: var(--dmh-dialog-overlay); }
+    #dmh-app .dmh-viewer-blacklist-dialog { position: fixed; inset: 0; width: min(620px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: 0; border: 1px solid var(--dmh-border-subtle); border-radius: 8px; background: var(--dmh-surface); color: var(--dmh-text-strong); box-shadow: 0 16px 48px var(--dmh-shadow-strong); overflow: hidden; }
+    .dmh-viewer-blacklist-dialog::backdrop { background: var(--dmh-dialog-overlay); }
+    .dmh-viewer-blacklist-content { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+    .dmh-viewer-blacklist-content > p { margin: 0; color: var(--dmh-text-muted); font-size: 13px; line-height: 1.5; }
+    .dmh-viewer-blacklist-choices { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 7px; max-height: min(50vh, 420px); overflow-y: auto; overscroll-behavior: contain; }
+    #dmh-app .dmh-viewer-blacklist-choice { max-width: 100%; min-height: 30px; padding: 5px 10px; overflow-wrap: anywhere; border: 1px solid transparent; border-radius: 999px; font: 600 12px/1.35 Arial, sans-serif; text-align: left; cursor: pointer; transition: background-color .14s ease, border-color .14s ease, color .14s ease, filter .14s ease; }
+    #dmh-app .dmh-viewer-blacklist-choice:hover { filter: brightness(.96); }
+    #dmh-app .dmh-viewer-blacklist-choice[aria-pressed="true"] { color: var(--dmh-tag-selected-text); filter: none; }
+    #dmh-app .dmh-viewer-blacklist-choice.dmh-pill-id[aria-pressed="true"] { border-color: var(--dmh-tag-general-selected); background: var(--dmh-tag-general-selected); }
+    #dmh-app .dmh-viewer-blacklist-choice.dmh-pill-artist[aria-pressed="true"] { border-color: var(--dmh-tag-artist-selected); background: var(--dmh-tag-artist-selected); }
+    #dmh-app .dmh-viewer-blacklist-choice.dmh-pill-copyright[aria-pressed="true"] { border-color: var(--dmh-tag-copyright-selected); background: var(--dmh-tag-copyright-selected); }
+    #dmh-app .dmh-viewer-blacklist-choice.dmh-pill-character[aria-pressed="true"] { border-color: var(--dmh-tag-character-selected); background: var(--dmh-tag-character-selected); }
+    #dmh-app .dmh-viewer-blacklist-choice:focus-visible { outline: 0; box-shadow: inset 0 0 0 2px var(--dmh-focus-ring); }
+    .dmh-viewer-blacklist-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; }
+    #dmh-viewer-blacklist-status { min-width: 0; color: var(--dmh-text-muted); font-size: 12px; line-height: 1.35; }
     .dmh-settings-editor .dmh-settings-header { flex: 0 0 auto; }
     .dmh-settings-editor-content { min-height: 0; padding: 20px; overflow-y: auto; overscroll-behavior: contain; }
     #dmh-app .dmh-setting-editor-button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid var(--dmh-border); border-radius: 6px; background: var(--dmh-surface-muted); color: var(--dmh-text-strong); font: 700 13px Arial, sans-serif; cursor: pointer; box-shadow: none; }
@@ -213,6 +238,31 @@ export function installStyles(): void {
     .dmh-blacklist-rules { box-sizing: border-box; width: 100%; min-height: 132px; resize: vertical; padding: 9px 10px; border: 1px solid var(--dmh-border-strong); border-radius: 6px; background: var(--dmh-surface); color: var(--dmh-text-strong); font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
     .dmh-blacklist-rules:focus { border-color: var(--dmh-accent); outline: 2px solid var(--dmh-focus-glow); }
     .dmh-blacklist-rules[readonly] { background: var(--dmh-surface-muted); color: var(--dmh-text-muted); }
+    .dmh-blacklist-composer { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 8px; }
+    .dmh-blacklist-composer input { width: 100%; height: 36px; padding: 0 11px; border: 1px solid var(--dmh-border-strong); border-radius: 6px; background: var(--dmh-surface); color: var(--dmh-text-strong); font: 13px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; outline: 0; }
+    .dmh-blacklist-composer input:focus { border-color: var(--dmh-accent); box-shadow: 0 0 0 3px var(--dmh-focus-shadow); }
+    #dmh-app .dmh-blacklist-composer > button { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--dmh-accent); border-radius: 6px; background: var(--dmh-accent); color: #fff; cursor: pointer; }
+    #dmh-app .dmh-blacklist-composer > button:disabled { opacity: .55; cursor: default; }
+    .dmh-blacklist-composer > button svg { width: 18px; height: 18px; }
+    .dmh-blacklist-rule-list { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 7px; max-height: 280px; padding: 2px; overflow-y: auto; overscroll-behavior: contain; }
+    .dmh-blacklist-rule { display: inline-flex; flex: 0 1 auto; align-items: center; gap: 3px; max-width: 100%; min-height: 32px; padding: 3px 3px 3px 10px; border: 1px solid var(--dmh-border); border-radius: 999px; background: var(--dmh-accent-control); color: var(--dmh-accent); }
+    .dmh-blacklist-rule code { min-width: 0; overflow-wrap: anywhere; color: inherit; font: 600 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    #dmh-app .dmh-blacklist-rule button { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: currentColor; cursor: pointer; opacity: .62; }
+    #dmh-app .dmh-blacklist-rule button:hover, #dmh-app .dmh-blacklist-rule button:focus-visible { background: var(--dmh-surface-hover); color: var(--dmh-danger); opacity: 1; }
+    .dmh-blacklist-rule button svg { width: 14px; height: 14px; }
+    .dmh-blacklist-remove-confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 10px; border: 1px solid var(--dmh-border-strong); border-radius: 6px; background: var(--dmh-surface-muted); color: var(--dmh-text-strong); font-size: 12px; }
+    .dmh-blacklist-remove-confirm[hidden] { display: none; }
+    .dmh-blacklist-remove-confirm > span { min-width: 0; overflow-wrap: anywhere; }
+    .dmh-blacklist-remove-confirm code { color: var(--dmh-danger); font: 600 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .dmh-blacklist-remove-buttons { display: flex; flex: 0 0 auto; gap: 6px; }
+    #dmh-app .dmh-blacklist-remove-buttons button { min-height: 28px; padding: 0 10px; border: 1px solid var(--dmh-border); border-radius: 5px; background: var(--dmh-surface); color: var(--dmh-text-strong); font-size: 12px; cursor: pointer; }
+    #dmh-app .dmh-blacklist-remove-buttons .dmh-blacklist-remove-confirm-button { border-color: var(--dmh-danger); background: var(--dmh-danger); color: #fff; }
+    .dmh-blacklist-empty { padding: 24px 12px; border: 1px dashed var(--dmh-border); border-radius: 6px; color: var(--dmh-text-muted); font-size: 13px; text-align: center; }
+    .dmh-blacklist-raw { border-top: 1px solid var(--dmh-border-subtle); padding-top: 8px; }
+    .dmh-blacklist-raw summary { color: var(--dmh-text-muted); font-size: 12px; font-weight: 700; cursor: pointer; user-select: none; }
+    .dmh-blacklist-raw[open] summary { margin-bottom: 8px; }
+
+
     .dmh-setting-help { color: var(--dmh-text-muted); font-size: 12px; line-height: 1.45; }
 
     .dmh-blacklist-status { min-width: 0; color: var(--dmh-text-muted); font-size: 12px; line-height: 1.35; }
@@ -277,6 +327,7 @@ export function installStyles(): void {
     .dmh-ac-general { color: var(--dmh-accent); }
     .dmh-ac-meta { color: var(--dmh-text-muted); }
     .dmh-ac-cn { color: inherit; font-size: 12px; white-space: nowrap; }
+    .dmh-blacklist-ac { top: 40px; right: 44px; width: auto; }
     .dmh-viewer { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: var(--dmh-surface); }
     .dmh-viewer.dmh-open { display: flex; }
     .dmh-viewer img, .dmh-viewer video { display: block; max-width: 100vw; max-height: 100vh; object-fit: contain; }
@@ -337,6 +388,12 @@ export function installStyles(): void {
     #dmh-app .dmh-viewer-tags-list .dmh-info-pill:hover { border-color: rgba(94,119,138,.12); background: rgba(190,207,219,.7); color: #30485a; }
     #dmh-viewer-tags-toggle { min-width: 88px; height: 40px; padding: 0 14px; border-color: rgba(255,255,255,.28); background: rgba(190,207,219,.72); color: #30485a; font-size: 13px; line-height: 40px; cursor: pointer; box-shadow: 0 2px 8px rgba(31,35,40,.1); backdrop-filter: blur(6px); transition: background .14s ease, border-color .14s ease, color .14s ease, box-shadow .14s ease; }
     #dmh-viewer-tags-toggle:hover { border-color: rgba(255,255,255,.36); background: rgba(190,207,219,.84); color: #263f50; box-shadow: 0 2px 8px rgba(31,35,40,.12); }
+    html[data-dmh-theme="dark"] .dmh-viewer-tags-panel { border-color: var(--dmh-border-strong); background: rgba(33,38,45,.94); box-shadow: 0 8px 24px var(--dmh-shadow-strong); }
+    html[data-dmh-theme="dark"] .dmh-viewer-tags-list .dmh-info-pill,
+    html[data-dmh-theme="dark"] .dmh-viewer-tags-list .dmh-info-pill:visited { border-color: var(--dmh-border-strong); background: var(--dmh-surface-hover); color: var(--dmh-text); }
+    html[data-dmh-theme="dark"] #dmh-app .dmh-viewer-tags-list .dmh-info-pill:hover { border-color: var(--dmh-border-strong); background: var(--dmh-border); color: var(--dmh-text-strong); }
+    html[data-dmh-theme="dark"] #dmh-viewer-tags-toggle { border-color: var(--dmh-border-strong); background: rgba(33,38,45,.94); color: var(--dmh-text); box-shadow: 0 2px 8px var(--dmh-shadow); }
+    html[data-dmh-theme="dark"] #dmh-viewer-tags-toggle:hover { border-color: var(--dmh-accent); background: var(--dmh-surface-hover); color: var(--dmh-text-strong); box-shadow: 0 2px 8px var(--dmh-shadow-strong); }
     .dmh-tag-chip { display: inline-flex; max-width: 100%; padding: 2px 7px; border-radius: 999px; color: #fff; text-decoration: none; background: rgba(143, 119, 181, .9); }
     .dmh-tag-chip:hover { text-decoration: none; }
     .dmh-tag-artist { background: rgba(251, 140, 0, .9); }

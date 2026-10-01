@@ -6,12 +6,16 @@ import * as userSettings from './api/userSettings';
 import { ApiError } from './utils/fetch';
 import { boot } from './main';
 import { installLaunchButton, renderShell } from './ui/shell';
-import { closeViewer } from './core/viewer';
+import { closeViewer, showViewer } from './core/viewer';
 import { TagTranslationStore } from './data/tagTranslation';
 import { normalizePost } from './core/normalizePost';
 import { closeAutocomplete, openAutocomplete } from './ui/autocomplete';
 
-vi.mock('./ui/shell', () => ({ installLaunchButton: vi.fn(), renderShell: vi.fn() }));
+vi.mock('./ui/shell', () => ({
+  installLaunchButton: vi.fn(),
+  renderBlacklistRuleRows: vi.fn((text: string) => text),
+  renderShell: vi.fn(),
+}));
 vi.mock('./ui/styles', () => ({ installStyles: vi.fn() }));
 vi.mock('./ui/cards', () => ({ renderPosts: vi.fn() }));
 vi.mock('./core/shortcuts', () => ({ installShortcuts: vi.fn() }));
@@ -26,6 +30,11 @@ vi.mock('./core/masonry', async (original) => ({
 vi.mock('./core/viewer', async (original) => ({
   ...(await original<object>()),
   closeViewer: vi.fn(),
+  showViewer: vi.fn((state: AppState, index: number) => {
+    state.viewerIndex = index;
+    const post = state.posts[index];
+    if (post) state.onViewerShown?.(post.id);
+  }),
 }));
 vi.mock('./ui/autocomplete', async (original) => ({
   ...(await original<object>()),
@@ -99,6 +108,7 @@ beforeEach(() => {
     state: { preserved: true },
     replaceState: vi.fn(),
     pushState: vi.fn(),
+    back: vi.fn(),
   });
   vi.stubGlobal('document', {
     getElementById: (id: string) => {
@@ -116,7 +126,13 @@ beforeEach(() => {
     body: { dataset: {} },
     documentElement: { classList: { add: vi.fn(), remove: vi.fn() }, dataset: {} },
   });
-  vi.stubGlobal('window', { addEventListener: vi.fn(), scrollY: 0, scrollTo: vi.fn() });
+  vi.stubGlobal('window', {
+    addEventListener: vi.fn(),
+    clearTimeout: vi.fn(),
+    scrollY: 0,
+    scrollTo: vi.fn(),
+    setTimeout: vi.fn(() => 1),
+  });
   vi.stubGlobal('GM_getValue', (_key: string, fallback: unknown) => fallback);
   vi.spyOn(TagTranslationStore.prototype, 'load').mockResolvedValue(true);
   adapter = new DanbooruAdapter();
@@ -149,7 +165,11 @@ describe('masonry launch and tag search', () => {
     await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
     expect(renderedState().tags).toBe('order:rank');
     expect(nodes.get('dmh-tags')!.value).toBe('order:rank');
-    expect(history.pushState).toHaveBeenLastCalledWith(null, '', adapter.getPostsPageUrl('order:rank', 1));
+    expect(history.pushState).toHaveBeenLastCalledWith(
+      expect.objectContaining({ dmh: expect.objectContaining({ tags: 'order:rank' }) }),
+      '',
+      adapter.getPostsPageUrl('order:rank', 1),
+    );
   });
   it('searches the current user favorites and ignores missing identity', async () => {
     boot(adapter);
@@ -164,7 +184,11 @@ describe('masonry launch and tag search', () => {
     await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
     expect(renderedState().tags).toBe('ordfav:My_Name');
     expect(nodes.get('dmh-tags')!.value).toBe('ordfav:My_Name');
-    expect(history.pushState).toHaveBeenLastCalledWith(null, '', adapter.getPostsPageUrl('ordfav:My_Name', 1));
+    expect(history.pushState).toHaveBeenLastCalledWith(
+      expect.objectContaining({ dmh: expect.objectContaining({ tags: 'ordfav:My_Name' }) }),
+      '',
+      adapter.getPostsPageUrl('ordfav:My_Name', 1),
+    );
   });
   it('preserves dismissed suggestions across window focus restoration but opens on explicit entry', async () => {
     boot(adapter);
@@ -239,7 +263,11 @@ describe('masonry launch and tag search', () => {
     location.href = 'https://danbooru.donmai.us/posts?tags=old';
     boot(adapter);
     await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
-    expect(history.replaceState).not.toHaveBeenCalled();
+    expect(history.replaceState).toHaveBeenCalledWith(
+      expect.objectContaining({ dmhBase: true }),
+      '',
+      'https://danbooru.donmai.us/posts?tags=old&dmh=0',
+    );
   });
   it('skips automatic entry once after an explicit exit', async () => {
     location.href = 'https://danbooru.donmai.us/posts?tags=old&dmh=0';
@@ -304,6 +332,160 @@ describe('masonry launch and tag search', () => {
     expect(state.tags).toBe('new_tag');
   });
 });
+
+describe('browser history and viewer media events', () => {
+  it('restores a cached search and scroll position on popstate', async () => {
+    const oldPost = normalizePost({ id: 1, tag_string: 'old_tag' }, adapter.origin);
+    const rankedPost = normalizePost({ id: 2, tag_string: 'ranked_tag' }, adapter.origin);
+    vi.mocked(adapter.getPosts).mockResolvedValueOnce({ posts: [oldPost], hasSourcePosts: true });
+    boot(adapter);
+    await vi.waitFor(() => expect(renderedState().posts).toEqual([oldPost]));
+    const initialHistoryState = vi.mocked(history.pushState).mock.calls[0][0];
+
+    (window as unknown as { scrollY: number }).scrollY = 240;
+    vi.mocked(adapter.getPosts).mockResolvedValueOnce({ posts: [rankedPost], hasSourcePosts: true });
+    nodes.get('dmh-hot-search')!.handlers.get('click')!.forEach((handler) => handler({}));
+    await vi.waitFor(() => expect(renderedState().posts).toEqual([rankedPost]));
+
+    const popstate = vi.mocked(window.addEventListener).mock.calls.find(
+      ([name]) => name === 'popstate',
+    )![1] as Handler;
+    popstate({ state: initialHistoryState });
+
+    expect(renderedState().tags).toBe('old');
+    expect(renderedState().posts).toEqual([oldPost]);
+    expect(nodes.get('dmh-tags')!.value).toBe('old');
+    expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 240, behavior: 'instant' });
+  });
+
+  it('reloads the original page when navigating back past the masonry entry', async () => {
+    boot(adapter);
+    await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
+    const popstate = vi.mocked(window.addEventListener).mock.calls.find(
+      ([name]) => name === 'popstate',
+    )![1] as Handler;
+    popstate({ state: { dmhBase: true } });
+    expect(location.reload).toHaveBeenCalledOnce();
+  });
+
+  it('records viewer navigation without adding one entry per image', async () => {
+    const posts = [
+      normalizePost({ id: 1, tag_string: 'first' }, adapter.origin),
+      normalizePost({ id: 2, tag_string: 'second' }, adapter.origin),
+    ];
+    vi.mocked(adapter.getPosts).mockResolvedValueOnce({ posts, hasSourcePosts: true });
+    boot(adapter);
+    await vi.waitFor(() => expect(renderedState().posts).toEqual(posts));
+
+    const state = renderedState();
+    state.onViewerShown?.('1');
+    const viewerState = vi.mocked(history.pushState).mock.calls.at(-1)?.[0];
+    expect(viewerState).toEqual(
+      expect.objectContaining({ dmh: expect.objectContaining({ viewerPostId: '1', viewerPage: 1 }) }),
+    );
+
+    (history as unknown as { state: unknown }).state = viewerState;
+    state.onViewerShown?.('2');
+    expect(history.replaceState).toHaveBeenLastCalledWith(
+      expect.objectContaining({ dmh: expect.objectContaining({ viewerPostId: '2' }) }),
+      '',
+      location.href,
+    );
+
+    nodes.get('dmh-close')!.handlers.get('click')!.forEach((handler) => handler({}));
+    expect(history.back).toHaveBeenCalledOnce();
+  });
+
+  it('closes on back and reopens the same post on forward', async () => {
+    const post = normalizePost({ id: 1, tag_string: 'first' }, adapter.origin);
+    vi.mocked(adapter.getPosts).mockResolvedValueOnce({ posts: [post], hasSourcePosts: true });
+    boot(adapter);
+    await vi.waitFor(() => expect(renderedState().posts).toEqual([post]));
+    const masonryState = vi.mocked(history.pushState).mock.calls[0][0];
+    renderedState().onViewerShown?.('1');
+    const viewerState = vi.mocked(history.pushState).mock.calls.at(-1)?.[0];
+    const popstate = vi.mocked(window.addEventListener).mock.calls.find(
+      ([name]) => name === 'popstate',
+    )![1] as Handler;
+
+    (history as unknown as { state: unknown }).state = masonryState;
+    popstate({ state: masonryState });
+    expect(closeViewer).toHaveBeenCalled();
+
+    vi.mocked(showViewer).mockClear();
+    (history as unknown as { state: unknown }).state = viewerState;
+    popstate({ state: viewerState });
+    expect(showViewer).toHaveBeenCalledWith(renderedState(), 0);
+  });
+
+
+  it('reloads the viewer source page and reopens the same post', async () => {
+    const post = normalizePost({ id: 1, tag_string: 'first' }, adapter.origin);
+    (history as unknown as { state: unknown }).state = {
+      dmh: {
+        key: 'viewer-reload',
+        tags: 'old',
+        startPage: 1,
+        loadedPage: 5,
+        viewerPostId: '1',
+        viewerPage: 2,
+      },
+    };
+    vi.mocked(adapter.getPosts).mockResolvedValueOnce({ posts: [post], hasSourcePosts: true });
+
+    boot(adapter);
+
+    await vi.waitFor(() => expect(showViewer).toHaveBeenCalledWith(renderedState(), 0));
+    expect(adapter.getPosts).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 2 }),
+    );
+    expect(history.pushState).not.toHaveBeenCalled();
+  });
+
+  it('does not bind image chrome toggling to video clicks', async () => {
+    boot(adapter);
+    await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
+    expect(nodes.get('dmh-viewer-img')!.handlers.get('click')).toHaveLength(1);
+    expect(nodes.has('dmh-viewer-video')).toBe(false);
+  });
+});
+
+describe('quick blacklist actions', () => {
+  it('saves selected viewer tags only after confirmation', async () => {
+    document.body.dataset.currentUserId = '42';
+    const save = vi.spyOn(userSettings, 'updateBlacklistedTags').mockResolvedValue();
+    const taggedPost = normalizePost({ id: 1, tag_string: 'cat solo' }, adapter.origin);
+    vi.mocked(adapter.getPosts).mockResolvedValueOnce({ posts: [taggedPost], hasSourcePosts: true });
+    boot(adapter);
+    await vi.waitFor(() => expect(renderedState().posts).toEqual([taggedPost]));
+    renderedState().viewerIndex = 0;
+
+    nodes.get('dmh-viewer-blacklist')!.handlers.get('click')!.forEach((handler) => handler({}));
+    expect(nodes.get('dmh-viewer-blacklist-dialog')!.showModal).toHaveBeenCalledOnce();
+    expect(nodes.get('dmh-viewer-blacklist-confirm')!.textContent).toBe('确认加入');
+    expect(nodes.get('dmh-viewer-blacklist-choices')!.innerHTML).toContain('data-blacklist-choice="cat"');
+    expect(save).not.toHaveBeenCalled();
+
+    const choice = node();
+    choice.dataset.blacklistChoice = 'cat';
+    const choiceEvent = { target: { closest: () => choice } };
+    nodes.get('dmh-viewer-blacklist-choices')!.handlers.get('click')!
+      .forEach((handler) => handler(choiceEvent));
+    expect(nodes.get('dmh-viewer-blacklist-confirm')!.disabled).toBe(false);
+    expect(nodes.get('dmh-viewer-blacklist-confirm')!.textContent).toBe('确认加入（1）');
+
+    nodes.get('dmh-viewer-blacklist-confirm')!.handlers.get('click')!
+      .forEach((handler) => handler({}));
+    await vi.waitFor(() => expect(save).toHaveBeenCalledWith(adapter.origin, '42', 'cat'));
+
+    expect(renderedState().blacklistText).toBe('cat');
+    expect(renderedState().posts).toEqual([]);
+    await vi.waitFor(() => expect(nodes.get('dmh-viewer-blacklist-dialog')!.close).toHaveBeenCalledOnce());
+    const snackbarLabel = nodes.get('dmh-snackbar')!.appendChild.mock.calls.at(-1)![0] as ReturnType<typeof node>;
+    expect(snackbarLabel.textContent).toBe('已将 1 个标签加入黑名单');
+  });
+});
+
 
 describe('settings editors and content filtering', () => {
   it('applies and persists theme changes', async () => {
@@ -546,6 +728,40 @@ describe('blacklist draft lifecycle', () => {
     expect(nodes.get('dmh-blacklist-editor')!.close).not.toHaveBeenCalled();
     expect(nodes.get('dmh-blacklist-cancel')!.disabled).toBe(false);
   });
+  it('adds and removes rules through the structured editor without saving immediately', async () => {
+    const save = vi.spyOn(userSettings, 'updateBlacklistedTags').mockResolvedValue();
+    const input = await openDraft();
+    const newRule = nodes.get('dmh-blacklist-new-rule')!;
+    newRule.value = ' new_rule ';
+    nodes.get('dmh-blacklist-composer')!.handlers.get('submit')!.forEach(
+      (handler) => handler({ preventDefault: vi.fn() }),
+    );
+    expect(input.value).toBe('original_rule\nnew_rule');
+    expect(nodes.get('dmh-blacklist-status')!.textContent).toBe('尚未保存');
+
+    const requestRemoval = () =>
+      nodes.get('dmh-blacklist-rule-list')!.handlers.get('click')!.forEach((handler) =>
+        handler({
+          target: { closest: () => ({ dataset: { blacklistRemove: '0' } }) },
+        }),
+      );
+    requestRemoval();
+    expect(input.value).toBe('original_rule\nnew_rule');
+    expect(nodes.get('dmh-blacklist-remove-confirm')!.hidden).toBe(false);
+    expect(nodes.get('dmh-blacklist-remove-rule')!.textContent).toBe('original_rule');
+
+    nodes.get('dmh-blacklist-remove-cancel')!.handlers.get('click')!
+      .forEach((handler) => handler({}));
+    expect(input.value).toBe('original_rule\nnew_rule');
+    expect(nodes.get('dmh-blacklist-remove-confirm')!.hidden).toBe(true);
+
+    requestRemoval();
+    nodes.get('dmh-blacklist-remove-confirm-button')!.handlers.get('click')!
+      .forEach((handler) => handler({}));
+    expect(input.value).toBe('new_rule');
+    expect(save).not.toHaveBeenCalled();
+  });
+
 });
 
 it('does not validate templates while typing, but validates on Save', async () => {
