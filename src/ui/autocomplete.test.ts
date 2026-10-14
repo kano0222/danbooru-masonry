@@ -49,9 +49,9 @@ describe('autocomplete request lifecycle', () => {
     expect(container.innerHTML).toContain('dmh-ac-name dmh-ac-general');
   });
   it('wraps translated suggestions in brackets like viewer tags', () => {
-    vi.spyOn(state.translations, 'translate').mockReturnValue('画师');
+    vi.spyOn(state.translations, 'translate').mockReturnValue('作者');
     renderAutocomplete(state, [{ value: 'artist', count: '', category: 'artist' }]);
-    expect(container.innerHTML).toContain('<span class="dmh-ac-cn">[ 画师 ]</span>');
+    expect(container.innerHTML).toContain('<span class="dmh-ac-cn">[ 作者 ]</span>');
   });
   it('ignores an old response while the next input is still debouncing', async () => {
     openAutocomplete(state, 'old');

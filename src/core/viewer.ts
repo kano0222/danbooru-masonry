@@ -852,7 +852,7 @@ function renderViewerInfo(state: AppState, post: Post): string {
   const pills = [
     `<a class="dmh-info-pill dmh-pill-id" href="${escapeAttr(state.adapter.getPostUrl(post.id, state.tags))}" target="_blank" rel="noreferrer">#${escapeHtml(post.id)}</a>`,
   ];
-  const labels = { artist: '画师', copyright: '版权', character: '角色' };
+  const labels = { artist: '作者', copyright: '版权', character: '角色' };
   for (const type of ['artist', 'copyright', 'character'] as const) {
     for (const tag of post.tagGroups[type]) {
       const translated = state.translations.translate(tag);
@@ -930,7 +930,7 @@ export function validateDownloadFilenameTemplate(template: string): string {
 
 export function previewDownloadFilenameTemplate(template: string): string {
   return renderDownloadFilenameTemplate(template, {
-    platform: 'danbooru', original: '原文件名', artist: '画师名称',
+    platform: 'danbooru', original: '原文件名', artist: '作者名称',
     username: '用户名', userid: '123456', id: '12345', postid: '67890', ext: 'png',
   });
 }

@@ -255,8 +255,8 @@ ${downloadFilenameTemplateInputs}
               </div>
               <div class="dmh-template-help">
                 <div><code>{original}</code> 原文件名，不含后缀</div>
-                <div><code>{artist}</code> Danbooru 画师标签</div>
-                <div><code>{username}</code> 来源 URL 可解析到的用户名，缺失时回退到画师标签</div>
+                <div><code>{artist}</code> Danbooru 作者标签</div>
+                <div><code>{username}</code> 来源 URL 可解析到的用户名，缺失时回退到作者标签</div>
                 <div><code>{userid}</code> 来源 URL 可解析到的用户 ID</div>
                 <div><code>{id}</code> 来源作品 ID，缺失时回退到 Danbooru ID</div>
                 <div><code>{postid}</code> Danbooru ID</div>

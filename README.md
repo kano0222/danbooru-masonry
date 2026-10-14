@@ -59,7 +59,7 @@
 
 - 沉浸式查看器支持图片和视频预览、切换、缩放、收藏、下载，以及将当前图片标签加入黑名单。收藏和修改黑名单需要登录 Danbooru。
 
-- 默认显示画师、角色和版权标签，更多标签可展开查看。
+- 默认显示作者、角色和版权标签，更多标签可展开查看。
 
 ![preview4](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview4.png)
 
@@ -68,8 +68,8 @@
 下载文件名模板支持以下占位符：
 
 - `{original}`：原文件名，不含后缀
-- `{artist}`：Danbooru 画师标签
-- `{username}`：来源 URL 可解析到的用户名，缺失时回退到画师标签
+- `{artist}`：Danbooru 作者标签
+- `{username}`：来源 URL 可解析到的用户名，缺失时回退到作者标签
 - `{userid}`：来源 URL 可解析到的用户 ID
 - `{id}`：来源作品 ID，缺失时回退到 Danbooru ID
 - `{postid}`：Danbooru ID

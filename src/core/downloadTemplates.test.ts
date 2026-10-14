@@ -20,7 +20,7 @@ describe('download template validation and rendering', () => {
   });
   it('uses the same renderer for the example and actual download', () => {
     const download = vi.fn(); vi.stubGlobal('GM_download', download);
-    const post = normalizePost({ id: 67890, file_url: 'https://cdn.donmai.us/sample.png', file_ext: 'png', tag_string_artist: '画师名称' }, 'https://danbooru.donmai.us');
+    const post = normalizePost({ id: 67890, file_url: 'https://cdn.donmai.us/sample.png', file_ext: 'png', tag_string_artist: '作者名称' }, 'https://danbooru.donmai.us');
     downloadPost(post, undefined, { ...DEFAULT_DOWNLOAD_FILENAME_TEMPLATES, danbooru: '{artist}_{postid}.{ext}' });
     expect(download.mock.calls[0][0].name).toBe(previewDownloadFilenameTemplate('{artist}_{postid}.{ext}'));
   });
