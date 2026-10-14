@@ -54,6 +54,7 @@ export interface BooruAdapter {
   origin: string;
   isMatch(location: Location): boolean;
   getPosts(params: GetPostsParams): Promise<GetPostsResult>;
+  getPostCount(tags: string): Promise<number>;
   getAutocomplete(query: string): Promise<AutocompleteItem[]>;
   createFavorite(postId: string): Promise<void>;
   deleteFavorite(postId: string): Promise<void>;

@@ -31,6 +31,12 @@ describe('theme settings', () => {
 });
 
 describe('search shortcuts', () => {
+  it('renders the total page count to the right of the page input', () => {
+    const html = renderWithUser({});
+    expect(html.indexOf('id="dmh-page"')).toBeLessThan(html.indexOf('id="dmh-total-pages"'));
+    expect(html).toContain('class="dmh-page-total" aria-label="总页数">/ <span id="dmh-total-pages">…</span>');
+  });
+
   it('places Hot and favorites to the right of the search button', () => {
     const html = renderWithUser({ currentUserId: '42', currentUserName: 'My_Name' });
     expect(html.indexOf('aria-label="搜索"')).toBeLessThan(html.indexOf('id="dmh-hot-search"'));

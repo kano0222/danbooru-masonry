@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { Post } from '../adapters/types';
 import { normalizePost } from '../core/normalizePost';
-import { fetchPostsJson, getPostLoadError } from './posts';
+import { fetchPostCount, fetchPostsJson, getPostLoadError } from './posts';
 
 const origin = 'https://danbooru.donmai.us';
 
@@ -20,6 +20,22 @@ function normalize(raw: unknown): Post {
 
 describe('posts API', () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it('reads the post count for total-page calculation', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ counts: { posts: 41 } }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchPostCount(origin, 'cat rating:g')).resolves.toBe(41);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://danbooru.donmai.us/counts/posts.json?tags=cat+rating%3Ag',
+      expect.anything(),
+    );
+  });
 
   it('uses one JSON request and keeps available posts for render-time filtering', async () => {
     const rawPosts = Array.from({ length: 9 }, (_, index) => ({

@@ -137,6 +137,7 @@ beforeEach(() => {
   vi.spyOn(TagTranslationStore.prototype, 'load').mockResolvedValue(true);
   adapter = new DanbooruAdapter();
   vi.spyOn(adapter, 'getPosts').mockResolvedValue({ posts: [], hasSourcePosts: false });
+  vi.spyOn(adapter, 'getPostCount').mockResolvedValue(41);
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -144,6 +145,13 @@ afterEach(() => {
 });
 
 describe('masonry launch and tag search', () => {
+  it('shows the total pages from the current query count', async () => {
+    vi.mocked(adapter.getPostCount).mockResolvedValue(20_001);
+    boot(adapter);
+    await vi.waitFor(() => expect(nodes.get('dmh-total-pages')?.textContent).toBe('1001'));
+    expect(adapter.getPostCount).toHaveBeenCalledWith('old');
+  });
+
   it('closes suggestions and blurs the input immediately on search submission', async () => {
     boot(adapter);
     await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());

@@ -1,6 +1,21 @@
 import type { GetPostsParams, GetPostsResult, Post } from '../adapters/types';
 import { ApiError, fetchJson } from '../utils/fetch';
 
+interface PostCountResponse {
+  counts?: {
+    posts?: unknown;
+  };
+}
+
+export async function fetchPostCount(origin: string, tags: string): Promise<number> {
+  const url = new URL('/counts/posts.json', origin);
+  url.searchParams.set('tags', tags);
+  const data = await fetchJson<PostCountResponse>(url.toString(), {}, 'counts/posts.json');
+  const count = data?.counts?.posts;
+  if (typeof count !== 'number' || !Number.isFinite(count) || count < 0) throw new SyntaxError('Invalid post count');
+  return Math.floor(count);
+}
+
 export async function fetchPostsJson(
   origin: string,
   params: GetPostsParams,

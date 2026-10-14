@@ -1,6 +1,6 @@
 import { fetchAutocompleteJson } from '../api/autocomplete';
 import { createFavorite, deleteFavorite, isPostFavorited } from '../api/favorites';
-import { fetchPostsJson } from '../api/posts';
+import { fetchPostCount, fetchPostsJson } from '../api/posts';
 import { normalizePost as normalizeDanbooruPost } from '../core/normalizePost';
 import { mergePostsUrl } from '../utils/url';
 import type {
@@ -25,6 +25,10 @@ export class DanbooruAdapter implements BooruAdapter {
 
   getPosts(params: GetPostsParams): Promise<GetPostsResult> {
     return fetchPostsJson(this.origin, params, (raw) => this.normalizePost(raw));
+  }
+
+  getPostCount(tags: string): Promise<number> {
+    return fetchPostCount(this.origin, tags);
   }
 
   getAutocomplete(query: string): Promise<AutocompleteItem[]> {

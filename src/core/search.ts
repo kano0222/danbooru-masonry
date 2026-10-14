@@ -4,6 +4,7 @@ import { setText } from '../utils/dom';
 export function resetSearch(state: AppState, tags: string, page = 1): void {
   state.tags = tags.trim();
   state.page = page;
+  state.totalPages = null;
   state.posts = [];
   state.sourcePosts = [];
   state.postPages.clear();
@@ -15,6 +16,7 @@ export function resetSearch(state: AppState, tags: string, page = 1): void {
   if (input) input.value = state.tags;
   const pageInput = document.getElementById('dmh-page') as HTMLInputElement | null;
   if (pageInput) pageInput.value = String(state.page);
+  setText('dmh-total-pages', '…');
   const grid = document.getElementById('dmh-grid');
   if (grid) {
     grid.innerHTML = '';

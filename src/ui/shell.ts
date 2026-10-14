@@ -61,6 +61,7 @@ export function renderShell(state: AppState): void {
               <label class="dmh-page-control" title="页码" aria-label="页码">
                 <input class="dmh-page-input" id="dmh-page" type="text" inputmode="numeric" pattern="[0-9]*" size="1" value="${state.page}">
               </label>
+              <span class="dmh-page-total" aria-label="总页数">/ <span id="dmh-total-pages">${state.totalPages ?? '…'}</span></span>
             </div>
           </div>
           <div class="dmh-search">

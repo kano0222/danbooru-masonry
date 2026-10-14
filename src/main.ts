@@ -102,6 +102,7 @@ interface MasonryHistoryState {
 }
 
 const MAX_SEARCH_SNAPSHOTS = 8;
+const POSTS_PER_PAGE = 20;
 
 export function boot(adapter: BooruAdapter): void {
   const state = createState(adapter);
@@ -562,6 +563,7 @@ async function loadNextPage(state: AppState): Promise<void> {
   if (!state.started || state.loading || state.done) return;
   state.loading = true;
   const requestToken = state.requestToken;
+  if (state.totalPages === null) void loadTotalPages(state, requestToken);
   setText('dmh-status', `已加载 ${state.posts.length} 张 / 加载中...`);
   setText('dmh-message', '加载中...');
   setMasonryLoading(true);
@@ -620,6 +622,19 @@ async function loadNextPage(state: AppState): Promise<void> {
       state.loading = false;
       setMasonryLoading(false);
     }
+  }
+}
+
+async function loadTotalPages(state: AppState, requestToken: number): Promise<void> {
+  try {
+    const count = await state.adapter.getPostCount(getRequestTags(state.tags, state.hideNsfw));
+    if (requestToken !== state.requestToken) return;
+    state.totalPages = Math.max(1, Math.ceil(count / POSTS_PER_PAGE));
+    setText('dmh-total-pages', String(state.totalPages));
+  } catch (error) {
+    if (requestToken !== state.requestToken) return;
+    console.warn('[Danbooru Masonry] post count failed:', error);
+    setText('dmh-total-pages', '?');
   }
 }
 
@@ -858,12 +873,15 @@ function handleHistoryNavigation(state: AppState, event: PopStateEvent): void {
   state.tags = snapshot.tags;
   state.searchStartPage = snapshot.startPage;
   state.loadedPage = snapshot.loadedPage;
+  state.totalPages = snapshot.totalPages;
   state.page = snapshot.nextPage;
   state.posts = [...snapshot.posts];
   state.sourcePosts = [...snapshot.sourcePosts];
   state.postPages = new Map(snapshot.postPages);
   state.done = snapshot.done;
   state.viewerIndex = -1;
+  setText('dmh-total-pages', state.totalPages === null ? '…' : String(state.totalPages));
+  if (state.totalPages === null) void loadTotalPages(state, state.requestToken);
   const tagsInput = byId<HTMLInputElement>('dmh-tags');
   if (tagsInput) tagsInput.value = state.tags;
   setPageInputValue(state.loadedPage || state.searchStartPage);
@@ -894,6 +912,7 @@ function cacheCurrentSearch(state: AppState): void {
     tags: state.tags,
     startPage: state.searchStartPage,
     loadedPage: state.loadedPage,
+    totalPages: state.totalPages,
     nextPage: state.page,
     posts: [...state.posts],
     sourcePosts: [...state.sourcePosts],

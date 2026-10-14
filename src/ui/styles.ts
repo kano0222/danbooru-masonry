@@ -129,6 +129,7 @@ export function installStyles(): void {
     #dmh-app .dmh-search input { width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--dmh-border-strong); border-radius: 6px; background: var(--dmh-surface); color: inherit; }
     .dmh-page-group { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--dmh-text-muted); font-size: 12px; font-weight: 700; }
     .dmh-page-label { user-select: none; }
+    .dmh-page-total { white-space: nowrap; user-select: none; }
     .dmh-page-control { display: flex; align-items: center; justify-content: center; height: 28px; padding: 0; border: 1px solid var(--dmh-border); border-radius: 999px; background: var(--dmh-surface-muted); color: var(--dmh-text-muted); }
     .dmh-page-control:focus-within { border-color: var(--dmh-accent); background: var(--dmh-surface); box-shadow: 0 0 0 3px var(--dmh-focus-shadow); }
     .dmh-page-input { width: 42px; min-width: 42px; height: 26px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--dmh-text-strong); text-align: center; font-weight: 700; outline: 0; appearance: textfield; }

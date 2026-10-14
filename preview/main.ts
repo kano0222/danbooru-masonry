@@ -104,8 +104,11 @@ const previewImages = [
   },
 ] as const;
 const PAGE_SIZE = 20;
+const TOTAL_PAGES = 50;
 
 const state = createState(new DanbooruAdapter());
+state.totalPages = TOTAL_PAGES;
+state.page = Math.min(state.page, TOTAL_PAGES);
 let visiblePage = state.page;
 state.started = true;
 state.tags = 'landscape 1girl';
@@ -124,7 +127,7 @@ bindPreviewControls();
 if (grid) new ResizeObserver(() => layoutMasonry(state)).observe(grid);
 
 async function loadNextPreviewPage(): Promise<void> {
-  if (state.loading) return;
+  if (state.loading || state.done) return;
   state.loading = true;
   try {
     const page = state.page;
@@ -147,6 +150,7 @@ async function loadNextPreviewPage(): Promise<void> {
     layoutMasonry(state);
     visiblePage = page;
     state.page = page + 1;
+    state.done = page >= TOTAL_PAGES;
     const pageInput = document.getElementById('dmh-page') as HTMLInputElement | null;
     if (pageInput) pageInput.value = String(page);
     updatePageParam(page);
@@ -161,7 +165,8 @@ function loadPreviewPage(page: number): void {
   state.posts = [];
   state.sourcePosts = [];
   state.viewerIndex = -1;
-  state.page = page;
+  state.page = Math.min(TOTAL_PAGES, Math.max(1, page));
+  state.done = false;
   if (grid) {
     grid.replaceChildren();
     grid.style.height = '0px';
