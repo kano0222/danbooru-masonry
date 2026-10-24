@@ -3,6 +3,8 @@ import type { AppState } from './core/state';
 import type { BooruAdapter } from './adapters/types';
 import {
   createState,
+  parseListLayout,
+  saveListLayout,
   saveHideNsfw,
   saveAutoEnterMasonry,
   saveTagClickBehavior,
@@ -42,6 +44,7 @@ import {
   CARD_SIZE_OPTIONS,
   layoutMasonry,
   scheduleLayoutMasonry,
+  scheduleVirtualMasonry,
   shouldLoadMore,
 } from './core/masonry';
 import { getFavoriteSearchTag, getRequestTags, resetSearch } from './core/search';
@@ -398,6 +401,12 @@ function bindShellEvents(state: AppState): void {
   byId<HTMLSelectElement>('dmh-card-size')?.addEventListener('change', (event) => {
     setCardSize(state, (event.currentTarget as HTMLSelectElement).value);
   });
+  byId<HTMLSelectElement>('dmh-list-layout')?.addEventListener('change', (event) => {
+    state.listLayout = parseListLayout((event.currentTarget as HTMLSelectElement).value);
+    saveListLayout(state.listLayout);
+    layoutMasonry(state);
+    scheduleScrollControlsUpdate(state);
+  });
   byId('dmh-download-template-reset')?.addEventListener('click', () =>
     resetDownloadFilenameTemplates(),
   );
@@ -541,6 +550,7 @@ function bindShellEvents(state: AppState): void {
   byId('dmh-open-source')?.addEventListener('click', () => openCurrentSource(state));
   let lastScrollY = window.scrollY;
   window.addEventListener('scroll', () => {
+    scheduleVirtualMasonry(state);
     if (isViewerOpen() || isSettingsOpen()) return;
     const scrollY = window.scrollY;
     const scrollingDown = scrollY > lastScrollY;
@@ -902,6 +912,8 @@ function handleHistoryNavigation(state: AppState, event: PopStateEvent): void {
       : '',
   );
   window.scrollTo({ top: snapshot.scrollY, behavior: 'instant' });
+  // History may restore the same offset without a scroll event after the grid was rebuilt.
+  scheduleVirtualMasonry(state);
   restoreViewerFromHistory(state, target.viewerPostId);
 }
 

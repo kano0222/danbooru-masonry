@@ -1,9 +1,18 @@
 import type { BooruAdapter, Post } from '../adapters/types';
-import { CARD_SIZE_OPTIONS, DEFAULT_CARD_WIDTH } from './masonry';
+import { CARD_SIZE_OPTIONS, DEFAULT_CARD_WIDTH, LAYOUT_OPTIONS, type ListLayout } from './masonry';
 import { TagTranslationStore } from '../data/tagTranslation';
 import type { BlacklistConfig } from './blacklist';
 
 const CARD_SIZE_STORAGE_KEY = 'danbooru-masonry.cardSize';
+const LIST_LAYOUT_STORAGE_KEY = 'danbooru-masonry.listLayout';
+
+export function parseListLayout(value: unknown): ListLayout {
+  return LAYOUT_OPTIONS.find((option) => option.key === value)?.key ?? 'masonry';
+}
+
+export function saveListLayout(value: ListLayout): void {
+  saveSetting(LIST_LAYOUT_STORAGE_KEY, value);
+}
 const VIEWER_USE_ORIGINAL_STORAGE_KEY = 'danbooru-masonry.viewerUseOriginal';
 const VIEWER_PRELOAD_COUNT_STORAGE_KEY = 'danbooru-masonry.viewerPreloadCount';
 const SHOW_THUMBNAIL_INFO_STORAGE_KEY = 'danbooru-masonry.showThumbnailInfo';
@@ -125,6 +134,8 @@ export interface AppState {
   favoriteStateCache: Map<string, boolean>;
   favoriteStateLoading: Set<string>;
   cardWidth: number;
+  listLayout: ListLayout;
+  renderLayoutCards: ((indices: number[]) => void) | null;
   viewerUseOriginal: boolean;
   viewerPreloadCount: number;
   showThumbnailInfo: boolean;
@@ -206,6 +217,8 @@ export function createState(adapter: BooruAdapter): AppState {
     favoriteStateCache: new Map(),
     favoriteStateLoading: new Set(),
     cardWidth: getInitialCardWidth(),
+    listLayout: parseListLayout(getStoredSetting(LIST_LAYOUT_STORAGE_KEY)),
+    renderLayoutCards: null,
     viewerUseOriginal: getInitialViewerUseOriginal(),
     viewerPreloadCount: parseViewerPreloadCount(getStoredSetting(VIEWER_PRELOAD_COUNT_STORAGE_KEY)),
     showThumbnailInfo: getInitialBooleanSetting(SHOW_THUMBNAIL_INFO_STORAGE_KEY, false),

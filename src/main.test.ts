@@ -5,6 +5,7 @@ import { DanbooruAdapter } from './adapters/danbooru';
 import * as userSettings from './api/userSettings';
 import { ApiError } from './utils/fetch';
 import { boot } from './main';
+import { layoutMasonry, scheduleVirtualMasonry } from './core/masonry';
 import { installLaunchButton, renderShell } from './ui/shell';
 import { closeViewer, showViewer } from './core/viewer';
 import { TagTranslationStore } from './data/tagTranslation';
@@ -26,6 +27,7 @@ vi.mock('./core/scrollControls', () => ({
 vi.mock('./core/masonry', async (original) => ({
   ...(await original<object>()),
   layoutMasonry: vi.fn(),
+  scheduleVirtualMasonry: vi.fn(),
 }));
 vi.mock('./core/viewer', async (original) => ({
   ...(await original<object>()),
@@ -145,6 +147,24 @@ afterEach(() => {
 });
 
 describe('masonry launch and tag search', () => {
+  it('switches layout and saves it without restarting the current search', async () => {
+    const save = vi.fn();
+    vi.stubGlobal('GM_setValue', save);
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    const state = renderedState();
+    const posts = state.posts;
+    for (const layout of ['grid', 'justified', 'virtual', 'masonry']) {
+      nodes.get('dmh-list-layout')!.handlers.get('change')!.forEach((handler) => {
+        handler({ currentTarget: { value: layout } });
+      });
+      expect(state.listLayout).toBe(layout);
+      expect(save).toHaveBeenLastCalledWith('danbooru-masonry.listLayout', layout);
+      expect(layoutMasonry).toHaveBeenLastCalledWith(state);
+      expect(state.posts).toBe(posts);
+      expect(adapter.getPosts).toHaveBeenCalledOnce();
+    }
+  });
   it('shows the total pages from the current query count', async () => {
     vi.mocked(adapter.getPostCount).mockResolvedValue(20_001);
     boot(adapter);
@@ -364,6 +384,10 @@ describe('browser history and viewer media events', () => {
     expect(renderedState().posts).toEqual([oldPost]);
     expect(nodes.get('dmh-tags')!.value).toBe('old');
     expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 240, behavior: 'instant' });
+    expect(scheduleVirtualMasonry).toHaveBeenLastCalledWith(renderedState());
+    expect(vi.mocked(scheduleVirtualMasonry).mock.invocationCallOrder.at(-1)).toBeGreaterThan(
+      vi.mocked(window.scrollTo).mock.invocationCallOrder.at(-1)!,
+    );
   });
 
   it('reloads the original page when navigating back past the masonry entry', async () => {

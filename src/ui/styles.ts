@@ -168,6 +168,7 @@ export function installStyles(): void {
     .dmh-back-to-top svg { width: 23px; height: 23px; }
     .dmh-card { position: absolute; width: ${CARD_WIDTH}px; overflow: hidden; border-radius: 6px; background: var(--dmh-card-placeholder); box-shadow: 0 1px 2px var(--dmh-shadow); transition: left .18s ease, top .18s ease, width .18s ease; }
     .dmh-card img { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--dmh-card-placeholder); pointer-events: none; }
+    #dmh-grid[data-layout="virtual"] .dmh-card { transition: none; }
     .dmh-card-error { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: var(--dmh-surface-muted); color: var(--dmh-text-muted); text-align: center; }
     .dmh-card-error[hidden] { display: none; }
     .dmh-card-error svg { width: 42px; height: 42px; fill: currentColor; }

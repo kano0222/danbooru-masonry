@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BooruAdapter } from '../adapters/types';
 import {
   createState,
+  parseListLayout,
+  saveListLayout,
   parseThemeMode,
   parseViewerPreloadCount,
   saveAutoEnterMasonry,
@@ -35,6 +37,19 @@ describe('theme settings', () => {
 });
 
 describe('masonry settings', () => {
+  it('defaults to masonry and restores and saves each supported layout', () => {
+    stubSettings(new Map());
+    expect(createState({} as BooruAdapter).listLayout).toBe('masonry');
+    expect(parseListLayout('unknown')).toBe('masonry');
+    const setValue = vi.fn();
+    vi.stubGlobal('GM_setValue', setValue);
+    for (const layout of ['masonry', 'grid', 'justified', 'virtual'] as const) {
+      stubSettings(new Map([['danbooru-masonry.listLayout', layout]]));
+      expect(createState({} as BooruAdapter).listLayout).toBe(layout);
+      saveListLayout(layout);
+      expect(setValue).toHaveBeenLastCalledWith('danbooru-masonry.listLayout', layout);
+    }
+  });
   it('defaults to big thumbnails without overriding a saved size', () => {
     stubSettings(new Map());
     expect(createState({} as BooruAdapter).cardWidth).toBe(280);

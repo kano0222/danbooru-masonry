@@ -41,6 +41,7 @@ The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translati
 
   - Masonry
     - Automatically enter masonry mode (enabled by default)
+    - Image list layout: masonry, grid, justified, or virtual masonry(default: masonry)
     - Thumbnail size: small / medium / big (default: big)
     - Show NSFW (enabled by default)
     - Show thumbnail action buttons (enabled by default)
@@ -90,7 +91,6 @@ If the script does not run on the domain you use, you can add the site URL to _U
 
 ## TODO
 
-- Add more image list layouts.
 - Viewer action layout.
 
 ## Credits

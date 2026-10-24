@@ -13,6 +13,38 @@ export function renderPosts(
   startIndex: number,
   onOpen: (index: number) => void,
 ): void {
+  state.renderLayoutCards = (indices) => reconcileCards(state, indices, onOpen);
+  if (state.listLayout === 'virtual') return;
+  appendCards(state, posts, startIndex, onOpen);
+}
+
+function reconcileCards(state: AppState, indices: number[], onOpen: (index: number) => void): void {
+  const grid = document.getElementById('dmh-grid');
+  if (!grid) return;
+  const wanted = new Set(indices);
+  const existing = new Set<number>();
+  for (const card of grid.querySelectorAll<HTMLElement>('.dmh-card')) {
+    const index = Number(card.dataset.index);
+    if (!wanted.has(index) && !card.contains(document.activeElement)) card.remove();
+    else existing.add(index);
+  }
+  for (const index of indices) {
+    if (!existing.has(index) && state.posts[index]) appendCards(state, [state.posts[index]], index, onOpen);
+  }
+  // Keep keyboard navigation in post order after scrolling back or leaving virtual mode.
+  const cards = Array.from(grid.querySelectorAll<HTMLElement>('.dmh-card'));
+  const ordered = [...cards].sort((a, b) => Number(a.dataset.index) - Number(b.dataset.index));
+  ordered.forEach((card, index) => {
+    if (grid.children[index] !== card) grid.insertBefore(card, grid.children[index] ?? null);
+  });
+}
+
+function appendCards(
+  state: AppState,
+  posts: Post[],
+  startIndex: number,
+  onOpen: (index: number) => void,
+): void {
   const grid = document.getElementById('dmh-grid');
   if (!grid) return;
   const fragment = document.createDocumentFragment();

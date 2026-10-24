@@ -20,6 +20,12 @@ function renderWithUser(
 }
 
 describe('theme settings', () => {
+  it('renders the saved list layout in a labeled native select', () => {
+    const html = renderWithUser({}, new Map([['danbooru-masonry.listLayout', 'justified']]));
+    expect(html).toContain('for="dmh-list-layout"');
+    expect(html).toContain('<option value="justified" selected>等高排列</option>');
+    for (const layout of ['masonry', 'grid', 'virtual']) expect(html).toContain(`value="${layout}"`);
+  });
   it('renders a toolbar action for the saved theme', () => {
     const html = renderWithUser(
       {},

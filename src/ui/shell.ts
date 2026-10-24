@@ -1,7 +1,7 @@
 import { icons } from './icons';
 import { escapeAttr, escapeHtml } from '../utils/escape';
 import { DOWNLOAD_FILENAME_TEMPLATE_OPTIONS, type AppState } from '../core/state';
-import { CARD_SIZE_OPTIONS } from '../core/masonry';
+import { CARD_SIZE_OPTIONS, LAYOUT_OPTIONS } from '../core/masonry';
 import { getFavoriteSearchTag } from '../core/search';
 import { getThemeToggleIcon, getThemeToggleLabel } from './theme';
 
@@ -108,8 +108,16 @@ export function renderShell(state: AppState): void {
             </div>
           </section>
           <section class="dmh-setting-section">
+            <label class="dmh-setting-row" for="dmh-list-layout">
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">图片列表布局</span><span class="dmh-setting-help">选择图片列表的排列方式</span></span>
+              <select class="dmh-setting-select" id="dmh-list-layout">
+${LAYOUT_OPTIONS.map((option) => `<option value="${option.key}" ${state.listLayout === option.key ? 'selected' : ''}>${option.label}</option>`).join('')}
+              </select>
+            </label>
+          </section>
+          <section class="dmh-setting-section">
             <label class="dmh-setting-row" for="dmh-card-size">
-              <span class="dmh-setting-copy"><span class="dmh-setting-label">缩略图大小</span><span class="dmh-setting-help">调整列表中图片卡片的宽度</span></span>
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">缩略图大小</span><span class="dmh-setting-help">调整卡片宽度，等高排列时调整行高</span></span>
               <select class="dmh-setting-select" id="dmh-card-size">
 ${cardSizeOptions}
               </select>

@@ -1,7 +1,7 @@
 import type { Post } from '../src/adapters/types';
 import { DanbooruAdapter } from '../src/adapters/danbooru';
-import { CARD_SIZE_OPTIONS, layoutMasonry, shouldLoadMore } from '../src/core/masonry';
-import { createState } from '../src/core/state';
+import { CARD_SIZE_OPTIONS, layoutMasonry, scheduleVirtualMasonry, shouldLoadMore } from '../src/core/masonry';
+import { createState, parseListLayout } from '../src/core/state';
 import {
   closeViewer,
   onViewerImageDoubleClick,
@@ -266,6 +266,10 @@ function bindPreviewControls(): void {
     app.dataset.cardSize = option.key;
     layoutMasonry(state);
   });
+  document.getElementById('dmh-list-layout')?.addEventListener('change', (event) => {
+    state.listLayout = parseListLayout((event.currentTarget as HTMLSelectElement).value);
+    layoutMasonry(state);
+  });
 
   document.getElementById('dmh-theme-toggle')?.addEventListener('click', () => {
     state.themeMode = getNextThemeMode(state.themeMode);
@@ -308,6 +312,7 @@ function bindPreviewControls(): void {
   backToTop?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   let lastScrollY = window.scrollY;
   window.addEventListener('scroll', () => {
+    scheduleVirtualMasonry(state);
     backToTop?.classList.toggle('dmh-visible', window.scrollY > 320);
     const scrollingDown = window.scrollY > lastScrollY;
     lastScrollY = window.scrollY;
