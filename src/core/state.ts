@@ -19,6 +19,7 @@ const SHOW_THUMBNAIL_INFO_STORAGE_KEY = 'danbooru-masonry.showThumbnailInfo';
 const SHOW_THUMBNAIL_BUTTONS_STORAGE_KEY = 'danbooru-masonry.showThumbnailButtons';
 const VIEWER_WHEEL_NAVIGATION_STORAGE_KEY = 'danbooru-masonry.viewerWheelNavigation';
 const SHOW_SCROLLBAR_STORAGE_KEY = 'danbooru-masonry.showScrollbar';
+const HIDE_POPULAR_SEARCHES_STORAGE_KEY = 'danbooru-masonry.hidePopularSearches';
 const AUTO_ENTER_MASONRY_STORAGE_KEY = 'danbooru-masonry.autoEnterMasonry';
 const DOWNLOAD_FILENAME_TEMPLATES_STORAGE_KEY = 'danbooru-masonry.downloadFilenameTemplates';
 const HIDE_NSFW_STORAGE_KEY = 'danbooru-masonry.hideNsfw';
@@ -142,6 +143,7 @@ export interface AppState {
   showThumbnailButtons: boolean;
   viewerWheelNavigation: boolean;
   showScrollbar: boolean;
+  hidePopularSearches: boolean;
   downloadFilenameTemplates: DownloadFilenameTemplates;
   translations: TagTranslationStore;
   historyKey: string;
@@ -225,6 +227,7 @@ export function createState(adapter: BooruAdapter): AppState {
     showThumbnailButtons: getInitialBooleanSetting(SHOW_THUMBNAIL_BUTTONS_STORAGE_KEY, true),
     viewerWheelNavigation: getInitialBooleanSetting(VIEWER_WHEEL_NAVIGATION_STORAGE_KEY, true),
     showScrollbar: getInitialBooleanSetting(SHOW_SCROLLBAR_STORAGE_KEY, true),
+    hidePopularSearches: getInitialBooleanSetting(HIDE_POPULAR_SEARCHES_STORAGE_KEY, false),
     downloadFilenameTemplates: getInitialDownloadFilenameTemplates(),
     translations: new TagTranslationStore(),
     historyKey: '',
@@ -282,6 +285,10 @@ export function saveViewerWheelNavigation(value: boolean): void {
 
 export function saveShowScrollbar(value: boolean): void {
   saveSetting(SHOW_SCROLLBAR_STORAGE_KEY, value);
+}
+
+export function saveHidePopularSearches(value: boolean): void {
+  saveSetting(HIDE_POPULAR_SEARCHES_STORAGE_KEY, value);
 }
 
 export function saveDownloadFilenameTemplates(value: DownloadFilenameTemplates): void {

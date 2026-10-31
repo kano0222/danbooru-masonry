@@ -66,12 +66,18 @@ export function renderShell(state: AppState): void {
           </div>
           <div class="dmh-search">
             <form class="dmh-search-form" id="dmh-search">
-              <input id="dmh-tags" type="search" autocomplete="off" placeholder="搜索标签" value="${escapeAttr(state.tags)}">
+              <input id="dmh-tags" type="search" autocomplete="off" placeholder="搜索标签" aria-label="搜索标签" aria-expanded="false" aria-controls="dmh-search-panel" value="${escapeAttr(state.tags)}">
               <button class="dmh-button dmh-icon-button" type="submit" data-dmh-tooltip="搜索" aria-label="搜索">${icons.search}</button>
-              <button class="dmh-button dmh-icon-button dmh-hot-button" id="dmh-hot-search" type="button" data-dmh-tooltip="热门" aria-label="热门">${icons.hot}</button>
-              <button class="dmh-button dmh-icon-button" id="dmh-favorites-search" type="button" data-dmh-tooltip="${canSearchFavorites ? '我的收藏' : '登录后可查看收藏'}" aria-label="我的收藏" ${canSearchFavorites ? '' : 'disabled'}>${icons.favoriteStar}</button>
-              <div class="dmh-ac" id="dmh-ac"></div>
+              <div class="dmh-search-panel" id="dmh-search-panel" hidden>
+                <div class="dmh-search-library" id="dmh-search-library" hidden>
+                  <div id="dmh-search-lists"></div>
+                  <div id="dmh-search-popular" hidden></div>
+                </div>
+                <div class="dmh-ac" id="dmh-ac" aria-hidden="true" hidden></div>
+              </div>
             </form>
+            <button class="dmh-button dmh-icon-button dmh-hot-button" id="dmh-hot-search" type="button" data-dmh-tooltip="热门" aria-label="热门">${icons.hot}</button>
+            <button class="dmh-button dmh-icon-button" id="dmh-favorites-search" type="button" data-dmh-tooltip="${canSearchFavorites ? '我的收藏' : '登录后可查看收藏'}" aria-label="我的收藏" ${canSearchFavorites ? '' : 'disabled'}>${icons.favoriteStar}</button>
           </div>
           <div class="dmh-toolbar-actions">
             <div class="dmh-status" id="dmh-status">已加载 0 张</div>
@@ -155,6 +161,16 @@ ${cardSizeOptions}
               <span class="dmh-setting-copy"><span class="dmh-setting-label">显示瀑布流滚动条</span><span class="dmh-setting-help">在页面右侧显示滚动条</span></span>
               <label class="dmh-setting-switch" aria-label="显示瀑布流滚动条">
                 <input id="dmh-show-scrollbar" type="checkbox" ${state.showScrollbar ? 'checked' : ''}>
+                <span class="dmh-setting-switch-track" aria-hidden="true"></span>
+              </label>
+            </div>
+          </section>
+          <h3 class="dmh-settings-group-title">搜索</h3>
+          <section class="dmh-setting-section">
+            <div class="dmh-setting-row">
+              <span class="dmh-setting-copy"><span class="dmh-setting-label">隐藏热门搜索</span><span class="dmh-setting-help">隐藏后搜索历史默认显示 16 条</span></span>
+              <label class="dmh-setting-switch" aria-label="隐藏热门搜索">
+                <input id="dmh-hide-popular-searches" type="checkbox" ${state.hidePopularSearches ? 'checked' : ''}>
                 <span class="dmh-setting-switch-track" aria-hidden="true"></span>
               </label>
             </div>

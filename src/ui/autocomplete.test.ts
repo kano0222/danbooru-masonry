@@ -58,7 +58,8 @@ describe('autocomplete request lifecycle', () => {
     scheduleAutocomplete(state, 'new');
     resolveRequest([{ value: 'old_tag', count: '', category: 'meta' }]);
     await Promise.resolve();
-    expect(container.innerHTML).toBe('');
+    expect(container.innerHTML).not.toContain('old_tag');
+    expect(container.innerHTML).toContain('正在加载标签联想');
     expect(container.classList.add).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(200);
     expect(state.adapter.getAutocomplete).toHaveBeenLastCalledWith('new');
@@ -82,6 +83,25 @@ describe('autocomplete request lifecycle', () => {
     closeAutocomplete(state);
     await vi.runAllTimersAsync();
     expect(state.adapter.getAutocomplete).not.toHaveBeenCalled();
+  });
+
+  it('keeps the shared panel open for empty results and closes it on dismissal', () => {
+    const panel = { hidden: true };
+    const history = { hidden: false };
+    vi.stubGlobal('document', { getElementById: (id: string) => {
+      if (id === 'dmh-search-panel') return panel;
+      if (id === 'dmh-search-library') return history;
+      if (id === 'dmh-ac') return container;
+      return null;
+    } });
+    renderAutocomplete(state, []);
+    expect(panel.hidden).toBe(false);
+    expect(history.hidden).toBe(true);
+    expect(container.innerHTML).toContain('没有匹配的标签');
+    closeAutocomplete(state, true);
+    expect(panel.hidden).toBe(false);
+    closeAutocomplete(state);
+    expect(panel.hidden).toBe(true);
   });
 
   it('queries blacklist suggestions without the negative prefix', async () => {

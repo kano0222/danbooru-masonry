@@ -9,6 +9,7 @@ import {
   parseViewerPreloadCount,
   saveAutoEnterMasonry,
   saveShowScrollbar,
+  saveHidePopularSearches,
   saveThemeMode,
   saveViewerPreloadCount,
 } from './state';
@@ -37,6 +38,16 @@ describe('theme settings', () => {
 });
 
 describe('masonry settings', () => {
+  it('shows popular searches by default and restores and saves the hide preference', () => {
+    stubSettings(new Map());
+    expect(createState({} as BooruAdapter).hidePopularSearches).toBe(false);
+    stubSettings(new Map([['danbooru-masonry.hidePopularSearches', true]]));
+    expect(createState({} as BooruAdapter).hidePopularSearches).toBe(true);
+    const setValue = vi.fn();
+    vi.stubGlobal('GM_setValue', setValue);
+    saveHidePopularSearches(false);
+    expect(setValue).toHaveBeenCalledWith('danbooru-masonry.hidePopularSearches', false);
+  });
   it('defaults to masonry and restores and saves each supported layout', () => {
     stubSettings(new Map());
     expect(createState({} as BooruAdapter).listLayout).toBe('masonry');

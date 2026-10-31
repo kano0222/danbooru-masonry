@@ -10,7 +10,8 @@ import { installLaunchButton, renderShell } from './ui/shell';
 import { closeViewer, showViewer } from './core/viewer';
 import { TagTranslationStore } from './data/tagTranslation';
 import { normalizePost } from './core/normalizePost';
-import { closeAutocomplete, openAutocomplete } from './ui/autocomplete';
+import { closeAutocomplete } from './ui/autocomplete';
+import { showSearchPanel } from './ui/searchPanel';
 
 vi.mock('./ui/shell', () => ({
   installLaunchButton: vi.fn(),
@@ -18,6 +19,7 @@ vi.mock('./ui/shell', () => ({
   renderShell: vi.fn(),
 }));
 vi.mock('./ui/styles', () => ({ installStyles: vi.fn() }));
+vi.mock('./api/popularSearches', () => ({ fetchPopularSearches: vi.fn(async () => []) }));
 vi.mock('./ui/cards', () => ({ renderPosts: vi.fn() }));
 vi.mock('./core/shortcuts', () => ({ installShortcuts: vi.fn() }));
 vi.mock('./core/scrollControls', () => ({
@@ -147,6 +149,50 @@ afterEach(() => {
 });
 
 describe('masonry launch and tag search', () => {
+  it('persists the popular-search visibility setting and applies it to the history panel', async () => {
+    const setValue = vi.fn();
+    vi.stubGlobal('GM_setValue', setValue);
+    boot(adapter);
+    await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
+    const checkbox = nodes.get('dmh-hide-popular-searches')!;
+    checkbox.handlers.get('change')!.forEach((fn) => fn({ currentTarget: { checked: true } }));
+    expect(renderedState().hidePopularSearches).toBe(true);
+    expect(setValue).toHaveBeenCalledWith('danbooru-masonry.hidePopularSearches', true);
+    expect(nodes.get('dmh-search-popular')!.hidden).toBe(true);
+    checkbox.handlers.get('change')!.forEach((fn) => fn({ currentTarget: { checked: false } }));
+    expect(renderedState().hidePopularSearches).toBe(false);
+    expect(setValue).toHaveBeenLastCalledWith('danbooru-masonry.hidePopularSearches', false);
+  });
+  it('records explicit submissions but not initial loading, shortcuts or page changes', async () => {
+    const save = vi.fn();
+    vi.stubGlobal('GM_setValue', save);
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    expect(save).not.toHaveBeenCalled();
+    nodes.get('dmh-hot-search')!.handlers.get('click')!.forEach((handler) => handler({}));
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledTimes(2));
+    expect(save).not.toHaveBeenCalled();
+    nodes.get('dmh-tags')!.value = ' a b ';
+    nodes.get('dmh-search')!.handlers.get('submit')!.forEach((handler) => handler({ preventDefault: vi.fn() }));
+    expect(save).toHaveBeenCalledExactlyOnceWith('danbooru-masonry.searchLibrary', { pinned: [], recent: ['a b'] });
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledTimes(3));
+    nodes.get('dmh-page')!.value = '2';
+    nodes.get('dmh-page')!.handlers.get('keydown')!.forEach((handler) => handler({ key: 'Enter', preventDefault: vi.fn() }));
+    expect(save).toHaveBeenCalledOnce();
+  });
+
+  it('starts a saved query at page one and updates recent searches', async () => {
+    const save = vi.fn();
+    vi.stubGlobal('GM_setValue', save);
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    const button = { dataset: { searchAction: 'search', query: 'blue_hair order:score' }, disabled: false };
+    nodes.get('dmh-search-library')!.handlers.get('click')!.forEach((handler) => handler({ target: { closest: () => button } }));
+    expect(renderedState().tags).toBe('blue_hair order:score');
+    expect(renderedState().searchStartPage).toBe(1);
+    expect(save).toHaveBeenCalledWith('danbooru-masonry.searchLibrary', { pinned: [], recent: ['blue_hair order:score'] });
+  });
+
   it('switches layout and saves it without restarting the current search', async () => {
     const save = vi.fn();
     vi.stubGlobal('GM_setValue', save);
@@ -218,14 +264,16 @@ describe('masonry launch and tag search', () => {
       adapter.getPostsPageUrl('ordfav:My_Name', 1),
     );
   });
-  it('preserves dismissed suggestions across window focus restoration but opens on explicit entry', async () => {
+  it('preserves the dismissed search panel across window focus restoration but opens on explicit entry', async () => {
     boot(adapter);
     await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
     const input = nodes.get('dmh-tags')!;
     const fire = (name: string) => input.handlers.get(name)!.forEach((fn) => fn({ target: input }));
     fire('focus');
-    expect(openAutocomplete).toHaveBeenCalledOnce();
-    vi.mocked(openAutocomplete).mockClear();
+    expect(nodes.get('dmh-search-library')!.hidden).toBe(false);
+    input.handlers.get('keydown')!.forEach((fn) => fn({ key: 'Escape', preventDefault: vi.fn(), stopPropagation: vi.fn() }));
+    expect(nodes.get('dmh-search-library')!.hidden).toBe(true);
+    vi.mocked(closeAutocomplete).mockClear();
     vi.mocked(document.hasFocus).mockReturnValue(false);
     fire('blur');
     nodes.get('dmh-search')!.handlers.get('focusout')!.forEach((fn) => fn({}));
@@ -233,12 +281,53 @@ describe('masonry launch and tag search', () => {
     expect(closeAutocomplete).not.toHaveBeenCalled();
     vi.mocked(document.hasFocus).mockReturnValue(true);
     fire('focus');
-    expect(openAutocomplete).not.toHaveBeenCalled();
+    expect(nodes.get('dmh-search-library')!.hidden).toBe(true);
     fire('click');
-    expect(openAutocomplete).toHaveBeenCalledOnce();
+    expect(nodes.get('dmh-search-library')!.hidden).toBe(false);
+    expect(closeAutocomplete).toHaveBeenCalled();
     fire('blur');
     fire('focus');
-    expect(openAutocomplete).toHaveBeenCalledTimes(2);
+    expect(closeAutocomplete).toHaveBeenCalledOnce();
+  });
+
+  it('keeps suggestions on repeated clicks and focus returning from within the panel', async () => {
+    boot(adapter);
+    await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
+    const input = nodes.get('dmh-tags')!;
+    const fire = (name: string) => input.handlers.get(name)!.forEach((fn) => fn({ target: input }));
+    fire('focus');
+    input.value = 'blue';
+    fire('input');
+    showSearchPanel('suggestions');
+    nodes.get('dmh-ac')!.innerHTML = 'blue_archive';
+    vi.mocked(closeAutocomplete).mockClear();
+
+    fire('click');
+    fire('click');
+    fire('blur');
+    fire('focus');
+    fire('click');
+
+    expect(nodes.get('dmh-search-panel')!.hidden).toBe(false);
+    expect(nodes.get('dmh-search-library')!.hidden).toBe(true);
+    expect(nodes.get('dmh-ac')!.hidden).toBe(false);
+    expect(nodes.get('dmh-ac')!.innerHTML).toBe('blue_archive');
+    expect(closeAutocomplete).not.toHaveBeenCalled();
+  });
+
+  it('switches from history to tag suggestions only while typing', async () => {
+    boot(adapter);
+    await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
+    const input = nodes.get('dmh-tags')!;
+    input.handlers.get('focus')!.forEach((fn) => fn({ target: input }));
+    expect(nodes.get('dmh-search-library')!.hidden).toBe(false);
+    input.value = 'blue';
+    input.handlers.get('input')!.forEach((fn) => fn({ target: input }));
+    expect(nodes.get('dmh-search-library')!.hidden).toBe(true);
+    input.value = '';
+    input.handlers.get('input')!.forEach((fn) => fn({ target: input }));
+    expect(nodes.get('dmh-search-library')!.hidden).toBe(false);
+    expect(nodes.get('dmh-search-lists')!.innerHTML).toContain('搜索历史');
   });
   it('closes suggestions only when focus leaves the search component', async () => {
     boot(adapter);
@@ -256,7 +345,9 @@ describe('masonry launch and tag search', () => {
   it('ignores scrollbar pointer events but dismisses suggestions on outside clicks', async () => {
     boot(adapter);
     await vi.waitFor(() => expect(renderShell).toHaveBeenCalledOnce());
-    const handler = vi.mocked(document.addEventListener).mock.calls.find(([name]) => name === 'pointerdown')![1] as Handler;
+    const handlers = vi.mocked(document.addEventListener).mock.calls
+      .filter(([name]) => name === 'pointerdown').map(([, handler]) => handler as Handler);
+    const handler: Handler = (event) => handlers.forEach((listener) => listener(event));
     handler({ target: { closest: (selector: string) => selector.includes('#dmh-scrollbar') ? {} : null } });
     expect(closeAutocomplete).not.toHaveBeenCalled();
     handler({ target: { closest: () => null } });

@@ -1,23 +1,9 @@
 import type { AutocompleteItem } from '../adapters/types';
 import type { AppState } from '../core/state';
 import { escapeAttr, escapeHtml } from '../utils/escape';
+import { closeSearchPanel, showSearchPanel } from './searchPanel';
 
 export const AUTOCOMPLETE_DEBOUNCE_MS = 200;
-
-const DEFAULT_AUTOCOMPLETE_ITEMS: AutocompleteItem[] = [
-  { value: 'order:rank', count: '', category: 'meta' },
-  { value: 'order:score', count: '', category: 'meta' },
-  { value: 'order:favcount', count: '', category: 'meta' },
-  { value: 'order:none', count: '', category: 'meta' },
-  { value: 'order:upvotes', count: '', category: 'meta' },
-  { value: 'rating:general', count: '', category: 'meta' },
-  { value: 'rating:questionable', count: '', category: 'meta' },
-  { value: 'rating:explicit', count: '', category: 'meta' },
-  { value: 'rating:sensitive', count: '', category: 'meta' },
-  { value: 'order:landscape', count: '', category: 'meta' },
-  { value: 'order:portrait', count: '', category: 'meta' },
-  { value: 'order:mpixels', count: '', category: 'meta' },
-];
 
 const DEFAULT_AUTOCOMPLETE_LABELS: Record<string, string> = {
   'order:rank': '排序：综合排名',
@@ -39,9 +25,10 @@ export function scheduleAutocomplete(state: AppState, value: string): void {
   state.autocompleteToken += 1;
   const fragment = getLastTagFragment(value);
   if (!fragment) {
-    renderAutocomplete(state, DEFAULT_AUTOCOMPLETE_ITEMS);
+    closeAutocomplete(state);
     return;
   }
+  renderAutocompleteMessage(state, '正在加载标签联想…');
   state.autocompleteTimer = window.setTimeout(() => {
     void requestAutocomplete(state, fragment);
   }, AUTOCOMPLETE_DEBOUNCE_MS);
@@ -52,20 +39,21 @@ export function openAutocomplete(state: AppState, value: string): void {
   const fragment = getLastTagFragment(value);
   if (!fragment) {
     state.autocompleteToken += 1;
-    renderAutocomplete(state, DEFAULT_AUTOCOMPLETE_ITEMS);
+    closeAutocomplete(state);
     return;
   }
+  renderAutocompleteMessage(state, '正在加载标签联想…');
   void requestAutocomplete(state, fragment);
 }
 
-export function closeAutocomplete(state: AppState): void {
+export function closeAutocomplete(state: AppState, preservePanel = false): void {
   window.clearTimeout(state.autocompleteTimer);
   state.autocompleteToken += 1;
   const container = document.getElementById('dmh-ac');
-  if (!container) return;
   state.autocompleteIndex = -1;
-  container.classList.remove('dmh-open');
-  container.setAttribute('aria-hidden', 'true');
+  container?.classList.remove('dmh-open');
+  container?.setAttribute('aria-hidden', 'true');
+  if (!preservePanel) closeSearchPanel();
 }
 
 export function applyAutocompleteTag(state: AppState, tag: string): void {
@@ -81,8 +69,9 @@ export function applyAutocompleteTag(state: AppState, tag: string): void {
 
 export function renderAutocomplete(state: AppState, items: AutocompleteItem[]): void {
   const container = document.getElementById('dmh-ac');
-  if (!container || !items.length) {
-    closeAutocomplete(state);
+  if (!container) return;
+  if (!items.length) {
+    renderAutocompleteMessage(state, '没有匹配的标签');
     return;
   }
   container.innerHTML = items
@@ -97,7 +86,17 @@ export function renderAutocomplete(state: AppState, items: AutocompleteItem[]): 
   state.autocompleteIndex = -1;
   container.classList.add('dmh-open');
   container.setAttribute('aria-hidden', 'false');
+  showSearchPanel('suggestions');
   updateAutocompleteSelection(state);
+}
+
+function renderAutocompleteMessage(state: AppState, message: string): void {
+  const container = document.getElementById('dmh-ac');
+  if (!container) return;
+  state.autocompleteIndex = -1;
+  container.classList.remove('dmh-open');
+  container.innerHTML = `<div class="dmh-search-empty" role="status">${escapeHtml(message)}</div>`;
+  showSearchPanel('suggestions');
 }
 
 function autocompleteCategory(category: string): string {
@@ -300,7 +299,7 @@ async function requestAutocomplete(state: AppState, fragment: string): Promise<v
     const items = await state.adapter.getAutocomplete(fragment);
     if (token === state.autocompleteToken) renderAutocomplete(state, items);
   } catch (error) {
-    if (token === state.autocompleteToken) closeAutocomplete(state);
+    if (token === state.autocompleteToken) renderAutocompleteMessage(state, '标签联想暂时不可用');
     console.warn('[Danbooru Masonry] autocomplete failed:', error);
   }
 }
