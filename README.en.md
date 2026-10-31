@@ -28,6 +28,7 @@ The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translati
   - Infinite scrolling
   - Tag search and autocomplete
   - Hot and personal favorites shortcuts
+  - Automatic search history with pinning, deletion, and Danbooru popular searches
   - Page navigation
   - Honors the logged-in user's Danbooru blacklist
   - Dark mode
@@ -63,6 +64,18 @@ The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translati
 - Artist, character, and copyright tags are shown by default, with more tags available on expansion.
 
 ![preview4](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview4.png)
+
+### Search History and Popular Searches
+
+Click the search field to open search history and popular searches. Typing a tag switches the same panel to autocomplete; clicking the field again preserves the current suggestions, and clearing the input restores history. Popular searches show English and Chinese side by side. History cards retain the original query above a summary of translated content tags, omitting directives such as sort order; entries without translations show only the original query. Autocomplete retains its existing Chinese translations. Clicking history or popular searches runs the complete query from page 1; autocomplete only inserts a tag. The original Hot and personal favorites buttons remain beside the search field.
+
+History initially shows eight entries. Use “展开更多” (show more) below the list to view all entries, or “收起” (collapse) to restore the compact view. Closing and reopening resets the compact view. The panel hides scrollbars but remains scrollable when content exceeds the available height. Enable “隐藏热门搜索” (hide popular searches) in Settings to show 16 history entries by default and stop requesting popular searches.
+
+Use the pin in an entry's upper-left corner to pin or unpin it. Pinned entries appear first, are retained indefinitely, and cannot be deleted directly. Unpinning moves an entry to the front of ordinary history. Up to 20 unpinned entries are kept; the oldest are removed when the limit is exceeded, and reused entries move to the front. Pinned entries do not count toward this limit. The upper-right cross deletes an unpinned entry; it appears on hover or keyboard focus and stays visible on touch devices. Deletion is immediate, without confirmation or undo.
+
+Submitting a search or selecting history or popular searches records the query. Empty searches, Hot and personal favorites shortcuts, viewer tag clicks, page navigation, and refreshes do not add entries. History is stored locally in userscript storage without syncing to your Danbooru account.
+
+Popular searches come from the site's [Popular Searches](https://danbooru.donmai.us/explore/posts/searches) ranking, with up to 10 entries. This ranks search queries and is distinct from Hot images. If today's ranking is empty, the previous day is requested once (using UTC dates). The section is hidden if that ranking is also empty or the endpoint is unavailable; search history remains usable.
 
 ### Download Filename Templates
 

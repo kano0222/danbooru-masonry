@@ -19,6 +19,8 @@ import { installShortcuts } from '../src/core/shortcuts';
 import { renderPosts } from '../src/ui/cards';
 import { renderShell } from '../src/ui/shell';
 import { installStyles } from '../src/ui/styles';
+import { bindSearchLibrary } from '../src/ui/searchLibrary';
+import { closeAutocomplete } from '../src/ui/autocomplete';
 import { applyTheme, getNextThemeMode } from '../src/ui/theme';
 
 const previewImages = [
@@ -288,8 +290,24 @@ function bindPreviewControls(): void {
     document.getElementById('dmh-back-to-top')?.toggleAttribute('hidden', !checked);
   });
 
+  const searchLibrary = bindSearchLibrary({
+    onSearch: (query) => {
+      const input = document.getElementById('dmh-tags') as HTMLInputElement | null;
+      if (input) input.value = query;
+      setStatus('静态预览不发起网络搜索');
+    },
+    onClose: (preservePanel) => closeAutocomplete(state, preservePanel),
+    translate: (tag) => state.translations.translate(tag),
+    loadPopular: async () => [],
+  });
+  const searchInput = document.getElementById('dmh-tags');
+  for (const event of ['focus', 'click', 'input']) {
+    searchInput?.addEventListener(event, () => searchLibrary.open());
+  }
   document.getElementById('dmh-search')?.addEventListener('submit', (event) => {
     event.preventDefault();
+    searchLibrary.record((document.getElementById('dmh-tags') as HTMLInputElement | null)?.value || '');
+    searchLibrary.close();
     setStatus('静态预览不发起网络搜索');
   });
   for (const id of ['dmh-title-exit', 'dmh-exit']) {

@@ -17,12 +17,15 @@ import {
   saveShowThumbnailButtons,
   saveShowThumbnailInfo,
   saveShowScrollbar,
+  saveHidePopularSearches,
   saveViewerUseOriginal,
   saveViewerPreloadCount,
   saveViewerWheelNavigation,
   type DownloadFilenameTemplates,
 } from './core/state';
 import { installStyles } from './ui/styles';
+import { bindSearchLibrary } from './ui/searchLibrary';
+import { fetchPopularSearches } from './api/popularSearches';
 import { applyTheme, getNextThemeMode } from './ui/theme';
 import { installLaunchButton, renderBlacklistRuleRows, renderShell } from './ui/shell';
 import { renderPosts } from './ui/cards';
@@ -37,7 +40,6 @@ import {
   applySelectedAutocomplete,
   closeAutocomplete,
   moveAutocompleteSelection,
-  openAutocomplete,
   scheduleAutocomplete,
 } from './ui/autocomplete';
 import {
@@ -241,16 +243,25 @@ function bindShellEvents(state: AppState): void {
     void loadNextPage(state);
   });
   const searchTags = (tags: string) => {
-    closeAutocomplete(state);
+    searchLibrary.close();
     const input = byId<HTMLInputElement>('dmh-tags');
     input?.blur();
     beginSearch(state, tags.trim());
     window.scrollTo({ top: 0, behavior: 'instant' });
     void loadNextPage(state);
   };
+  const searchLibrary = bindSearchLibrary({
+    onSearch: searchTags,
+    onClose: (preservePanel) => closeAutocomplete(state, preservePanel),
+    translate: (tag) => state.translations.translate(tag),
+    loadPopular: () => fetchPopularSearches(state.adapter.origin),
+    hidePopular: state.hidePopularSearches,
+  });
   byId('dmh-search')?.addEventListener('submit', (event) => {
     event.preventDefault();
-    searchTags(byId<HTMLInputElement>('dmh-tags')?.value || '');
+    const query = byId<HTMLInputElement>('dmh-tags')?.value || '';
+    searchLibrary.record(query);
+    searchTags(query);
   });
   byId('dmh-hot-search')?.addEventListener('click', () => searchTags('order:rank'));
   byId('dmh-favorites-search')?.addEventListener('click', () => {
@@ -440,17 +451,27 @@ function bindShellEvents(state: AppState): void {
   byId<HTMLInputElement>('dmh-show-scrollbar')?.addEventListener('change', (event) => {
     setShowScrollbar(state, (event.currentTarget as HTMLInputElement).checked);
   });
+  byId<HTMLInputElement>('dmh-hide-popular-searches')?.addEventListener('change', (event) => {
+    state.hidePopularSearches = (event.currentTarget as HTMLInputElement).checked;
+    saveHidePopularSearches(state.hidePopularSearches);
+    searchLibrary.setHidePopular(state.hidePopularSearches);
+  });
   const tagsInput = byId<HTMLInputElement>('dmh-tags');
   const searchForm = byId('dmh-search');
   // Keep logical input focus across window/tab switches, which can re-fire focus.
   let tagsInputFocused = false;
   tagsInput?.addEventListener('input', (event) => {
-    scheduleAutocomplete(state, (event.target as HTMLInputElement).value);
+    const value = (event.target as HTMLInputElement).value;
+    if (!/\S$/.test(value)) {
+      searchLibrary.open();
+      return;
+    }
+    scheduleAutocomplete(state, value);
   });
-  tagsInput?.addEventListener('focus', (event) => {
+  tagsInput?.addEventListener('focus', () => {
     if (tagsInputFocused) return;
     tagsInputFocused = true;
-    openAutocomplete(state, (event.target as HTMLInputElement).value);
+    if (byId('dmh-search-panel')?.hidden !== false) searchLibrary.open();
   });
   tagsInput?.addEventListener('blur', () => {
     if (document.hasFocus()) tagsInputFocused = false;
@@ -461,15 +482,15 @@ function bindShellEvents(state: AppState): void {
     queueMicrotask(() => {
       if (!document.hasFocus() || searchForm.contains(document.activeElement)) return;
       tagsInputFocused = false;
-      closeAutocomplete(state);
+      searchLibrary.close();
     });
   });
-  tagsInput?.addEventListener('click', (event) => {
-    openAutocomplete(state, (event.target as HTMLInputElement).value);
+  tagsInput?.addEventListener('click', () => {
+    if (byId('dmh-search-panel')?.hidden !== false) searchLibrary.open();
   });
   byId<HTMLInputElement>('dmh-tags')?.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-      // Suppress search-input clearing and page shortcuts without changing autocomplete.
+      searchLibrary.close();
       event.preventDefault();
       event.stopPropagation();
       return;
@@ -488,6 +509,7 @@ function bindShellEvents(state: AppState): void {
     }
     if (autocompleteOpen && event.key === 'Enter' && applySelectedAutocomplete(state)) {
       event.preventDefault();
+      searchLibrary.close();
       return;
     }
   });
@@ -508,11 +530,13 @@ function bindShellEvents(state: AppState): void {
   });
   byId('dmh-ac')?.addEventListener('click', (event) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-tag]');
-    if (button) applyAutocompleteTag(state, button.dataset.tag || '');
+    if (button) {
+      applyAutocompleteTag(state, button.dataset.tag || '');
+      searchLibrary.close();
+    }
   });
   document.addEventListener('pointerdown', (event) => {
     const target = event.target as HTMLElement;
-    if (!target.closest('.dmh-search-form, #dmh-scrollbar')) closeAutocomplete(state);
     if (!target.closest('.dmh-blacklist-composer')) closeBlacklistAutocomplete(state);
   });
   byId('dmh-viewer')?.addEventListener('click', (event) => {

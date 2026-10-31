@@ -121,12 +121,13 @@ export function installStyles(): void {
     .dmh-loading-progress[hidden] { display: none; }
     .dmh-loading-progress-bar { width: 42%; height: 100%; background: var(--dmh-accent); transform: translateX(-110%); animation: dmh-loading-progress 1.15s ease-in-out infinite; }
     @keyframes dmh-loading-progress { 0% { transform: translateX(-110%); } 55% { transform: translateX(135%); } 100% { transform: translateX(265%); } }
-    .dmh-toolbar-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 496px) minmax(0, 1fr); align-items: center; gap: 12px; width: 100%; min-width: 0; min-height: 56px; padding: 10px 16px; overflow: visible; white-space: nowrap; }
+    .dmh-toolbar-content { display: grid; grid-template-columns: minmax(max-content, 1fr) minmax(0, 588px) minmax(max-content, 1fr); align-items: center; gap: 12px; width: 100%; min-width: 0; min-height: 56px; padding: 10px 16px; overflow: visible; white-space: nowrap; }
     .dmh-brand { display: flex; align-items: center; justify-self: start; gap: 25px; min-width: 0; }
     #dmh-app .dmh-title, #dmh-app .dmh-title:hover, #dmh-app .dmh-title:active, #dmh-app .dmh-title:focus, #dmh-app .dmh-title:focus-visible { margin: -11px -12px; padding: 11px 12px; border: 0; border-radius: 0; outline: 0; background: transparent; color: inherit; box-shadow: none; font: inherit; font-size: 22px; font-weight: 700; line-height: 1; white-space: nowrap; cursor: pointer; appearance: none; -webkit-tap-highlight-color: transparent; user-select: none; }
-    .dmh-search { display: block; justify-self: center; width: min(496px, 100%); min-width: 0; max-width: 496px; }
-    .dmh-search-form { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, 38px); align-items: center; gap: 8px; width: 100%; min-width: 0; }
-    #dmh-app .dmh-search input { width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--dmh-border-strong); border-radius: 6px; background: var(--dmh-surface); color: inherit; }
+    .dmh-search { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) repeat(2, 38px); align-items: center; gap: 8px; justify-self: center; width: min(588px, 100%); min-width: 0; max-width: 588px; }
+    #dmh-app .dmh-search-form { display: grid; grid-template-columns: minmax(0, 1fr) 38px; align-items: center; gap: 4px; width: 100%; min-width: 0; border: 1px solid var(--dmh-border); border-radius: 8px; background: var(--dmh-surface-muted); }
+    #dmh-app .dmh-search-form:focus-within { border-color: var(--dmh-border-strong); }
+    #dmh-app .dmh-search input { width: 100%; min-width: 0; height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: inherit; outline: none; box-shadow: none; }
     .dmh-page-group { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--dmh-text-muted); font-size: 12px; font-weight: 700; }
     .dmh-page-label { user-select: none; }
     .dmh-page-total { white-space: nowrap; user-select: none; }
@@ -134,7 +135,7 @@ export function installStyles(): void {
     .dmh-page-control:focus-within { border-color: var(--dmh-accent); background: var(--dmh-surface); box-shadow: 0 0 0 3px var(--dmh-focus-shadow); }
     .dmh-page-input { width: 42px; min-width: 42px; height: 26px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--dmh-text-strong); text-align: center; font-weight: 700; outline: 0; appearance: textfield; }
     .dmh-page-input::-webkit-inner-spin-button, .dmh-page-input::-webkit-outer-spin-button { margin: 0; appearance: none; }
-    #dmh-app .dmh-search-form > button, #dmh-app .dmh-theme-button, #dmh-app .dmh-settings-button, #dmh-app .dmh-exit-button { height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--dmh-text-muted); cursor: pointer; box-shadow: none; }
+    #dmh-app .dmh-search > button, #dmh-app .dmh-search-form > button, #dmh-app .dmh-theme-button, #dmh-app .dmh-settings-button, #dmh-app .dmh-exit-button { height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--dmh-text-muted); cursor: pointer; box-shadow: none; }
     #dmh-app .dmh-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 38px; min-width: 38px; padding: 0; }
     .dmh-icon-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; }
     .dmh-hot-button svg { fill: currentColor; stroke: none; }
@@ -142,10 +143,10 @@ export function installStyles(): void {
     #dmh-app [data-dmh-tooltip] { position: relative; }
     #dmh-app [data-dmh-tooltip]::after { content: attr(data-dmh-tooltip); position: absolute; top: calc(100% + 8px); left: 50%; z-index: 200; max-width: min(520px, 90vw); padding: 6px 10px; border-radius: 4px; background: rgba(33,33,33,.95); color: #fff; font-size: 12px; font-weight: 500; line-height: 1.35; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; pointer-events: none; transform: translate(-50%, -4px); transition: opacity .14s ease, transform .14s ease; }
     #dmh-app [data-dmh-tooltip]:hover::after, #dmh-app [data-dmh-tooltip]:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
-    #dmh-app .dmh-search-form > button:hover, #dmh-app .dmh-theme-button:hover, #dmh-app .dmh-settings-button:hover, #dmh-app .dmh-exit-button:hover { background: var(--dmh-accent-soft); color: var(--dmh-accent); }
-    #dmh-app .dmh-search-form > button:focus-visible, #dmh-app .dmh-theme-button:focus-visible, #dmh-app .dmh-settings-button:focus-visible, #dmh-app .dmh-exit-button:focus-visible { outline: 2px solid var(--dmh-focus-ring); outline-offset: 2px; }
-    #dmh-app .dmh-search-form > button:disabled { color: var(--dmh-border-strong); cursor: not-allowed; }
-    #dmh-app .dmh-search-form > button:disabled:hover { background: transparent; color: var(--dmh-border-strong); }
+    #dmh-app .dmh-search > button:hover, #dmh-app .dmh-search-form > button:hover, #dmh-app .dmh-theme-button:hover, #dmh-app .dmh-settings-button:hover, #dmh-app .dmh-exit-button:hover { background: var(--dmh-accent-soft); color: var(--dmh-accent); }
+    #dmh-app .dmh-search > button:focus-visible, #dmh-app .dmh-search-form > button:focus-visible, #dmh-app .dmh-theme-button:focus-visible, #dmh-app .dmh-settings-button:focus-visible, #dmh-app .dmh-exit-button:focus-visible { outline: 2px solid var(--dmh-focus-ring); outline-offset: 2px; }
+    #dmh-app .dmh-search > button:disabled, #dmh-app .dmh-search-form > button:disabled { color: var(--dmh-border-strong); cursor: not-allowed; }
+    #dmh-app .dmh-search > button:disabled:hover, #dmh-app .dmh-search-form > button:disabled:hover { background: transparent; color: var(--dmh-border-strong); }
     .dmh-exit-button { flex: 0 0 auto; }
     .dmh-toolbar-actions { display: flex; align-items: center; justify-self: end; gap: 8px; min-width: 0; }
     .dmh-status { min-width: 112px; overflow: hidden; color: var(--dmh-text-muted); font-size: 13px; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
@@ -316,9 +317,49 @@ export function installStyles(): void {
     #dmh-app .dmh-template-reset:focus-visible { outline: 2px solid var(--dmh-focus-ring); outline-offset: 2px; }
     .dmh-snackbar { position: fixed; top: 72px; left: 50%; z-index: 220; max-width: min(520px, calc(100vw - 32px)); padding: 10px 18px; border: 1px solid var(--dmh-snackbar-border); border-radius: 4px; background: var(--dmh-snackbar-bg); color: #fff; font-size: 14px; line-height: 1.45; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 6px 18px var(--dmh-shadow-strong); opacity: 0; pointer-events: none; transform: translate(-50%, -12px); transition: opacity .18s ease, transform .18s ease; }
     .dmh-snackbar.dmh-open { opacity: 1; transform: translate(-50%, 0); }
-    .dmh-ac { position: absolute; top: 42px; left: 0; z-index: 20; width: min(450px, 100%); max-height: 320px; overflow: auto; scrollbar-width: none; padding: 4px; border: 1px solid var(--dmh-border); border-radius: 8px; background: var(--dmh-surface); box-shadow: 0 8px 24px var(--dmh-shadow); opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-6px) scale(.98); transform-origin: top center; transition: opacity .16s ease, transform .16s ease, visibility 0s linear .16s; }
-    .dmh-ac::-webkit-scrollbar { display: none; width: 0; height: 0; }
-    .dmh-ac.dmh-open { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0) scale(1); transition-delay: 0s; }
+    #dmh-app .dmh-search-panel { position: absolute; top: 42px; left: 0; z-index: 20; width: min(496px, 100%); max-height: min(720px, calc(100dvh - 150px)); overflow: auto; scrollbar-width: none; padding: 14px; border: 1px solid var(--dmh-border); border-radius: 8px; background: var(--dmh-surface); box-shadow: 0 8px 24px var(--dmh-shadow); white-space: normal; }
+    #dmh-app .dmh-search-panel::-webkit-scrollbar { display: none; }
+    #dmh-app .dmh-search-panel[hidden], #dmh-app #dmh-search-library[hidden], #dmh-app #dmh-search-popular[hidden], #dmh-app #dmh-ac[hidden] { display: none; }
+    #dmh-app .dmh-search-panel h3 { margin: 0 0 12px; color: var(--dmh-text); font-size: 14px; font-weight: 500; }
+    #dmh-app .dmh-search-panel button { color: inherit; cursor: pointer; font: inherit; }
+    #dmh-app .dmh-search-history-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    #dmh-app .dmh-search-history-heading h3 { margin: 0; }
+    #dmh-app #dmh-search-history-toggle { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 28px; margin: 8px auto 0; padding: 2px 8px; border: 0; border-radius: 4px; background: transparent; color: var(--dmh-text-muted); font-size: 12px; }
+    #dmh-app #dmh-search-history-toggle:hover { background: var(--dmh-accent-soft); color: var(--dmh-accent); }
+    #dmh-app #dmh-search-history-toggle svg { width: 12px; height: 12px; flex-shrink: 0; }
+    #dmh-app #dmh-search-history-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+    #dmh-app .dmh-search-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    #dmh-app .dmh-search-entry { position: relative; min-width: 0; border-radius: 4px; background: var(--dmh-surface-muted); }
+    #dmh-app .dmh-search-entry:hover { background: var(--dmh-surface-hover); }
+    #dmh-app .dmh-search-entry button { border: 0; border-radius: 4px; background: transparent; }
+    #dmh-app .dmh-search-entry .dmh-search-query { display: flex; align-items: center; width: 100%; min-width: 0; height: 44px; padding: 4px 28px 4px 30px; text-align: left; font-size: 12px; }
+    #dmh-app .dmh-search-label { display: flex; flex-direction: column; width: 100%; min-width: 0; gap: 2px; }
+    #dmh-app .dmh-search-label-inline { flex-direction: row; align-items: baseline; gap: 6px; }
+    #dmh-app .dmh-search-query-original, #dmh-app .dmh-search-query-cn { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.4; }
+    #dmh-app .dmh-search-query-cn { color: var(--dmh-text-muted); font-size: 12px; }
+    #dmh-app .dmh-search-label-inline .dmh-search-query-original, #dmh-app .dmh-search-label-inline .dmh-search-query-cn { flex: 0 1 auto; }
+    #dmh-app .dmh-search-entry .dmh-search-pin, #dmh-app .dmh-search-entry .dmh-search-remove { position: absolute; top: 3px; display: grid; place-items: center; width: 24px; height: 24px; padding: 4px; border-radius: 4px; background: transparent; color: var(--dmh-text-muted); }
+    #dmh-app .dmh-search-entry .dmh-search-pin { left: 3px; }
+    #dmh-app .dmh-search-entry .dmh-search-remove { right: 3px; opacity: 0; pointer-events: none; }
+    #dmh-app .dmh-search-entry-pinned .dmh-search-pin { color: var(--dmh-accent); }
+    #dmh-app .dmh-search-entry-pinned .dmh-search-pin svg { fill: currentColor; }
+    #dmh-app .dmh-search-entry svg { width: 14px; height: 14px; }
+    #dmh-app .dmh-search-entry .dmh-search-pin svg { width: 16px; height: 16px; }
+    #dmh-app .dmh-search-remove svg { fill: currentColor; }
+    #dmh-app .dmh-search-pin:hover, #dmh-app .dmh-search-remove:hover { background: var(--dmh-accent-soft); color: var(--dmh-accent); }
+    #dmh-app .dmh-search-entry:hover .dmh-search-remove, #dmh-app .dmh-search-entry:focus-within .dmh-search-remove { opacity: 1; pointer-events: auto; }
+    @media (hover: none) { #dmh-app .dmh-search-entry .dmh-search-remove { opacity: 1; pointer-events: auto; } }
+    #dmh-app .dmh-search-empty { grid-column: 1 / -1; margin: 4px 0; padding: 8px 0; color: var(--dmh-text-muted); font-size: 13px; }
+    #dmh-app #dmh-search-popular { margin-top: 20px; }
+    #dmh-app .dmh-search-popular-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px; }
+    @media (max-width: 420px) { #dmh-app .dmh-search-popular-grid { grid-template-columns: minmax(0, 1fr); } }
+    #dmh-app .dmh-search-popular-grid button { display: flex; align-items: baseline; gap: 8px; min-width: 0; min-height: 34px; padding: 6px 10px; border: 0; border-radius: 4px; background: transparent; text-align: left; font-size: 13px; }
+    #dmh-app .dmh-search-popular-grid button:hover { background: var(--dmh-surface-muted); }
+    #dmh-app .dmh-search-popular-query { flex: 1; min-width: 0; }
+    #dmh-app .dmh-search-rank { flex: 0 0 16px; line-height: 1.5; text-align: right; color: var(--dmh-text-muted); }
+    #dmh-app .dmh-search-popular-grid button:nth-child(-n+3) .dmh-search-rank { color: var(--dmh-accent); }
+    #dmh-app .dmh-search-panel button:focus-visible { outline: 2px solid var(--dmh-focus-ring); outline-offset: -2px; }
+    #dmh-app .dmh-search-panel .dmh-ac { padding: 0; }
     .dmh-ac-item { display: flex; align-items: center; width: 100%; min-height: 32px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: inherit; text-align: left; cursor: pointer; }
     .dmh-ac-item:hover { background: var(--dmh-surface-muted); box-shadow: none; }
     .dmh-ac-item.dmh-selected, .dmh-ac-item.dmh-selected:hover { background: var(--dmh-accent-soft); box-shadow: inset 3px 0 0 var(--dmh-accent); }
@@ -329,7 +370,9 @@ export function installStyles(): void {
     .dmh-ac-general { color: var(--dmh-accent); }
     .dmh-ac-meta { color: var(--dmh-text-muted); }
     .dmh-ac-cn { color: inherit; font-size: 12px; white-space: nowrap; }
-    .dmh-blacklist-ac { top: 40px; right: 44px; width: auto; }
+    #dmh-app .dmh-blacklist-ac { position: absolute; top: 40px; right: 44px; left: 0; z-index: 20; display: none; width: auto; max-height: 320px; overflow: auto; scrollbar-width: none; padding: 4px; border: 1px solid var(--dmh-border); border-radius: 8px; background: var(--dmh-surface); box-shadow: 0 8px 24px var(--dmh-shadow); }
+    #dmh-app .dmh-blacklist-ac.dmh-open { display: block; }
+    #dmh-app .dmh-blacklist-ac::-webkit-scrollbar { display: none; }
     .dmh-viewer { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: var(--dmh-surface); }
     .dmh-viewer.dmh-open { display: flex; }
     .dmh-viewer img, .dmh-viewer video { display: block; max-width: 100vw; max-height: 100vh; object-fit: contain; }
@@ -404,7 +447,7 @@ export function installStyles(): void {
     .dmh-tag-meta { background: rgba(84, 110, 122, .9); }
     html, body, .dmh-topbar { transition: background-color .16s ease, border-color .16s ease; }
     @media (max-width: 980px) { .dmh-title { display: none; } .dmh-brand { gap: 0; } }
-    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, 1fr) max-content; gap: 8px; padding: 8px 10px; } .dmh-search { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; width: 100%; max-width: none; } .dmh-search-form { grid-template-columns: minmax(0, 1fr) repeat(3, 38px); } .dmh-status { display: none; } .dmh-grid { margin-top: 108px; } #dmh-app .dmh-back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: calc(100vh - 104px); font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 50px; height: 50px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
+    @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, 1fr) max-content; gap: 8px; padding: 8px 10px; } .dmh-search { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; width: 100%; max-width: none; } .dmh-status { display: none; } .dmh-grid { margin-top: 108px; } #dmh-app .dmh-back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: calc(100vh - 104px); font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 50px; height: 50px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
     @media (prefers-reduced-motion: reduce) { html, body, .dmh-topbar, #dmh-app .dmh-back-to-top { transition: none; } .dmh-loading-progress-bar { width: 100%; animation: none; transform: none; } }
   `;
   document.head.appendChild(style);

@@ -20,6 +20,12 @@ function renderWithUser(
 }
 
 describe('theme settings', () => {
+  it('renders the saved hide-popular-searches switch in Settings', () => {
+    const html = renderWithUser({}, new Map([['danbooru-masonry.hidePopularSearches', true]]));
+    expect(html).toMatch(/id="dmh-hide-popular-searches"[^>]*checked/);
+    expect(html).toContain('aria-label="隐藏热门搜索"');
+    expect(html).toContain('隐藏后搜索历史默认显示 16 条');
+  });
   it('renders the saved list layout in a labeled native select', () => {
     const html = renderWithUser({}, new Map([['danbooru-masonry.listLayout', 'justified']]));
     expect(html).toContain('for="dmh-list-layout"');
@@ -43,11 +49,16 @@ describe('search shortcuts', () => {
     expect(html).toContain('class="dmh-page-total" aria-label="总页数">/ <span id="dmh-total-pages">…</span>');
   });
 
-  it('places Hot and favorites to the right of the search button', () => {
+  it('keeps original shortcuts outside the shared search panel without new toolbar actions', () => {
     const html = renderWithUser({ currentUserId: '42', currentUserName: 'My_Name' });
-    expect(html.indexOf('aria-label="搜索"')).toBeLessThan(html.indexOf('id="dmh-hot-search"'));
-    expect(html.indexOf('id="dmh-hot-search"')).toBeLessThan(html.indexOf('id="dmh-favorites-search"'));
+    const beforePanel = html.slice(html.indexOf('id="dmh-search"'), html.indexOf('id="dmh-search-panel"'));
+    expect(beforePanel.match(/<button /g)).toHaveLength(1);
+    expect(html).not.toContain('dmh-search-library-toggle');
+    expect(html.indexOf('</form>')).toBeLessThan(html.indexOf('id="dmh-hot-search"'));
     expect(html).toMatch(/id="dmh-favorites-search"[^>]*aria-label="我的收藏"[^>]*><svg/);
+    expect(html).toContain('aria-controls="dmh-search-panel"');
+    expect(html).not.toContain('dmh-search-undo');
+    expect(html).not.toContain('dmh-search-save');
   });
   it('disables favorites without a signed-in username', () => {
     const html = renderWithUser({ currentUserIsAnonymous: 'true' });
