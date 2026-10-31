@@ -128,12 +128,12 @@ export function installStyles(): void {
     #dmh-app .dmh-search-form { display: grid; grid-template-columns: minmax(0, 1fr) 38px; align-items: center; gap: 4px; width: 100%; min-width: 0; border: 1px solid var(--dmh-border); border-radius: 8px; background: var(--dmh-surface-muted); }
     #dmh-app .dmh-search-form:focus-within { border-color: var(--dmh-border-strong); }
     #dmh-app .dmh-search input { width: 100%; min-width: 0; height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: inherit; outline: none; box-shadow: none; }
-    .dmh-page-group { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--dmh-text-muted); font-size: 12px; font-weight: 700; }
-    .dmh-page-label { user-select: none; }
-    .dmh-page-total { white-space: nowrap; user-select: none; }
-    .dmh-page-control { display: flex; align-items: center; justify-content: center; height: 28px; padding: 0; border: 1px solid var(--dmh-border); border-radius: 999px; background: var(--dmh-surface-muted); color: var(--dmh-text-muted); }
-    .dmh-page-control:focus-within { border-color: var(--dmh-accent); background: var(--dmh-surface); box-shadow: 0 0 0 3px var(--dmh-focus-shadow); }
-    .dmh-page-input { width: 42px; min-width: 42px; height: 26px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--dmh-text-strong); text-align: center; font-weight: 700; outline: 0; appearance: textfield; }
+    #dmh-app .dmh-page-group { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--dmh-text-muted); font-size: 12px; font-weight: 700; line-height: 18px; }
+    #dmh-app .dmh-page-label { margin: 0; font: inherit; user-select: none; }
+    #dmh-app .dmh-page-total { margin: 0; font: inherit; white-space: nowrap; user-select: none; }
+    #dmh-app .dmh-page-control { display: flex; flex: none; align-items: center; justify-content: center; height: 26px; margin: 0; padding: 0; border: 1px solid var(--dmh-border); border-radius: 999px; background: var(--dmh-surface-muted); color: var(--dmh-text-muted); font: inherit; }
+    #dmh-app .dmh-page-control:focus-within { border-color: var(--dmh-accent); background: var(--dmh-surface); box-shadow: 0 0 0 3px var(--dmh-focus-shadow); }
+    #dmh-app .dmh-page-input { width: 36px; min-width: 36px; height: 24px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--dmh-text-strong); text-align: center; font: inherit; outline: 0; box-shadow: none; appearance: textfield; }
     .dmh-page-input::-webkit-inner-spin-button, .dmh-page-input::-webkit-outer-spin-button { margin: 0; appearance: none; }
     #dmh-app .dmh-search > button, #dmh-app .dmh-search-form > button, #dmh-app .dmh-theme-button, #dmh-app .dmh-settings-button, #dmh-app .dmh-exit-button { height: 36px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--dmh-text-muted); cursor: pointer; box-shadow: none; }
     #dmh-app .dmh-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 38px; min-width: 38px; padding: 0; }
