@@ -1,18 +1,46 @@
-# Danbooru Masonry
+# Danbooru Masonry — Enhanced Browsing and Tag Translation
 
-[中文说明](README.md)
+Browse Danbooru with multiple image layouts, Chinese tag translations, search history, and an immersive image and video viewer.
 
-Adds masonry browsing, tag translation, immersive image viewing, and several helper features to Danbooru. This project is based on [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry), simplified and adapted for Danbooru.
+[中文说明](https://github.com/kano0222/danbooru-masonry/blob/main/README.md) · [Interactive preview](https://kano0222.github.io/danbooru-masonry/)
 
-The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table). If you find an error, submit a correction through the [tag correction page](https://tagsuggest.zeabur.app).
+![Danbooru Masonry: masonry image list and search toolbar](docs/images/masonry-layout.png)
 
-<img src="https://count.getloli.com/@danbooru-masonry?theme=moebooru" alt="Moe Counter">
+## Features
 
-[Preview](https://kano0222.github.io/danbooru-masonry/)
+### Browsing and Layouts
 
-[Development guide (Chinese)](docs/development.md): setup, project structure, and validation.
+- Choose masonry, grid, justified, or virtual masonry layouts.
+- Load posts as you scroll or jump to a page, with adjustable thumbnail sizes.
+- Open sources and download files from thumbnails, with optional post IDs and dimensions.
+- Switch to dark mode and filter posts using your signed-in Danbooru account’s blacklist.
 
-## Install
+### Tag Search and Translation
+
+Typing a tag shows autocomplete suggestions; selecting one inserts the tag. Queries retain their original text, with Chinese translations where available. The search bar includes Hot and personal favorites shortcuts. Tags in the original site’s left sidebar also receive Chinese translations.
+
+### Search History and Popular Searches
+
+Click an empty search field to view history and popular searches. Select an entry to run its complete query from page 1. Pin searches you use often, or delete entries you no longer need.
+
+<img src="docs/images/search-history.png" alt="Search history, pinned queries, and popular searches" width="600">
+
+- Submitting a search, selecting history or popular searches, or searching through viewer tags records the query. Empty searches, Hot and personal favorites shortcuts, page navigation, and refreshes do not add entries.
+- Up to 20 ordinary entries are kept, with recently used queries first. Use the pin to keep an entry at the top without counting toward the limit. Unpin it before deleting it. Deletion is immediate and cannot be undone.
+- History initially shows eight entries and can be expanded. Enabling “隐藏热门搜索” (hide popular searches) in Settings shows 16 entries by default and stops requesting popular searches.
+- History is stored locally in userscript storage and does not sync to your Danbooru account.
+
+Popular searches come from Danbooru's [Popular Searches](https://danbooru.donmai.us/explore/posts/searches), with up to 10 entries. They rank search queries, unlike Hot images. If today's data is empty, the previous day is tried using UTC dates. Missing data or a failed request hides this section without affecting history.
+
+### Image and Video Viewer
+
+The immersive viewer supports image and video previews, navigation, zooming, favorites, downloads, and adding tags from the current post to the blacklist. Favorites and blacklist changes require a Danbooru login.
+
+Artist, character, and copyright tags are shown by default, with more tags available on expansion.
+
+![Immersive image viewer](docs/images/media-viewer.png)
+
+## Installation and Usage
 
 [Install from Greasy Fork](https://greasyfork.org/scripts/585986) (login is required because the script is marked as adult content)
 
@@ -20,72 +48,35 @@ The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translati
 
 [Install from GitHub Release](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.user.js)
 
-## Features
+Install a userscript manager (such as Tampermonkey) in your browser, then install the script from one of the links above. Automatic entry is enabled by default on first installation. Open or refresh the Danbooru home page or post list to enter masonry mode. If you disable this option in Settings, use the button in the upper-right corner of the original page to enter manually.
 
-- Adds a masonry mode entry in the upper-right corner of Danbooru pages. Tags in the original left sidebar are automatically shown with Chinese translations.
+Once inside, click the gear button in the toolbar to adjust layouts, visible information, and viewer behavior.
 
-![preview1](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview1.png)
+## Usage Guide
+
+### Settings
 
 - Masonry
-  - Infinite scrolling
-  - Tag search and autocomplete
-  - Hot and personal favorites shortcuts
-  - Automatic search history with pinning, deletion, and Danbooru popular searches
-  - Page navigation
-  - Honors the logged-in user's Danbooru blacklist
-  - Dark mode
-- Thumbnails
-  - Source and download actions
-  - Optional image IDs and dimensions
+  - Automatically enter masonry mode (enabled by default)
+  - Image list layout: masonry, grid, justified, or virtual masonry (default: masonry)
+  - Thumbnail size: small / medium / large (default: large)
+  - Show NSFW (enabled by default)
+  - Show thumbnail action buttons (enabled by default)
+  - Show thumbnail information (disabled by default)
+  - Show masonry scrollbar (enabled by default)
+- Search
+  - Hide popular searches (disabled by default)
+- Viewer
+  - Use the mouse wheel to navigate images (enabled by default)
+  - Load original files (disabled by default)
+  - Preload 0–5 following still images (default: 2; 0 disables preloading)
+  - Tag click behavior: new-tab masonry (default) or current-tab masonry
 
-![preview2](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview2.png)
+The screenshot shows an example configuration; defaults are listed above.
 
-- The settings panel supports:
+<img src="docs/images/settings-panel.png" alt="Settings panel" width="360">
 
-  - Masonry
-    - Automatically enter masonry mode (enabled by default)
-    - Image list layout: masonry, grid, justified, or virtual masonry(default: masonry)
-    - Thumbnail size: small / medium / big (default: big)
-    - Show NSFW (enabled by default)
-    - Show thumbnail action buttons (enabled by default)
-    - Show thumbnail information (disabled by default)
-    - Show masonry scrollbar (enabled by default)
-  - Viewer
-    - Use the mouse wheel to navigate images (enabled by default)
-    - Load original files (disabled by default)
-    - Preload 0–5 following still images (default: 2; 0 disables preloading)
-    - Tag click behavior: new-tab masonry (default) or current-tab masonry
-  - Other
-    - Danbooru blacklist rule creation, autocomplete, removal confirmation, batch editing, and account synchronization
-    - Download filename templates
-
-![preview3](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview3.png)
-
-- The immersive viewer supports image and video previews, navigation, zooming, favorites, downloads, and adding tags from the current post to the blacklist. Favorites and blacklist changes require a Danbooru login.
-
-- Artist, character, and copyright tags are shown by default, with more tags available on expansion.
-
-![preview4](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/preview4.png)
-
-### Search History and Popular Searches
-
-Click the search field to open search history and popular searches. Typing a tag switches the same panel to autocomplete; clicking the field again preserves the current suggestions, and clearing the input restores history. Popular searches show English and Chinese side by side. History cards retain the original query above a summary of translated content tags, omitting directives such as sort order; entries without translations show only the original query. Autocomplete retains its existing Chinese translations. Clicking history or popular searches runs the complete query from page 1; autocomplete only inserts a tag. The original Hot and personal favorites buttons remain beside the search field.
-
-History initially shows eight entries. Use “展开更多” (show more) below the list to view all entries, or “收起” (collapse) to restore the compact view. Closing and reopening resets the compact view. The panel hides scrollbars but remains scrollable when content exceeds the available height. Enable “隐藏热门搜索” (hide popular searches) in Settings to show 16 history entries by default and stop requesting popular searches.
-
-Use the pin in an entry's upper-left corner to pin or unpin it. Pinned entries appear first, are retained indefinitely, and cannot be deleted directly. Unpinning moves an entry to the front of ordinary history. Up to 20 unpinned entries are kept; the oldest are removed when the limit is exceeded, and reused entries move to the front. Pinned entries do not count toward this limit. The upper-right cross deletes an unpinned entry; it appears on hover or keyboard focus and stays visible on touch devices. Deletion is immediate, without confirmation or undo.
-
-Submitting a search, selecting history or popular searches, or clicking a viewer tag records the query. Viewer tag searches are recorded in both current-tab and new-tab modes, including modifier clicks and middle-clicks. Empty searches, Hot and personal favorites shortcuts, page navigation, and refreshes do not add entries. History is stored locally in userscript storage without syncing to your Danbooru account.
-
-Popular searches come from the site's [Popular Searches](https://danbooru.donmai.us/explore/posts/searches) ranking, with up to 10 entries. This ranks search queries and is distinct from Hot images. If today's ranking is empty, the previous day is requested once (using UTC dates). The section is hidden if that ranking is also empty or the endpoint is unavailable; search history remains usable.
-
-### Local Preview
-
-Run `pnpm preview` for the interactive preview, or `pnpm preview:build` to build it into `preview-dist/`. The preview reuses the production UI and simulates a signed-in user. Its paginated dataset reuses the existing 10 local images; tags, scores, ratings, popular searches, and initial favorites are illustrative.
-
-Search, favorites, and blacklist filtering run locally without accessing a Danbooru account or the online translation service. Settings, search history, and blacklist rules use the preview site's browser storage; favorites reset on reload. Downloads save only local sample images, while source buttons still open the images' original sources.
-
-### Download Filename Templates
+### Download Filenames
 
 Download filename templates support the following placeholders:
 
@@ -98,29 +89,51 @@ Download filename templates support the following placeholders:
 
 Templates use data from Danbooru and source URLs to generate filenames. Click **Save** after editing or restoring defaults.
 
-### Mirror Site Support
+For example, `{artist}_{postid}` combines the artist tag and Danbooru post ID. The file extension is added automatically.
 
-The current adapter supports only the official Danbooru domain and local Danbooru instances at `http://localhost:3000` and `http://127.0.0.1:3000`. Other mirror domains require changes to adapter selection; adding user matches alone will not start the script. See the [development guide (Chinese)](docs/development.md).
+### Blacklist
+
+Sign in to Danbooru to add, remove, or batch-edit rules in Settings and save them to your account. You can also add tags from the current post through the viewer. Rule editing supports tag autocomplete, and removing a rule requires confirmation.
+
+Masonry blacklist filtering supports positive and negative tags, `*` wildcards, and `rating`, `score`, and `status` metatags; other rules are saved to Danbooru but do not apply in masonry mode.
+
+## Supported Sites and Limitations
+
+The script supports only `https://danbooru.donmai.us` and local Danbooru instances at `http://localhost:3000` and `http://127.0.0.1:3000`. Adding user matches alone cannot enable other mirrors. See the [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/blob/main/docs/development.md#关键运行流程) for adapter details.
 
 For URLs supported by the adapter but absent from the default script matches, also add the URL to _User matches_: script editor - Settings - Includes/Excludes - User matches - Add.
 
-![userMatches](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/userMatches.png)
+<img src="docs/images/userscript-user-matches.png" alt="User matches in the script manager" width="600">
 
-## Notes
+## About the Preview
 
-- Masonry blacklist filtering supports positive and negative tags, `*` wildcards, and `rating`, `score`, and `status` metatags; other rules are saved to Danbooru but do not apply in masonry mode.
+Try search, layouts, the viewer, favorites, and blacklist filtering in the [interactive preview](https://kano0222.github.io/danbooru-masonry/). It simulates a signed-in user with local sample images and illustrative tags, scores, ratings, popular searches, and initial favorites. These operations do not access a Danbooru account or the online translation service.
 
-## TODO
+Settings, history, and blacklist rules use the preview site's browser storage; favorites reset on reload. Downloads save sample images, while source buttons open their original sources. To run or build the preview yourself, see the [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/blob/main/docs/development.md#本地演示与静态产物).
+
+## Development and Plans
+
+The [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/blob/main/docs/development.md) covers setup, local preview, project structure, validation, and the release process.
+
+Planned improvements:
 
 - Viewer action layout.
+- Filter by uploader.
+- Mobile layout.
+- Settings panel.
+- Search sorting.
 
-## Credits
+## Data Sources and Credits
 
 - [asadahimeka/yandere-masonry](https://github.com/asadahimeka/yandere-masonry), the original project on which Danbooru Masonry is based.
 - [ffdkj-Danbooru_Tag-Chinese-English-Translation-Table](https://github.com/ffdkj/ffdkj-Danbooru_Tag-Chinese-English-Translation-Table), for providing the Chinese tag translations.
 
+This project simplifies and adapts the original project for Danbooru. Report translation errors through the [tag correction page](https://tagsuggest.zeabur.app).
+
 ## License
 
-This project is open source under the [MIT License](https://github.com/kano0222/danbooru-masonry/blob/main/LICENSE). Images in the static preview remain the property of their creators and are not covered by the project's MIT license; the preview's source buttons link to the original posts.
+This project is open source under the [MIT License](https://github.com/kano0222/danbooru-masonry/blob/main/LICENSE). Preview images remain the property of their creators and are not covered by the project's MIT license; the preview's source buttons link to the original posts.
 
 Copyright © 2026 kano0222
+
+<img src="https://count.getloli.com/@danbooru-masonry?theme=moebooru" alt="Moe Counter">
