@@ -151,6 +151,50 @@ afterEach(() => {
 });
 
 describe('masonry launch and tag search', () => {
+  it('keeps unrelated page paths inactive by default', async () => {
+    vi.stubGlobal('location', new URL('https://danbooru.donmai.us/demo/index.html'));
+    boot(adapter);
+    await Promise.resolve();
+    expect(renderShell).not.toHaveBeenCalled();
+    expect(installLaunchButton).not.toHaveBeenCalled();
+    expect(adapter.getPosts).not.toHaveBeenCalled();
+  });
+
+  it('can explicitly start the shared UI on a hosted preview path', async () => {
+    vi.stubGlobal('location', new URL('https://danbooru.donmai.us/demo/index.html'));
+    boot(adapter, { autoStart: true });
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    expect(renderShell).toHaveBeenCalledOnce();
+  });
+
+  it('starts standalone pages without creating an original-page history entry', async () => {
+    vi.stubGlobal('location', new URL('https://danbooru.donmai.us/demo/?dmh=0'));
+    boot(adapter, { autoStart: true, standalone: true });
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    expect(history.pushState).not.toHaveBeenCalled();
+    expect(history.replaceState).toHaveBeenCalledWith(
+      expect.objectContaining({ dmh: expect.objectContaining({ startPage: 1 }) }),
+      '', adapter.getPostsPageUrl('', 1),
+    );
+    expect(vi.mocked(history.replaceState).mock.calls.every(([entry]) => !entry.dmhBase)).toBe(true);
+  });
+
+  it('provides loaded posts to the startup callback even when virtual cards are not mounted', async () => {
+    vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) =>
+      key === 'danbooru-masonry.listLayout' ? 'virtual' : fallback);
+    const posts = Array.from({ length: 20 }, (_, index) => normalizePost({ id: index + 1 }, adapter.origin));
+    vi.mocked(adapter.getPosts).mockResolvedValue({ posts, hasSourcePosts: true });
+    const onStarted = vi.fn((state: AppState) => {
+      const index = state.posts.findIndex((post) => post.id === '20');
+      showViewer(state, index);
+    });
+    boot(adapter, { autoStart: true, standalone: true, onStarted });
+    await vi.waitFor(() => expect(onStarted).toHaveBeenCalledOnce());
+    expect(renderedState().listLayout).toBe('virtual');
+    expect(showViewer).toHaveBeenCalledWith(renderedState(), 19);
+    expect(renderedState().viewerIndex).toBe(19);
+  });
+
   it('persists the popular-search visibility setting and applies it to the history panel', async () => {
     const setValue = vi.fn();
     vi.stubGlobal('GM_setValue', setValue);

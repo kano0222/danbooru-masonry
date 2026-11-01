@@ -77,6 +77,12 @@ Submitting a search, selecting history or popular searches, or clicking a viewer
 
 Popular searches come from the site's [Popular Searches](https://danbooru.donmai.us/explore/posts/searches) ranking, with up to 10 entries. This ranks search queries and is distinct from Hot images. If today's ranking is empty, the previous day is requested once (using UTC dates). The section is hidden if that ranking is also empty or the endpoint is unavailable; search history remains usable.
 
+### Local Preview
+
+Run `pnpm preview` for the interactive preview, or `pnpm preview:build` to build it into `preview-dist/`. The preview reuses the production UI and simulates a signed-in user. Its paginated dataset reuses the existing 10 local images; tags, scores, ratings, popular searches, and initial favorites are illustrative.
+
+Search, favorites, and blacklist filtering run locally without accessing a Danbooru account or the online translation service. Settings, search history, and blacklist rules use the preview site's browser storage; favorites reset on reload. Downloads save only local sample images, while source buttons still open the images' original sources.
+
 ### Download Filename Templates
 
 Download filename templates support the following placeholders:

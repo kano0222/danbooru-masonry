@@ -109,8 +109,15 @@ interface MasonryHistoryState {
 const MAX_SEARCH_SNAPSHOTS = 8;
 const POSTS_PER_PAGE = 20;
 
-export function boot(adapter: BooruAdapter): void {
+interface BootOptions {
+  autoStart?: boolean;
+  standalone?: boolean;
+  onStarted?: (state: AppState) => void;
+}
+
+export function boot(adapter: BooruAdapter, options: BootOptions = {}): void {
   const state = createState(adapter);
+  const start = () => startMasonry(state, options);
   state.onViewerShown = (postId) => syncViewerHistory(state, postId);
   state.requestViewerClose = () => closeViewerFromHistory(state);
   window.addEventListener('popstate', (event) =>
@@ -118,24 +125,24 @@ export function boot(adapter: BooruAdapter): void {
   );
   state.loadMore = () => loadNextPage(state);
   void state.translations.load().then(() => translateOriginalPageTags(state));
-  if (canShowLaunchButton(location)) {
-    installLaunchButton(() => void startMasonry(state));
-    const skipAutoEnter = new URL(location.href).searchParams.get('dmh') === '0';
+  if (options.autoStart || canShowLaunchButton(location)) {
+    installLaunchButton(() => void start());
+    const skipAutoEnter = !options.standalone && new URL(location.href).searchParams.get('dmh') === '0';
     const launchUrl = consumeMasonryLaunchUrl(location.href);
     if (launchUrl) {
       history.replaceState(history.state, '', launchUrl);
-      void startMasonry(state);
+      void start();
     } else if (skipAutoEnter) {
       const cleanUrl = new URL(location.href);
       cleanUrl.searchParams.delete('dmh');
       history.replaceState(history.state, '', cleanUrl.toString());
-    } else if (state.autoEnterMasonry) {
-      void startMasonry(state);
+    } else if (options.autoStart || state.autoEnterMasonry) {
+      void start();
     }
   }
 }
 
-async function startMasonry(state: AppState): Promise<void> {
+async function startMasonry(state: AppState, options: BootOptions): Promise<void> {
   if (state.starting || state.started) return;
   const button = byId<HTMLButtonElement>('dmh-launch');
   state.starting = true;
@@ -159,7 +166,7 @@ async function startMasonry(state: AppState): Promise<void> {
     bindScrollControls(state);
     observeMasonryLayout(state);
     state.started = true;
-    const initialHistoryEntry = initializeMasonryHistory(state);
+    const initialHistoryEntry = initializeMasonryHistory(state, options.standalone);
     await loadNextPage(state);
     if (initialHistoryEntry?.viewerPostId) {
       history.replaceState(
@@ -173,6 +180,7 @@ async function startMasonry(state: AppState): Promise<void> {
         history.replaceState(createMasonryHistoryState(state), '', location.href);
       }
     }
+    options.onStarted?.(state);
   } catch (error) {
     console.error('[Danbooru Masonry] start failed:', error);
     state.starting = false;
@@ -832,7 +840,7 @@ function loadSearchPage(state: AppState, page: number): void {
   void loadNextPage(state);
 }
 
-function initializeMasonryHistory(state: AppState): MasonryHistoryEntry | null {
+function initializeMasonryHistory(state: AppState, standalone = false): MasonryHistoryEntry | null {
   const existing = getMasonryHistoryEntry(history.state);
   if (existing) {
     state.historyKey = existing.key;
@@ -845,6 +853,11 @@ function initializeMasonryHistory(state: AppState): MasonryHistoryEntry | null {
   }
 
   const currentUrl = new URL(state.adapter.getPostsPageUrl(state.tags, state.page));
+  if (standalone) {
+    state.historyKey = nextHistoryKey(state);
+    history.replaceState(createMasonryHistoryState(state), '', currentUrl.toString());
+    return null;
+  }
   const exitUrl = new URL(currentUrl);
   exitUrl.searchParams.set('dmh', '0');
   const baseState =
