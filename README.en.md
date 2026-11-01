@@ -10,6 +10,8 @@ The current translations come from [ffdkj-Danbooru_Tag-Chinese-English-Translati
 
 [Preview](https://kano0222.github.io/danbooru-masonry/)
 
+[Development guide (Chinese)](docs/development.md): setup, project structure, and validation.
+
 ## Install
 
 [Install from Greasy Fork](https://greasyfork.org/scripts/585986) (login is required because the script is marked as adult content)
@@ -98,9 +100,9 @@ Templates use data from Danbooru and source URLs to generate filenames. Click **
 
 ### Mirror Site Support
 
-This script supports gallery mirror sites based on [Danbooru](https://github.com/danbooru/danbooru).
+The current adapter supports only the official Danbooru domain and local Danbooru instances at `http://localhost:3000` and `http://127.0.0.1:3000`. Other mirror domains require changes to adapter selection; adding user matches alone will not start the script. See the [development guide (Chinese)](docs/development.md).
 
-If the script does not run on the domain you use, you can add the site URL to _User matches_ yourself: script editor - Settings - Includes/Excludes - User matches - Add.
+For URLs supported by the adapter but absent from the default script matches, also add the URL to _User matches_: script editor - Settings - Includes/Excludes - User matches - Add.
 
 ![userMatches](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/userMatches.png)
 

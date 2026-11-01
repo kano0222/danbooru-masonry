@@ -10,6 +10,8 @@
 
 [静态预览](https://kano0222.github.io/danbooru-masonry/)
 
+[开发指南](docs/development.md)：环境搭建、项目结构与验证方式。
+
 ## 安装
 
 [从 Greasy Fork 安装](https://greasyfork.org/scripts/585986)（由于成人内容，需要登录才能安装）
@@ -98,9 +100,9 @@
 
 ### 镜像站支持
 
-该脚本支持基于 [Danbooru](https://github.com/danbooru/danbooru) 的图库镜像站。
+当前适配器仅支持 Danbooru 官方域名及 `http://localhost:3000`、`http://127.0.0.1:3000` 上的本地 Danbooru 实例。其他镜像域名需要修改适配器选择逻辑，仅添加用户匹配不会启动脚本，参见[开发指南](docs/development.md)。
 
-如脚本没有在你使用的域名上运行，可自行将网址加入 _用户匹配_（脚本编辑 → 设置 → 包括/排除 → 用户匹配 → 添加）。
+对适配器已支持但不在脚本默认匹配范围内的网址，还需加入 _用户匹配_（脚本编辑 → 设置 → 包括/排除 → 用户匹配 → 添加）。
 
 ![userMatches](https://raw.githubusercontent.com/kano0222/danbooru-masonry/main/docs/userMatches.png)
 
