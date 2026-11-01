@@ -88,13 +88,15 @@ let adapter: DanbooruAdapter;
 function renderedState(): AppState {
   return vi.mocked(renderShell).mock.calls[0][0];
 }
-function clickTag(tag: string) {
+function clickTag(tag: string, options: Partial<MouseEvent> = {}, type = 'click') {
   const event = {
     button: 0,
+    type,
+    ...options,
     target: { id: '', closest: () => ({ dataset: { viewerTag: tag } }) },
     preventDefault: vi.fn(),
   };
-  for (const handler of nodes.get('dmh-viewer')!.handlers.get('click')!) handler(event);
+  for (const handler of nodes.get('dmh-viewer')!.handlers.get(type)!) handler(event);
   return event;
 }
 beforeEach(() => {
@@ -191,6 +193,57 @@ describe('masonry launch and tag search', () => {
     expect(renderedState().tags).toBe('blue_hair order:score');
     expect(renderedState().searchStartPage).toBe(1);
     expect(save).toHaveBeenCalledWith('danbooru-masonry.searchLibrary', { pinned: [], recent: ['blue_hair order:score'] });
+  });
+
+  it.each([
+    ['masonry-current-tab', {}, 'click', true],
+    ['masonry-new-tab', {}, 'click', false],
+    ['masonry-current-tab', { ctrlKey: true }, 'click', false],
+    ['masonry-current-tab', { metaKey: true }, 'click', false],
+    ['masonry-current-tab', { shiftKey: true }, 'click', false],
+    ['masonry-current-tab', { button: 1 }, 'auxclick', false],
+    ['masonry-new-tab', { button: 1 }, 'auxclick', false],
+  ] as const)('records viewer tag searches for %s with %j via %s', async (behavior, modifiers, type, intercepted) => {
+    const query = 'a&b_(日本語)+#';
+    let stored = { pinned: ['fixed'], recent: ['older', query] };
+    vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) => key === 'danbooru-masonry.searchLibrary' ? stored : fallback);
+    const save = vi.fn((_key: string, value: typeof stored) => { stored = structuredClone(value); });
+    vi.stubGlobal('GM_setValue', save);
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    const state = renderedState();
+    state.tagClickBehavior = behavior;
+    const event = clickTag(query, modifiers, type);
+    expect(save).toHaveBeenCalledExactlyOnceWith('danbooru-masonry.searchLibrary', { pinned: ['fixed'], recent: [query, 'older'] });
+    expect(event.preventDefault).toHaveBeenCalledTimes(intercepted ? 1 : 0);
+    if (intercepted) {
+      expect(state.tags).toBe(query);
+      expect(adapter.getPosts).toHaveBeenLastCalledWith(expect.objectContaining({ tags: query, page: 1 }));
+    } else {
+      expect(state.tags).toBe('old');
+      expect(adapter.getPosts).toHaveBeenCalledOnce();
+      expect(closeViewer).not.toHaveBeenCalled();
+    }
+    clickTag(query, modifiers, type);
+    expect(stored).toEqual({ pinned: ['fixed'], recent: [query, 'older'] });
+    save.mockClear();
+    clickTag('fixed', modifiers, type);
+    expect(save).not.toHaveBeenCalled();
+    expect(stored.pinned).toEqual(['fixed']);
+  });
+
+  it('does not record right clicks, cancelled clicks or non-tag viewer controls', async () => {
+    const save = vi.fn();
+    vi.stubGlobal('GM_setValue', save);
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    renderedState().tagClickBehavior = 'masonry-current-tab';
+    clickTag('ignored', { button: 2 }, 'auxclick');
+    clickTag('ignored', { defaultPrevented: true });
+    const event = { type: 'click', button: 0, target: { id: '', closest: () => null }, preventDefault: vi.fn() };
+    nodes.get('dmh-viewer')!.handlers.get('click')!.forEach(handler => handler(event));
+    expect(save).not.toHaveBeenCalled();
+    expect(adapter.getPosts).toHaveBeenCalledOnce();
   });
 
   it('switches layout and saves it without restarting the current search', async () => {

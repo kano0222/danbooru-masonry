@@ -232,16 +232,22 @@ function bindShellEvents(state: AppState): void {
   byId('dmh-viewer-tags-panel')?.addEventListener('wheel', (event) => event.stopPropagation(), {
     passive: true,
   });
-  byId('dmh-viewer')?.addEventListener('click', (event) => {
+  const onViewerTagSearch = (event: MouseEvent) => {
+    if (event.defaultPrevented || event.button !== (event.type === 'auxclick' ? 1 : 0)) return;
     const link = (event.target as Element).closest<HTMLAnchorElement>('a[data-viewer-tag]');
-    if (!link || !shouldSearchInCurrentTab(event, state.tagClickBehavior)) return;
+    if (!link) return;
+    const query = link.dataset.viewerTag || '';
+    searchLibrary.record(query);
+    if (!shouldSearchInCurrentTab(event, state.tagClickBehavior)) return;
     event.preventDefault();
     closeViewer(state);
     closeAutocomplete(state);
-    beginSearch(state, link.dataset.viewerTag || '');
+    beginSearch(state, query);
     window.scrollTo({ top: 0, behavior: 'instant' });
     void loadNextPage(state);
-  });
+  };
+  byId('dmh-viewer')?.addEventListener('click', onViewerTagSearch);
+  byId('dmh-viewer')?.addEventListener('auxclick', onViewerTagSearch);
   const searchTags = (tags: string) => {
     searchLibrary.close();
     const input = byId<HTMLInputElement>('dmh-tags');

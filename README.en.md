@@ -73,7 +73,7 @@ History initially shows eight entries. Use “展开更多” (show more) below 
 
 Use the pin in an entry's upper-left corner to pin or unpin it. Pinned entries appear first, are retained indefinitely, and cannot be deleted directly. Unpinning moves an entry to the front of ordinary history. Up to 20 unpinned entries are kept; the oldest are removed when the limit is exceeded, and reused entries move to the front. Pinned entries do not count toward this limit. The upper-right cross deletes an unpinned entry; it appears on hover or keyboard focus and stays visible on touch devices. Deletion is immediate, without confirmation or undo.
 
-Submitting a search or selecting history or popular searches records the query. Empty searches, Hot and personal favorites shortcuts, viewer tag clicks, page navigation, and refreshes do not add entries. History is stored locally in userscript storage without syncing to your Danbooru account.
+Submitting a search, selecting history or popular searches, or clicking a viewer tag records the query. Viewer tag searches are recorded in both current-tab and new-tab modes, including modifier clicks and middle-clicks. Empty searches, Hot and personal favorites shortcuts, page navigation, and refreshes do not add entries. History is stored locally in userscript storage without syncing to your Danbooru account.
 
 Popular searches come from the site's [Popular Searches](https://danbooru.donmai.us/explore/posts/searches) ranking, with up to 10 entries. This ranks search queries and is distinct from Hot images. If today's ranking is empty, the previous day is requested once (using UTC dates). The section is hidden if that ranking is also empty or the endpoint is unavailable; search history remains usable.
 
