@@ -12,6 +12,7 @@ import {
   saveHidePopularSearches,
   saveThemeMode,
   saveViewerPreloadCount,
+  saveViewerLayout,
 } from './state';
 
 afterEach(() => {
@@ -101,6 +102,18 @@ describe('masonry settings', () => {
 });
 
 describe('viewer settings', () => {
+  it('restores and persists the toolbar layout independently of other viewer settings', () => {
+    const layout = 'bottom';
+    stubSettings(new Map([['danbooru-masonry.viewerLayout', layout]]));
+    const state = createState({} as BooruAdapter);
+    expect(state.viewerLayout).toEqual(layout);
+    expect(state.viewerUseOriginal).toBe(false);
+    const setValue = vi.fn();
+    vi.stubGlobal('GM_setValue', setValue);
+    saveViewerLayout(state.viewerLayout);
+    expect(setValue).toHaveBeenCalledWith('danbooru-masonry.viewerLayout', layout);
+  });
+
   it('disables original files by default', () => {
     stubSettings(new Map());
     expect(createState({} as BooruAdapter).viewerUseOriginal).toBe(false);

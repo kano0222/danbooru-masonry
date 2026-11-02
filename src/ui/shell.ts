@@ -4,6 +4,7 @@ import { DOWNLOAD_FILENAME_TEMPLATE_OPTIONS, type AppState } from '../core/state
 import { CARD_SIZE_OPTIONS, LAYOUT_OPTIONS } from '../core/masonry';
 import { getFavoriteSearchTag } from '../core/search';
 import { getThemeToggleIcon, getThemeToggleLabel } from './theme';
+import { renderViewerLayoutSettings } from './viewerLayout';
 
 import { getBlacklistRuleSources } from '../core/blacklist';
 
@@ -182,6 +183,9 @@ ${cardSizeOptions}
           <section class="dmh-settings-group" aria-labelledby="dmh-settings-viewer-title">
             <h3 class="dmh-settings-group-title" id="dmh-settings-viewer-title">详情页</h3>
             <section class="dmh-setting-section">
+              ${renderViewerLayoutSettings(state.viewerLayout)}
+            </section>
+            <section class="dmh-setting-section">
               <div class="dmh-setting-row">
                 <span class="dmh-setting-copy"><span class="dmh-setting-label">使用滚轮切换图片</span><span class="dmh-setting-help">在详情查看器中滚动切换上一张或下一张</span></span>
                 <label class="dmh-setting-switch" aria-label="使用滚轮切换图片">
@@ -314,7 +318,7 @@ ${downloadFilenameTemplateInputs}
           <button class="dmh-info-pill dmh-pill-id" id="dmh-viewer-tags-toggle" type="button" aria-expanded="false" aria-controls="dmh-viewer-tags-panel">显示标签</button>
         </div>
         <div class="dmh-viewer-info" id="dmh-viewer-info"></div>
-        <div class="dmh-viewer-actions">
+        <div class="dmh-viewer-actions" id="dmh-viewer-actions" role="group" aria-label="图片操作">
           <button class="dmh-viewer-button" id="dmh-open-source" type="button" data-dmh-tooltip="来源" aria-label="来源">${icons.external}</button>
           <button class="dmh-viewer-button" id="dmh-favorite" type="button" data-dmh-tooltip="收藏" aria-label="收藏">${icons.heart}</button>
           <button class="dmh-viewer-button" id="dmh-viewer-blacklist" type="button" data-dmh-tooltip="加入黑名单" aria-label="加入黑名单" ${canSaveBlacklist ? '' : 'disabled'}>${icons.ban}</button>

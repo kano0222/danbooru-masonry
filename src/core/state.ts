@@ -2,6 +2,7 @@ import type { BooruAdapter, Post } from '../adapters/types';
 import { CARD_SIZE_OPTIONS, DEFAULT_CARD_WIDTH, LAYOUT_OPTIONS, type ListLayout } from './masonry';
 import { TagTranslationStore } from '../data/tagTranslation';
 import type { BlacklistConfig } from './blacklist';
+import { parseViewerLayout, type ViewerLayout } from './viewerLayout';
 
 const CARD_SIZE_STORAGE_KEY = 'danbooru-masonry.cardSize';
 const LIST_LAYOUT_STORAGE_KEY = 'danbooru-masonry.listLayout';
@@ -26,6 +27,11 @@ const HIDE_NSFW_STORAGE_KEY = 'danbooru-masonry.hideNsfw';
 const VIEWER_TAGS_OPEN_STORAGE_KEY = 'danbooru-masonry.viewerTagsOpen';
 const TAG_CLICK_BEHAVIOR_STORAGE_KEY = 'danbooru-masonry.tagClickBehavior';
 const THEME_MODE_STORAGE_KEY = 'danbooru-masonry.themeMode';
+const VIEWER_LAYOUT_STORAGE_KEY = 'danbooru-masonry.viewerLayout';
+
+export function saveViewerLayout(value: ViewerLayout): void {
+  saveSetting(VIEWER_LAYOUT_STORAGE_KEY, value);
+}
 export type TagClickBehavior = 'masonry-current-tab' | 'masonry-new-tab';
 export type ThemeMode = 'light' | 'dark';
 
@@ -142,6 +148,7 @@ export interface AppState {
   showThumbnailInfo: boolean;
   showThumbnailButtons: boolean;
   viewerWheelNavigation: boolean;
+  viewerLayout: ViewerLayout;
   showScrollbar: boolean;
   hidePopularSearches: boolean;
   downloadFilenameTemplates: DownloadFilenameTemplates;
@@ -226,6 +233,7 @@ export function createState(adapter: BooruAdapter): AppState {
     showThumbnailInfo: getInitialBooleanSetting(SHOW_THUMBNAIL_INFO_STORAGE_KEY, false),
     showThumbnailButtons: getInitialBooleanSetting(SHOW_THUMBNAIL_BUTTONS_STORAGE_KEY, true),
     viewerWheelNavigation: getInitialBooleanSetting(VIEWER_WHEEL_NAVIGATION_STORAGE_KEY, true),
+    viewerLayout: parseViewerLayout(getStoredSetting(VIEWER_LAYOUT_STORAGE_KEY)),
     showScrollbar: getInitialBooleanSetting(SHOW_SCROLLBAR_STORAGE_KEY, true),
     hidePopularSearches: getInitialBooleanSetting(HIDE_POPULAR_SEARCHES_STORAGE_KEY, false),
     downloadFilenameTemplates: getInitialDownloadFilenameTemplates(),

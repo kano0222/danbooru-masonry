@@ -24,6 +24,7 @@ import {
   type DownloadFilenameTemplates,
 } from './core/state';
 import { installStyles } from './ui/styles';
+import { bindViewerLayout } from './ui/viewerLayout';
 import { bindSearchLibrary } from './ui/searchLibrary';
 import { fetchPopularSearches } from './api/popularSearches';
 import { applyTheme, getNextThemeMode } from './ui/theme';
@@ -163,6 +164,7 @@ async function startMasonry(state: AppState, options: BootOptions): Promise<void
     shellAttempted = true;
     renderShell(state);
     bindShellEvents(state);
+    bindViewerLayout(state);
     bindScrollControls(state);
     observeMasonryLayout(state);
     state.started = true;

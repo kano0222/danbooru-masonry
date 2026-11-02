@@ -69,10 +69,13 @@ Settings share one page, with two grouped columns on desktop and a scrollable si
 - Search
   - Hide popular searches (disabled by default)
 - Viewer
+  - Toolbar position: top (default, original layout) or bottom; bottom mode mirrors the areas vertically and reverses the vertical order of ID, artist, and related tags
   - Use the mouse wheel to navigate images (enabled by default)
   - Load original files (disabled by default)
   - Preload 0–5 following still images (default: 2; 0 disables preloading)
   - Tag click behavior: new-tab masonry (default) or current-tab masonry
+
+In bottom mode, the tag toggle moves to the upper left and its panel opens to the lower right. Position changes apply immediately and save automatically.
 
 The screenshot shows an example configuration; defaults are listed above.
 
@@ -119,7 +122,6 @@ The [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/b
 
 Planned improvements:
 
-- Viewer action layout.
 - Mobile layout.
 - Search sorting.
 

@@ -444,6 +444,13 @@ export function installStyles(): void {
     html[data-dmh-theme="dark"] #dmh-app .dmh-viewer-tags-list .dmh-info-pill:hover { border-color: var(--dmh-border-strong); background: var(--dmh-border); color: var(--dmh-text-strong); }
     html[data-dmh-theme="dark"] #dmh-viewer-tags-toggle { border-color: var(--dmh-border-strong); background: rgba(33,38,45,.94); color: var(--dmh-text); box-shadow: 0 2px 8px var(--dmh-shadow); }
     html[data-dmh-theme="dark"] #dmh-viewer-tags-toggle:hover { border-color: var(--dmh-accent); background: var(--dmh-surface-hover); color: var(--dmh-text-strong); box-shadow: 0 2px 8px var(--dmh-shadow-strong); }
+    .dmh-viewer[data-toolbar-position="bottom"] .dmh-viewer-actions { top: auto; bottom: 14px; }
+    .dmh-viewer[data-toolbar-position="bottom"] .dmh-viewer-info { top: auto; bottom: 14px; flex-direction: column-reverse; }
+    .dmh-viewer[data-toolbar-position="bottom"] .dmh-viewer-tags { top: 36px; bottom: auto; }
+    .dmh-viewer[data-toolbar-position="bottom"] .dmh-viewer-tags-panel { top: calc(100% + 4px); bottom: auto; max-height: min(35vh, calc(50dvh - 100px)); }
+    #dmh-app .dmh-viewer[data-toolbar-position="bottom"] .dmh-viewer-button[data-dmh-tooltip]::after { top: auto; bottom: calc(100% + 8px); }
+    .dmh-viewer[data-toolbar-position="bottom"]:has(video:not([hidden])) .dmh-viewer-actions,
+    .dmh-viewer[data-toolbar-position="bottom"]:has(video:not([hidden])) .dmh-viewer-info { bottom: 64px; }
     .dmh-tag-chip { display: inline-flex; max-width: 100%; padding: 2px 7px; border-radius: 999px; color: #fff; text-decoration: none; background: rgba(143, 119, 181, .9); }
     .dmh-tag-chip:hover { text-decoration: none; }
     .dmh-tag-artist { background: rgba(251, 140, 0, .9); }
@@ -455,6 +462,15 @@ export function installStyles(): void {
     @media (max-width: 760px) { .dmh-settings-panel { width: min(480px, calc(100vw - 24px)); } .dmh-settings-content { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px; } .dmh-settings-group-masonry { grid-row: auto; } }
     @media (max-width: 380px) { .dmh-settings-group { padding: 10px; } .dmh-settings-group .dmh-setting-row:has(select) { flex-direction: column; align-items: stretch; gap: 8px; } .dmh-settings-group .dmh-setting-row:has(select) .dmh-setting-copy { flex-basis: auto; } .dmh-settings-group .dmh-setting-select { width: 100%; } }
     @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, 1fr) max-content; gap: 8px; padding: 8px 10px; } .dmh-search { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; width: 100%; max-width: none; } .dmh-status { display: none; } .dmh-grid { margin-top: 108px; } #dmh-app .dmh-back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: calc(100vh - 104px); font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 50px; height: 50px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
+    @media (max-width: 760px) {
+      .dmh-viewer[data-toolbar-position="bottom"] { --dmh-info-width: min(360px, calc(100vw - 124px)); }
+      .dmh-viewer[data-toolbar-position="bottom"] .dmh-viewer-info { max-width: var(--dmh-info-width); max-height: calc(50dvh - 64px); }
+      .dmh-viewer[data-toolbar-position="bottom"] .dmh-viewer-actions { max-width: calc(100vw - var(--dmh-info-width) - 42px); }
+    }
+    @media (min-width: 400px) and (max-width: 760px) and (max-height: 500px) {
+      /* Reserve 286px for seven 34px actions and their six 8px gaps. */
+      .dmh-viewer[data-toolbar-position="bottom"] { --dmh-info-width: min(360px, calc(100vw - 328px)); }
+    }
     @media (prefers-reduced-motion: reduce) { html, body, .dmh-topbar, #dmh-app .dmh-back-to-top { transition: none; } .dmh-loading-progress-bar { width: 100%; animation: none; transform: none; } }
   `;
   document.head.appendChild(style);

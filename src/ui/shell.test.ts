@@ -55,7 +55,7 @@ describe('theme settings', () => {
       expect(panel).toContain(`id="dmh-settings-${group}-title"`);
     }
     expect(panel.match(/type="checkbox"/g)).toHaveLength(8);
-    expect(panel.match(/<select /g)).toHaveLength(4);
+    expect(panel.match(/<select /g)).toHaveLength(5);
     for (const editor of ['blacklist', 'download']) {
       expect(panel).toContain(`id="dmh-${editor}-editor-open"`);
       expect(panel).not.toContain(`id="dmh-${editor}-editor"`);
@@ -80,6 +80,18 @@ describe('theme settings', () => {
     );
     expect(html).toMatch(/id="dmh-theme-toggle"[^>]*data-dmh-tooltip="切换到浅色模式"/);
     expect(html).not.toContain('id="dmh-theme-mode"');
+  });
+});
+
+describe('viewer position settings', () => {
+  it('renders one saved toolbar position control for swapping the two groups', () => {
+    const html = renderWithUser({}, new Map([['danbooru-masonry.viewerLayout', 'bottom']]));
+    expect(html).toContain('for="dmh-viewer-toolbar-position"');
+    expect(html).toContain('<option value="bottom" selected>底部</option>');
+    expect(html).toContain('选择底部时，上下翻转详情布局');
+    expect(html).not.toContain('dmh-viewer-tags-position');
+    expect(html).not.toContain('dmh-viewer-info-position');
+    expect(html).not.toContain('dmh-viewer-layout-reset');
   });
 });
 
