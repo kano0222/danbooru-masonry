@@ -39,6 +39,26 @@ describe('Danbooru blacklist', () => {
     expect(isPostBlacklisted(post(), config('cat* 1boy', 'dog rating:g'))).toBe(false);
   });
 
+  it('matches uploader IDs independently of artist tags and combines with other terms', () => {
+    const uploaded = post({ raw: { uploader_id: 123 }, tags: ['artist', 'solo'] });
+    expect(isPostBlacklisted(uploaded, config('uploaderid:123'))).toBe(true);
+    expect(isPostBlacklisted(uploaded, config('uploaderid:456'))).toBe(false);
+    expect(isPostBlacklisted(uploaded, config('uploaderid:123 solo'))).toBe(true);
+    expect(isPostBlacklisted(uploaded, config('uploaderid:123 dog'))).toBe(false);
+    expect(isPostBlacklisted(uploaded, config('-uploaderid:123'))).toBe(false);
+    expect(isPostBlacklisted(uploaded, config('-uploaderid:456'))).toBe(true);
+    expect(isPostBlacklisted(post({ raw: { uploader_id: '123' } }), config('uploaderid:123'))).toBe(true);
+    expect(isPostBlacklisted(post({ tags: ['uploaderid:123'] }), config('uploaderid:123'))).toBe(false);
+  });
+
+  it.each([undefined, null, '', 0, -1, 'name', '123 456', '1.5'])('ignores missing or invalid uploader ID %s', (id) => {
+    expect(isPostBlacklisted(post({ raw: { uploader_id: id } }), config('uploaderid:123'))).toBe(false);
+  });
+
+  it.each(['uploaderid:', 'uploaderid:0', 'uploaderid:-1', 'uploaderid:name', 'uploaderid:1.5'])('rejects malformed uploader rule %s', (rule) => {
+    expect(parseBlacklistRule(rule)).toBeNull();
+  });
+
   it('matches rating and score comparisons, including negative terms', () => {
     expect(isPostBlacklisted(post(), config('rating:e score:>=10'))).toBe(true);
     expect(isPostBlacklisted(post(), config('-rating:e'))).toBe(false);

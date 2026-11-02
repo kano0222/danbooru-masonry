@@ -96,7 +96,7 @@ export const popularSearches: [string, number][] = [
   ['flower', 6420], ['city', 5310], ['dress', 4280], ['scenery', 3160],
 ];
 
-// Artwork/source metadata comes from the existing preview. Tags, scores and ratings are illustrative.
+// Artwork/source metadata comes from the existing preview. Tags, scores, ratings and uploader IDs are illustrative.
 export function createPreviewPosts(baseUrl: string): Post[] {
   return Array.from({ length: 60 }, (_, index) => {
     const image = previewImages[index % previewImages.length];
@@ -112,7 +112,7 @@ export function createPreviewPosts(baseUrl: string): Post[] {
     };
     const imageUrl = new URL(`image/${image.file}`, baseUrl).toString();
     return {
-      id: String(9000001 + index), raw: null,
+      id: String(9000001 + index), raw: { uploader_id: 800001 + index % 3 },
       fileUrl: imageUrl, largeUrl: imageUrl, sampleUrl: imageUrl,
       previewUrl: imageUrl, thumbnailUrl: imageUrl, listUrl: imageUrl, viewerUrl: imageUrl,
       playbackUrl: '', width: image.width, height: image.height,

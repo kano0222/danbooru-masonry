@@ -142,6 +142,19 @@ describe('viewer tag panel', () => {
     expect(choices).toContain('data-blacklist-choice="hello"');
     expect(choices).toContain('&lt;unsafe&gt;');
   });
+  it('offers a separately labelled uploader rule alongside artist tags', () => {
+    const { value } = setup();
+    value.posts[0].raw = { uploader_id: 123 };
+    const choices = renderViewerBlacklistChoices(value);
+    expect(choices).toContain('data-blacklist-choice="uploaderid:123"');
+    expect(choices).toContain('上传者 ID：123');
+    expect(choices).toContain('data-blacklist-choice="author"');
+  });
+  it.each([null, {}, { uploader_id: null }, { uploader_id: '<unsafe>' }])('omits unavailable uploader choices %s', raw => {
+    const { value } = setup();
+    value.posts[0].raw = raw;
+    expect(renderViewerBlacklistChoices(value)).not.toContain('uploaderid:');
+  });
   it('updates content, scroll and links while keeping expansion across posts', () => {
     const { value, nodes } = setup();
     setViewerTagsOpen(value, true);

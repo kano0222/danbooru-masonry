@@ -671,10 +671,28 @@ describe('browser history and viewer media events', () => {
 });
 
 describe('quick blacklist actions', () => {
-  it('saves selected viewer tags only after confirmation', async () => {
+  it('does not save a duplicate uploader rule', async () => {
     document.body.dataset.currentUserId = '42';
     const save = vi.spyOn(userSettings, 'updateBlacklistedTags').mockResolvedValue();
-    const taggedPost = normalizePost({ id: 1, tag_string: 'cat solo' }, adapter.origin);
+    const uploaded = normalizePost({ id: 1, uploader_id: 123 }, adapter.origin);
+    vi.mocked(adapter.getPosts).mockResolvedValueOnce({ posts: [uploaded], hasSourcePosts: true });
+    boot(adapter);
+    await vi.waitFor(() => expect(renderedState().posts).toEqual([uploaded]));
+    renderedState().viewerIndex = 0;
+    renderedState().blacklistText = 'uploaderid:123';
+    nodes.get('dmh-viewer-blacklist')!.handlers.get('click')!.forEach(fn => fn({}));
+    const choice = node();
+    choice.dataset.blacklistChoice = 'uploaderid:123';
+    nodes.get('dmh-viewer-blacklist-choices')!.handlers.get('click')!
+      .forEach(fn => fn({ target: { closest: () => choice } }));
+    nodes.get('dmh-viewer-blacklist-confirm')!.handlers.get('click')!.forEach(fn => fn({}));
+    expect(save).not.toHaveBeenCalled();
+    expect(nodes.get('dmh-viewer-blacklist-status')!.textContent).toBe('所选规则已在黑名单中');
+  });
+  it.each(['cat', 'uploaderid:123'])('saves selected viewer rule %s only after confirmation', async (rule) => {
+    document.body.dataset.currentUserId = '42';
+    const save = vi.spyOn(userSettings, 'updateBlacklistedTags').mockResolvedValue();
+    const taggedPost = normalizePost({ id: 1, uploader_id: 123, tag_string: 'cat solo' }, adapter.origin);
     vi.mocked(adapter.getPosts).mockResolvedValueOnce({ posts: [taggedPost], hasSourcePosts: true });
     boot(adapter);
     await vi.waitFor(() => expect(renderedState().posts).toEqual([taggedPost]));
@@ -687,7 +705,7 @@ describe('quick blacklist actions', () => {
     expect(save).not.toHaveBeenCalled();
 
     const choice = node();
-    choice.dataset.blacklistChoice = 'cat';
+    choice.dataset.blacklistChoice = rule;
     const choiceEvent = { target: { closest: () => choice } };
     nodes.get('dmh-viewer-blacklist-choices')!.handlers.get('click')!
       .forEach((handler) => handler(choiceEvent));
@@ -696,13 +714,13 @@ describe('quick blacklist actions', () => {
 
     nodes.get('dmh-viewer-blacklist-confirm')!.handlers.get('click')!
       .forEach((handler) => handler({}));
-    await vi.waitFor(() => expect(save).toHaveBeenCalledWith(adapter.origin, '42', 'cat'));
+    await vi.waitFor(() => expect(save).toHaveBeenCalledWith(adapter.origin, '42', rule));
 
-    expect(renderedState().blacklistText).toBe('cat');
+    expect(renderedState().blacklistText).toBe(rule);
     expect(renderedState().posts).toEqual([]);
     await vi.waitFor(() => expect(nodes.get('dmh-viewer-blacklist-dialog')!.close).toHaveBeenCalledOnce());
     const snackbarLabel = nodes.get('dmh-snackbar')!.appendChild.mock.calls.at(-1)![0] as ReturnType<typeof node>;
-    expect(snackbarLabel.textContent).toBe('已将 1 个标签加入黑名单');
+    expect(snackbarLabel.textContent).toBe('已将 1 条规则加入黑名单');
   });
 });
 

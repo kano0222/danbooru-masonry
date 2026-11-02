@@ -1,3 +1,4 @@
+import { getPostUploaderId } from './blacklist';
 import { getViewerTags, getTagSearchUrl } from './viewerTags';
 import type { Post } from '../adapters/types';
 import {
@@ -909,8 +910,12 @@ export function renderViewerBlacklistChoices(state: AppState): string {
     ...post.tagGroups.character.map((tag) => ({ tag, className: 'dmh-pill-character' })),
     ...getViewerTags(post).map((tag) => ({ tag, className: 'dmh-pill-id' })),
   ];
+  const uploaderId = getPostUploaderId(post);
+  const uploaderChoice = uploaderId
+    ? `<button class="dmh-viewer-blacklist-choice dmh-pill-id" type="button" data-blacklist-choice="uploaderid:${uploaderId}" aria-pressed="false">上传者 ID：${uploaderId}</button>`
+    : '';
   const seen = new Set<string>();
-  return entries
+  return uploaderChoice + entries
     .filter(({ tag }) => {
       if (!tag || seen.has(tag)) return false;
       seen.add(tag);

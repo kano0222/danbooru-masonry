@@ -330,7 +330,7 @@ function bindShellEvents(state: AppState): void {
   byId('dmh-viewer-blacklist-close')?.addEventListener('click', closeViewerBlacklistDialog);
   byId('dmh-viewer-blacklist-cancel')?.addEventListener('click', closeViewerBlacklistDialog);
   byId('dmh-viewer-blacklist-confirm')?.addEventListener('click', () =>
-    void addTagsToBlacklist(state, [...viewerBlacklistSelection]),
+    void addRulesToBlacklist(state, [...viewerBlacklistSelection]),
   );
   const blacklistRuleInput = byId<HTMLInputElement>('dmh-blacklist-new-rule');
   const blacklistComposer = byId('dmh-blacklist-composer');
@@ -701,27 +701,27 @@ async function saveBlacklist(state: AppState): Promise<void> {
   }
 }
 
-async function addTagsToBlacklist(state: AppState, tags: string[]): Promise<void> {
+async function addRulesToBlacklist(state: AppState, rules: string[]): Promise<void> {
   if (state.blacklistSaving) {
     setText('dmh-viewer-blacklist-status', '黑名单正在保存，请稍后重试');
     return;
   }
-  if (!tags.length) return;
+  if (!rules.length) return;
   const previousText = normalizeBlacklistText(state.blacklistText);
   let nextText = previousText;
   let addedCount = 0;
-  for (const tag of tags) {
-    const addedText = addBlacklistRuleSource(nextText, tag);
+  for (const rule of rules) {
+    const addedText = addBlacklistRuleSource(nextText, rule);
     if (addedText !== nextText) addedCount += 1;
     nextText = addedText;
   }
   if (!addedCount) {
-    setText('dmh-viewer-blacklist-status', '所选标签已在黑名单中');
+    setText('dmh-viewer-blacklist-status', '所选规则已在黑名单中');
     return;
   }
   if (!await persistBlacklist(state, nextText, false)) return;
   byId<HTMLDialogElement>('dmh-viewer-blacklist-dialog')?.close();
-  showSnackbar(`已将 ${addedCount} 个标签加入黑名单`);
+  showSnackbar(`已将 ${addedCount} 条规则加入黑名单`);
 }
 
 async function persistBlacklist(

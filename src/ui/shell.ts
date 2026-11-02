@@ -335,8 +335,8 @@ ${downloadFilenameTemplateInputs}
           <button class="dmh-settings-close" id="dmh-viewer-blacklist-close" type="button" aria-label="关闭加入黑名单">${icons.close}</button>
         </div>
         <div class="dmh-viewer-blacklist-content">
-          <p>选择要屏蔽的标签。确认后，匹配图片将从当前瀑布流中隐藏。</p>
-          <div class="dmh-viewer-blacklist-choices" id="dmh-viewer-blacklist-choices" role="group" aria-label="当前图片标签"></div>
+          <p>选择要屏蔽的标签或上传者。确认后保存到 Danbooru 账号，匹配图片将从当前瀑布流中隐藏。上传者是上传图片的账号，可能与作者不同。</p>
+          <div class="dmh-viewer-blacklist-choices" id="dmh-viewer-blacklist-choices" role="group" aria-label="当前图片标签与上传者"></div>
           <div class="dmh-viewer-blacklist-footer">
             <span id="dmh-viewer-blacklist-status" role="status" aria-live="polite"></span>
             <div class="dmh-blacklist-buttons">

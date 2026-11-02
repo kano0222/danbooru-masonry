@@ -1,5 +1,6 @@
 export interface DanbooruRawPost {
   id?: number | string;
+  uploader_id?: number | string | null;
   file_url?: string | null;
   large_file_url?: string | null;
   sample_file_url?: string | null;

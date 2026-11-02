@@ -13,6 +13,7 @@ export interface BlacklistRule {
 
 type BlacklistTerm =
   | { type: 'tag'; negative: boolean; pattern: RegExp }
+  | { type: 'uploader'; negative: boolean; value: string }
   | { type: 'rating'; negative: boolean; value: string }
   | { type: 'score'; negative: boolean; operator: '=' | '<' | '<=' | '>' | '>='; value: number }
   | { type: 'status'; negative: boolean; value: PostStatus };
@@ -136,6 +137,12 @@ export function isPostBlacklisted(post: Post, config: BlacklistConfig): boolean 
   return config.rules.some((rule) => rule.terms.every((term) => matchesTerm(post, term)));
 }
 
+export function getPostUploaderId(post: Post): string | null {
+  const raw = post.raw as DanbooruRawPost | null;
+  const id = String(raw?.uploader_id ?? '');
+  return /^[1-9]\d*$/.test(id) ? id : null;
+}
+
 function parseTerm(token: string): BlacklistTerm | null {
   const negative = token.startsWith('-');
   const value = negative ? token.slice(1) : token;
@@ -148,6 +155,9 @@ function parseTerm(token: string): BlacklistTerm | null {
   const key = value.slice(0, separator).toLowerCase();
   const operand = value.slice(separator + 1).toLowerCase();
   if (!operand) return null;
+  if (key === 'uploaderid' && /^[1-9]\d*$/.test(operand)) {
+    return { type: 'uploader', negative, value: operand };
+  }
   if (key === 'rating' && /^[gsqeu]$/.test(operand)) {
     return { type: 'rating', negative, value: operand };
   }
@@ -171,6 +181,7 @@ function parseTerm(token: string): BlacklistTerm | null {
 function matchesTerm(post: Post, term: BlacklistTerm): boolean {
   let matches = false;
   if (term.type === 'tag') matches = post.tags.some((tag) => term.pattern.test(tag));
+  if (term.type === 'uploader') matches = getPostUploaderId(post) === term.value;
   if (term.type === 'rating') matches = post.rating.toLowerCase() === term.value;
   if (term.type === 'score') matches = compareNumber(post.score, term.operator, term.value);
   if (term.type === 'status') matches = postHasStatus(post.raw as DanbooruRawPost, term.value);

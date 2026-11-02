@@ -34,7 +34,7 @@ Popular searches come from Danbooru's [Popular Searches](https://danbooru.donmai
 
 ### Image and Video Viewer
 
-The immersive viewer supports image and video previews, navigation, zooming, favorites, downloads, and adding tags from the current post to the blacklist. Favorites and blacklist changes require a Danbooru login.
+The immersive viewer supports image and video previews, navigation, zooming, favorites, downloads, and adding tags or the uploader from the current post to the blacklist. Favorites and blacklist changes require a Danbooru login.
 
 Artist, character, and copyright tags are shown by default, with more tags available on expansion.
 
@@ -93,9 +93,9 @@ For example, `{artist}_{postid}` combines the artist tag and Danbooru post ID. T
 
 ### Blacklist
 
-Sign in to Danbooru to add, remove, or batch-edit rules in Settings and save them to your account. You can also add tags from the current post through the viewer. Rule editing supports tag autocomplete, and removing a rule requires confirmation.
+Sign in to Danbooru to add, remove, or batch-edit rules in Settings and save them to your account. You can also blacklist tags or the uploader of the current post through the viewer. The uploader is the account that uploaded the image and may differ from the artist; the option is hidden when uploader information is unavailable. Rule editing supports tag autocomplete, and removing a rule requires confirmation.
 
-Masonry blacklist filtering supports positive and negative tags, `*` wildcards, and `rating`, `score`, and `status` metatags; other rules are saved to Danbooru but do not apply in masonry mode.
+Masonry blacklist filtering supports positive and negative tags, `*` wildcards, and `rating`, `score`, `status`, and `uploaderid` metatags; other rules are saved to Danbooru but do not apply in masonry mode.
 
 ## Supported Sites and Limitations
 
@@ -107,7 +107,7 @@ For URLs supported by the adapter but absent from the default script matches, al
 
 ## About the Preview
 
-Try search, layouts, the viewer, favorites, and blacklist filtering in the [interactive preview](https://kano0222.github.io/danbooru-masonry/). It simulates a signed-in user with local sample images and illustrative tags, scores, ratings, popular searches, and initial favorites. These operations do not access a Danbooru account or the online translation service.
+Try search, layouts, the viewer, favorites, and blacklist filtering in the [interactive preview](https://kano0222.github.io/danbooru-masonry/). It simulates a signed-in user with local sample images and illustrative tags, scores, ratings, uploader IDs, popular searches, and initial favorites. These operations do not access a Danbooru account or the online translation service.
 
 Settings, history, and blacklist rules use the preview site's browser storage; favorites reset on reload. Downloads save sample images, while source buttons open their original sources. To run or build the preview yourself, see the [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/blob/main/docs/development.md#本地演示与静态产物).
 
@@ -118,7 +118,6 @@ The [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/b
 Planned improvements:
 
 - Viewer action layout.
-- Filter by uploader.
 - Mobile layout.
 - Settings panel.
 - Search sorting.
