@@ -357,21 +357,38 @@ export function installLaunchButton(onStart: () => void): void {
   button.id = 'dmh-launch';
   button.type = 'button';
   button.textContent = '瀑布流模式';
-  button.style.cssText = [
-    'position:fixed',
-    'right:12px',
-    'top:12px',
-    'z-index:99999',
-    'height:40px',
-    'padding:0 16px',
-    'border:0',
-    'border-radius:8px',
-    'background:linear-gradient(to right, #ff758c 0%, #ff7eb3 100%)',
-    'color:#fff',
-    'box-shadow:0 1px 2px rgba(27,31,36,.08)',
-    'font:600 13px Arial,sans-serif',
-    'cursor:pointer',
-  ].join(';');
+  if (!document.getElementById('dmh-launch-style')) {
+    const style = document.createElement('style');
+    style.id = 'dmh-launch-style';
+    style.textContent = `
+      #dmh-launch {
+        position: fixed;
+        right: 12px;
+        top: 12px;
+        z-index: 99999;
+        height: 40px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 8px;
+        background: linear-gradient(to right, #ff758c 0%, #ff7eb3 100%);
+        color: #fff;
+        box-shadow: 0 1px 2px rgba(27,31,36,.08);
+        font: 600 13px Arial,sans-serif;
+        cursor: pointer;
+      }
+      @media (max-width: 760px), (pointer: coarse) {
+        #dmh-launch {
+          position: static;
+          display: block;
+          z-index: auto;
+          min-height: 44px;
+          max-width: calc(100% - 24px);
+          margin: 12px 12px 12px auto;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
   button.addEventListener('click', onStart);
-  document.body.appendChild(button);
+  document.body.prepend(button);
 }

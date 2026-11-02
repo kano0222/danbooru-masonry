@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DanbooruAdapter } from '../adapters/danbooru';
 import { createState } from '../core/state';
-import { renderBlacklistRuleRows, renderShell } from './shell';
+import { installLaunchButton, renderBlacklistRuleRows, renderShell } from './shell';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -18,6 +18,32 @@ function renderWithUser(
   renderShell(createState(new DanbooruAdapter()));
   return body.innerHTML;
 }
+
+describe('launch button', () => {
+  it('prepends one entry before host controls and reuses its styles on retry', () => {
+    const nodes = new Map<string, unknown>();
+    const mount = vi.fn((node: { id: string }) => nodes.set(node.id, node));
+    vi.stubGlobal('document', {
+      getElementById: (id: string) => nodes.get(id),
+      createElement: () => ({ addEventListener: vi.fn() }),
+      head: { appendChild: mount },
+      body: { prepend: mount },
+    });
+    const start = vi.fn();
+    installLaunchButton(start);
+    const button = nodes.get('dmh-launch') as HTMLButtonElement;
+    expect(button.type).toBe('button');
+    expect(button.addEventListener).toHaveBeenCalledWith('click', start);
+    expect(mount).toHaveBeenLastCalledWith(button);
+    installLaunchButton(start);
+    expect(mount).toHaveBeenCalledTimes(2);
+
+    nodes.delete('dmh-launch');
+    installLaunchButton(start);
+    expect(mount).toHaveBeenCalledTimes(3);
+    expect(nodes.get('dmh-launch')).not.toBe(button);
+  });
+});
 
 describe('theme settings', () => {
   it('renders the saved hide-popular-searches switch in Settings', () => {

@@ -48,7 +48,7 @@ Artist, character, and copyright tags are shown by default, with more tags avail
 
 [Install from GitHub Release](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.user.js)
 
-Install a userscript manager (such as Tampermonkey) in your browser, then install the script from one of the links above. Automatic entry is enabled by default on first installation. Open or refresh the Danbooru home page or post list to enter masonry mode. If you disable this option in Settings, use the button in the upper-right corner of the original page to enter manually.
+Install a userscript manager (such as Tampermonkey) in your browser, then install the script from one of the links above. Automatic entry is enabled by default on first installation. Open or refresh the Danbooru home page or post list to enter masonry mode. If you disable this option in Settings, use the button in the upper-right corner of the original page to enter manually. On narrow screens and touch devices, the button occupies its own row at the top of the page to keep the original controls accessible.
 
 Once inside, click the gear button in the toolbar to adjust layouts, visible information, and viewer behavior.
 
