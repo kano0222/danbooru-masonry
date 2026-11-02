@@ -197,7 +197,7 @@ export function installStyles(): void {
     .dmh-message { padding: 24px; text-align: center; color: var(--dmh-text-muted); }
     .dmh-settings-overlay { position: fixed; inset: 0; z-index: 300; background: var(--dmh-overlay); opacity: 0; pointer-events: none; transition: opacity .22s ease; }
     .dmh-settings-overlay.dmh-open { opacity: 1; pointer-events: auto; }
-    .dmh-settings-panel { position: fixed; top: 50%; right: 12px; bottom: auto; z-index: 301; display: flex; flex-direction: column; height: fit-content; max-height: calc(100dvh - 24px); width: min(440px, calc(100vw - 32px)); padding: 0; border-left: 1px solid var(--dmh-border-subtle); background: var(--dmh-surface); box-shadow: -8px 0 24px var(--dmh-shadow); opacity: 0; pointer-events: none; transform: translate(100%, -50%); transition: transform .22s ease, opacity .22s ease; }
+    .dmh-settings-panel { position: fixed; top: 50%; right: 12px; bottom: auto; z-index: 301; display: flex; flex-direction: column; height: fit-content; max-height: calc(100dvh - 24px); width: min(880px, calc(100vw - 24px)); padding: 0; border: 1px solid var(--dmh-border-subtle); border-radius: 12px; background: var(--dmh-surface); box-shadow: -8px 0 24px var(--dmh-shadow); opacity: 0; pointer-events: none; transform: translate(100%, -50%); transition: transform .22s ease, opacity .22s ease; }
     .dmh-settings-panel.dmh-open { opacity: 1; pointer-events: auto; transform: translate(0, -50%); }
     .dmh-settings-header { display: flex; align-items: center; justify-content: space-between; min-height: 56px; flex: 0 0 auto; padding: 0 16px; border-bottom: 1px solid var(--dmh-border-subtle); }
     .dmh-settings-header h2 { margin: 0; font-size: 18px; font-weight: 700; line-height: 1; color: var(--dmh-text-strong); }
@@ -205,9 +205,14 @@ export function installStyles(): void {
     .dmh-settings-close:hover { background: var(--dmh-accent-soft); color: var(--dmh-accent); }
     .dmh-settings-close:focus-visible { outline: 2px solid var(--dmh-focus-ring); outline-offset: 2px; }
     .dmh-settings-close svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
-    .dmh-settings-content { display: flex; flex-direction: column; gap: 22px; min-height: 0; padding: 20px 18px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
-    .dmh-settings-content > * { flex-shrink: 0; }
-    .dmh-settings-content::-webkit-scrollbar { display: none; width: 0; height: 0; }
+    .dmh-settings-content { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 14px; min-height: 0; padding: 16px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+    .dmh-settings-group { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px; border: 1px solid var(--dmh-border-subtle); border-radius: 8px; }
+    .dmh-settings-group-masonry { grid-row: span 3; }
+    .dmh-settings-group .dmh-setting-section + .dmh-setting-section { padding-top: 10px; border-top: 1px solid var(--dmh-border-subtle); }
+    .dmh-settings-group .dmh-setting-row { gap: 12px; }
+    .dmh-settings-group .dmh-setting-row:has(select) { flex-wrap: wrap; }
+    .dmh-settings-group .dmh-setting-row:has(select) .dmh-setting-copy { flex-basis: 150px; }
+    .dmh-settings-group .dmh-setting-select { flex: 0 0 auto; width: auto; min-width: 136px; max-width: 100%; }
     .dmh-settings-footer { display: flex; flex: 0 0 auto; justify-content: center; padding: 10px 18px; border-top: 1px solid var(--dmh-border-subtle); }
     #dmh-app .dmh-settings-github { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; color: var(--dmh-text-muted); text-decoration: none; }
     #dmh-app .dmh-settings-github:hover { background: var(--dmh-accent-soft); color: var(--dmh-accent); }
@@ -237,7 +242,7 @@ export function installStyles(): void {
     #dmh-app .dmh-setting-editor-button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid var(--dmh-border); border-radius: 6px; background: var(--dmh-surface-muted); color: var(--dmh-text-strong); font: 700 13px Arial, sans-serif; cursor: pointer; box-shadow: none; }
     #dmh-app .dmh-setting-editor-button:hover { background: var(--dmh-surface-hover); }
     #dmh-app .dmh-setting-editor-button:focus-visible { outline: 2px solid var(--dmh-accent); outline-offset: 2px; }
-    .dmh-settings-group-title { margin: 2px 0 -10px; color: var(--dmh-text-muted); font-size: 12px; font-weight: 700; line-height: 1.2; letter-spacing: .08em; }
+    .dmh-settings-group-title { margin: 0; color: var(--dmh-text-strong); font-size: 14px; font-weight: 700; line-height: 1.4; }
     .dmh-blacklist-rules { box-sizing: border-box; width: 100%; min-height: 132px; resize: vertical; padding: 9px 10px; border: 1px solid var(--dmh-border-strong); border-radius: 6px; background: var(--dmh-surface); color: var(--dmh-text-strong); font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
     .dmh-blacklist-rules:focus { border-color: var(--dmh-accent); outline: 2px solid var(--dmh-focus-glow); }
     .dmh-blacklist-rules[readonly] { background: var(--dmh-surface-muted); color: var(--dmh-text-muted); }
@@ -447,6 +452,8 @@ export function installStyles(): void {
     .dmh-tag-meta { background: rgba(84, 110, 122, .9); }
     html, body, .dmh-topbar { transition: background-color .16s ease, border-color .16s ease; }
     @media (max-width: 980px) { .dmh-title { display: none; } .dmh-brand { gap: 0; } }
+    @media (max-width: 760px) { .dmh-settings-panel { width: min(480px, calc(100vw - 24px)); } .dmh-settings-content { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 12px; } .dmh-settings-group-masonry { grid-row: auto; } }
+    @media (max-width: 380px) { .dmh-settings-group { padding: 10px; } .dmh-settings-group .dmh-setting-row:has(select) { flex-direction: column; align-items: stretch; gap: 8px; } .dmh-settings-group .dmh-setting-row:has(select) .dmh-setting-copy { flex-basis: auto; } .dmh-settings-group .dmh-setting-select { width: 100%; } }
     @media (max-width: 760px) { .dmh-toolbar-content { grid-template-columns: minmax(0, 1fr) max-content; gap: 8px; padding: 8px 10px; } .dmh-search { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; width: 100%; max-width: none; } .dmh-status { display: none; } .dmh-grid { margin-top: 108px; } #dmh-app .dmh-back-to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; } .dmh-viewer-info { max-width: calc(100vw - 96px); max-height: calc(100vh - 104px); font-size: 12px; } .dmh-viewer-actions { flex-wrap: wrap; max-width: calc(100vw - 120px); } .dmh-viewer-button { width: 34px; height: 34px; } .dmh-viewer-button svg { width: 19px; height: 19px; } .dmh-viewer-nav { width: 50px; height: 50px; font-size: 26px; } .dmh-viewer-prev { left: 12px; } .dmh-viewer-next { right: 12px; } }
     @media (prefers-reduced-motion: reduce) { html, body, .dmh-topbar, #dmh-app .dmh-back-to-top { transition: none; } .dmh-loading-progress-bar { width: 100%; animation: none; transform: none; } }
   `;

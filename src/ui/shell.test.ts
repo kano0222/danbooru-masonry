@@ -46,6 +46,21 @@ describe('launch button', () => {
 });
 
 describe('theme settings', () => {
+  it('keeps all top-level settings in labeled groups and complex editors outside the panel', () => {
+    const html = renderWithUser({});
+    const panel = html.slice(html.indexOf('<aside class="dmh-settings-panel"'), html.indexOf('</aside>'));
+    expect(panel).toContain('aria-hidden="true" inert');
+    for (const group of ['masonry', 'search', 'viewer', 'other']) {
+      expect(panel).toContain(`aria-labelledby="dmh-settings-${group}-title"`);
+      expect(panel).toContain(`id="dmh-settings-${group}-title"`);
+    }
+    expect(panel.match(/type="checkbox"/g)).toHaveLength(8);
+    expect(panel.match(/<select /g)).toHaveLength(4);
+    for (const editor of ['blacklist', 'download']) {
+      expect(panel).toContain(`id="dmh-${editor}-editor-open"`);
+      expect(panel).not.toContain(`id="dmh-${editor}-editor"`);
+    }
+  });
   it('renders the saved hide-popular-searches switch in Settings', () => {
     const html = renderWithUser({}, new Map([['danbooru-masonry.hidePopularSearches', true]]));
     expect(html).toMatch(/id="dmh-hide-popular-searches"[^>]*checked/);

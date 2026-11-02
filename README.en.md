@@ -56,6 +56,8 @@ Once inside, click the gear button in the toolbar to adjust layouts, visible inf
 
 ### Settings
 
+Settings share one page, with two grouped columns on desktop and a scrollable single column on narrow screens. General options save immediately; blacklist rules and download filename templates open in separate dialogs and take effect after saving. Press Esc to close Settings and return focus to the gear button.
+
 - Masonry
   - Automatically enter masonry mode (enabled by default)
   - Image list layout: masonry, grid, justified, or virtual masonry (default: masonry)
@@ -74,7 +76,7 @@ Once inside, click the gear button in the toolbar to adjust layouts, visible inf
 
 The screenshot shows an example configuration; defaults are listed above.
 
-<img src="docs/images/settings-panel.png" alt="Settings panel" width="360">
+<img src="docs/images/settings-panel.png" alt="Settings panel with two grouped columns" width="720">
 
 ### Download Filenames
 
@@ -119,7 +121,6 @@ Planned improvements:
 
 - Viewer action layout.
 - Mobile layout.
-- Settings panel.
 - Search sorting.
 
 ## Data Sources and Credits

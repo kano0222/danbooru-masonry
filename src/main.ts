@@ -291,6 +291,27 @@ function bindShellEvents(state: AppState): void {
   byId('dmh-settings-toggle')?.addEventListener('click', () => openSettingsPanel());
   byId('dmh-settings-overlay')?.addEventListener('click', () => closeSettingsPanel());
   byId('dmh-settings-close')?.addEventListener('click', () => closeSettingsPanel());
+  byId('dmh-settings-panel')?.addEventListener('keydown', (event) => {
+    event.stopPropagation();
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeSettingsPanel();
+    } else if (event.key === 'Tab') {
+      const controls = byId('dmh-settings-panel')?.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled), select:not(:disabled), a[href]',
+      );
+      if (!controls?.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+  });
   byId('dmh-blacklist-save')?.addEventListener('click', () => void saveBlacklist(state));
   const viewerBlacklistSelection = new Set<string>();
   byId('dmh-viewer-blacklist')?.addEventListener('click', () => {
@@ -1131,11 +1152,14 @@ function setSettingsPanelOpen(open: boolean): void {
   const button = byId<HTMLButtonElement>('dmh-settings-toggle');
   if (!panel || !overlay || !button) return;
   panel.classList.toggle('dmh-open', open);
+  panel.inert = !open;
   overlay.classList.toggle('dmh-open', open);
   panel.setAttribute('aria-hidden', String(!open));
   overlay.setAttribute('aria-hidden', String(!open));
   button.setAttribute('aria-expanded', String(open));
   document.documentElement.classList.toggle('dmh-no-scroll', open || isViewerOpen());
+  if (open) byId('dmh-settings-close')?.focus();
+  else button.focus();
 }
 
 function setCardSize(state: AppState, cardSize: string): void {

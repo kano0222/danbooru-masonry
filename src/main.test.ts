@@ -726,6 +726,37 @@ describe('quick blacklist actions', () => {
 
 
 describe('settings editors and content filtering', () => {
+  it('focuses settings on open, wraps Tab, and returns focus on Escape', async () => {
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    document.documentElement.classList.toggle = vi.fn();
+    const panel = nodes.get('dmh-settings-panel')!;
+    const close = nodes.get('dmh-settings-close')!;
+    const toggle = nodes.get('dmh-settings-toggle')!;
+    const last = node();
+    Object.assign(panel, { querySelectorAll: () => [close, last] });
+    toggle.handlers.get('click')!.forEach(fn => fn({}));
+    expect(panel).toHaveProperty('inert', false);
+    expect(close.focus).toHaveBeenCalledOnce();
+    expect(toggle.setAttribute).toHaveBeenCalledWith('aria-expanded', 'true');
+    const keydown = (key: string, shiftKey = false) => {
+      const event = { key, shiftKey, preventDefault: vi.fn(), stopPropagation: vi.fn() };
+      panel.handlers.get('keydown')!.forEach(fn => fn(event));
+      return event;
+    };
+    Object.assign(document, { activeElement: last });
+    expect(keydown('Tab').preventDefault).toHaveBeenCalledOnce();
+    expect(close.focus).toHaveBeenCalledTimes(2);
+    Object.assign(document, { activeElement: close });
+    expect(keydown('Tab', true).preventDefault).toHaveBeenCalledOnce();
+    expect(last.focus).toHaveBeenCalledOnce();
+    expect(keydown('ArrowDown').preventDefault).not.toHaveBeenCalled();
+    const escape = keydown('Escape');
+    expect(escape.stopPropagation).toHaveBeenCalledOnce();
+    expect(panel).toHaveProperty('inert', true);
+    expect(toggle.focus).toHaveBeenCalledOnce();
+    expect(toggle.setAttribute).toHaveBeenCalledWith('aria-expanded', 'false');
+  });
   it('applies and persists theme changes', async () => {
     const save = vi.fn();
     vi.stubGlobal('GM_setValue', save);
