@@ -15,14 +15,14 @@ if (headerEnd === -1) {
 
 const body = source.slice(headerEnd + '// ==/UserScript=='.length).replace(/^\r?\n/, '');
 const header = `// ==UserScript==\n\
-// @name         Danbooru 瀑布流浏览\n\
-// @name:zh      Danbooru 瀑布流浏览\n\
-// @name:en      Danbooru Masonry\n\
+// @name         Danbooru Masonry — 浏览增强与标签翻译\n\
+// @name:zh      Danbooru Masonry — 浏览增强与标签翻译\n\
+// @name:en      Danbooru Masonry — Enhanced Browsing and Tag Translation\n\
 // @namespace    https://github.com/kano0222\n\
 // @version      ${pkg.version}\n\
-// @description  为 Danbooru 添加瀑布流浏览、标签翻译、沉浸式图片查看和原图下载体验。\n\
-// @description:zh  为 Danbooru 添加瀑布流浏览、标签翻译、沉浸式图片查看和原图下载体验。\n\
-// @description:en  Adds masonry browsing, tag translation, immersive image viewing, and original-file downloads to Danbooru.\n\
+// @description  为 Danbooru 提供多种图片布局、中文标签翻译、搜索历史和沉浸式图片与视频查看。\n\
+// @description:zh  为 Danbooru 提供多种图片布局、中文标签翻译、搜索历史和沉浸式图片与视频查看。\n\
+// @description:en  Browse Danbooru with multiple image layouts, Chinese tag translations, search history, and an immersive image and video viewer.\n\
 // @author       kano0222\n\
 // @license      MIT\n\
 // @icon         https://danbooru.donmai.us/favicon.ico\n\
