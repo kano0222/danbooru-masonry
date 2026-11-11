@@ -1,4 +1,18 @@
 import { csrfHeaders } from '../utils/csrf';
+import { fetchJson } from '../utils/fetch';
+
+export async function fetchBlacklistedTags(origin: string, userId: string): Promise<string> {
+  if (!userId) throw new Error('未检测到登录状态');
+  const data = await fetchJson<{ id?: unknown; blacklisted_tags?: unknown }>(
+    new URL(`/users/${encodeURIComponent(userId)}.json`, origin).toString(),
+    { cache: 'no-store' },
+    'user blacklist',
+  );
+  if (!data || String(data.id) !== userId || typeof data.blacklisted_tags !== 'string') {
+    throw new SyntaxError('未能读取当前账号的黑名单规则');
+  }
+  return data.blacklisted_tags;
+}
 
 export async function updateBlacklistedTags(
   origin: string,

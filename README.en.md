@@ -100,7 +100,9 @@ For example, `{artist}_{postid}` combines the artist tag and Danbooru post ID. T
 
 ### Blacklist
 
-Sign in to Danbooru to add, remove, or batch-edit rules in Settings and save them to your account. You can also blacklist tags or the uploader of the current post through the viewer. The uploader is the account that uploaded the image and may differ from the artist; the option is hidden when uploader information is unavailable. Rule editing supports tag autocomplete, and removing a rule requires confirmation.
+When signed in, saved rules are loaded from your account API independently of the search page. If loading fails, reopen the rule editor to retry.
+
+Sign in to Danbooru to add, remove, or batch-edit rules in Settings and save them to your account. You can also blacklist tags or the uploader of the current post through the viewer. The uploader is the account that uploaded the image and may differ from the artist; the option is hidden when uploader information is unavailable. Rule editing supports tag autocomplete, and rule removals take effect after clicking Save.
 
 Masonry blacklist filtering supports positive and negative tags, `*` wildcards, and `rating`, `score`, `status`, and `uploaderid` metatags; other rules are saved to Danbooru but do not apply in masonry mode.
 

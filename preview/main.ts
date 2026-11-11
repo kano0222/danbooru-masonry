@@ -1,6 +1,5 @@
 import { boot } from '../src/main';
 import { showSnackbar, showViewer } from '../src/core/viewer';
-import { escapeAttr } from '../src/utils/escape';
 import { PreviewAdapter } from './adapter';
 import { createPreviewPosts, popularSearches, translations } from './fixtures';
 import { createPreviewFetch } from './requests';
@@ -43,18 +42,13 @@ Object.assign(globalThis, {
   },
 });
 
-// Supply the same login and blacklist context that the real page exposes.
+// Supply the same login context that the real page exposes.
 Object.assign(document.body.dataset, {
   currentUserId: '1', currentUserName: 'Preview_User', currentUserIsAnonymous: 'false',
 });
-const blacklistText = typeof settings.blacklistText === 'string' ? settings.blacklistText : 'spoilers';
-document.body.innerHTML = `<div id="blacklist-box" hidden>
-  <input type="checkbox" x-model="blacklist.enabled" checked>
-  ${blacklistText.split('\n').filter(Boolean).map((rule) =>
-    `<div x-data="blacklist.rules" data-enabled="true"><a title="${escapeAttr(rule)}"></a><input type="checkbox" checked></div>`).join('')}
-</div>`;
 window.fetch = createPreviewFetch({
   origin: location.origin, translations, popular: popularSearches,
+  readBlacklist: () => GM_getValue('blacklistText', 'spoilers'),
   saveBlacklist: (text) => GM_setValue('blacklistText', text),
 });
 

@@ -61,7 +61,7 @@ import {
   removeBlacklistRuleSource,
 } from './core/blacklist';
 import { getPostLoadError } from './api/posts';
-import { updateBlacklistedTags } from './api/userSettings';
+import { fetchBlacklistedTags, updateBlacklistedTags } from './api/userSettings';
 import { installShortcuts } from './core/shortcuts';
 import {
   closeViewer,
@@ -160,10 +160,14 @@ async function startMasonry(state: AppState, options: BootOptions): Promise<void
 
   try {
     await state.translations.load();
-    const capturedBlacklist = captureBlacklist(document);
-    state.blacklist = capturedBlacklist.config;
-    state.blacklistText = capturedBlacklist.text;
-    state.blacklistAvailable = capturedBlacklist.available;
+    if (currentUserId()) {
+      await loadAccountBlacklist(state);
+    } else {
+      const capturedBlacklist = captureBlacklist(document);
+      state.blacklist = capturedBlacklist.config;
+      state.blacklistText = capturedBlacklist.text;
+      state.blacklistAvailable = capturedBlacklist.available;
+    }
     applyTheme(state.themeMode);
     installStyles();
     shellAttempted = true;
@@ -415,13 +419,6 @@ function bindShellEvents(state: AppState): void {
     closeBlacklistAutocomplete(state);
     addBlacklistDraftRule();
   });
-  let pendingBlacklistRemoveIndex: number | null = null;
-  const closeBlacklistRemoveConfirmation = () => {
-    pendingBlacklistRemoveIndex = null;
-    const confirmation = byId('dmh-blacklist-remove-confirm');
-    if (confirmation) confirmation.hidden = true;
-    setText('dmh-blacklist-remove-rule', '');
-  };
   byId('dmh-blacklist-rule-list')?.addEventListener('click', (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>(
       'button[data-blacklist-remove]',
@@ -431,20 +428,13 @@ function bindShellEvents(state: AppState): void {
     const input = byId<HTMLTextAreaElement>('dmh-blacklist-rules');
     const rule = input ? getBlacklistRuleSources(input.value)[index] : '';
     if (!Number.isInteger(index) || !rule) return;
-    pendingBlacklistRemoveIndex = index;
-    setText('dmh-blacklist-remove-rule', rule);
-    const confirmation = byId('dmh-blacklist-remove-confirm');
-    if (confirmation) confirmation.hidden = false;
-    byId<HTMLButtonElement>('dmh-blacklist-remove-confirm-button')?.focus();
-  });
-  byId('dmh-blacklist-remove-cancel')?.addEventListener(
-    'click',
-    closeBlacklistRemoveConfirmation,
-  );
-  byId('dmh-blacklist-remove-confirm-button')?.addEventListener('click', () => {
-    if (pendingBlacklistRemoveIndex === null || state.blacklistSaving) return;
-    removeBlacklistDraftRule(pendingBlacklistRemoveIndex);
-    closeBlacklistRemoveConfirmation();
+    removeBlacklistDraftRule(index);
+    const buttons = document.querySelectorAll<HTMLButtonElement>(
+      '#dmh-blacklist-rule-list button[data-blacklist-remove]',
+    );
+    const nextFocus = buttons[Math.min(index, buttons.length - 1)]
+      || byId<HTMLInputElement>('dmh-blacklist-new-rule');
+    nextFocus?.focus();
   });
   byId('dmh-blacklist-rules')?.addEventListener('input', () => {
     renderBlacklistDraftRules();
@@ -721,6 +711,17 @@ function setMasonryLoading(loading: boolean): void {
   progress.setAttribute('aria-hidden', String(!loading));
 }
 
+async function loadAccountBlacklist(state: AppState): Promise<void> {
+  try {
+    const text = normalizeBlacklistText(await fetchBlacklistedTags(state.adapter.origin, currentUserId()));
+    state.blacklistText = text;
+    state.blacklist = createBlacklistConfigFromText(text);
+    state.blacklistAvailable = true;
+  } catch {
+    state.blacklistAvailable = false;
+  }
+}
+
 async function saveBlacklist(state: AppState): Promise<void> {
   const input = byId<HTMLTextAreaElement>('dmh-blacklist-rules');
   if (!input) return;
@@ -801,8 +802,7 @@ function setBlacklistControlsDisabled(disabled: boolean): void {
     'dmh-blacklist-cancel',
     'dmh-blacklist-editor-close',
     'dmh-blacklist-new-rule',
-    'dmh-blacklist-remove-cancel',
-    'dmh-blacklist-remove-confirm-button',
+    'dmh-blacklist-add',
     'dmh-viewer-blacklist',
     'dmh-viewer-blacklist-confirm',
   ]) {
@@ -1294,9 +1294,18 @@ function bindSettingsEditors(state: AppState): void {
       pressedOnBackdrop = event.button === 0 && isBackdrop(event);
     });
     dialog.addEventListener('pointercancel', () => { pressedOnBackdrop = false; });
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async () => {
       pressedOnBackdrop = false;
       if (!dialog.open) {
+        if (name === 'blacklist' && !state.blacklistAvailable && currentUserId()) {
+          button.disabled = true;
+          try {
+            await loadAccountBlacklist(state);
+            if (state.blacklistAvailable) refreshPostsForBlacklist(state);
+          } finally {
+            button.disabled = false;
+          }
+        }
         if (name === 'blacklist') restoreBlacklistDraft(state);
         if (name === 'download') {
           fillDownloadTemplateDraft(state.downloadFilenameTemplates);
@@ -1341,11 +1350,21 @@ function restoreBlacklistDraft(state: AppState): void {
   const newRule = byId<HTMLInputElement>('dmh-blacklist-new-rule');
   if (newRule) newRule.value = '';
   renderBlacklistDraftRules();
+  const canEdit = state.blacklistAvailable && Boolean(currentUserId());
+  if (input) input.disabled = !canEdit;
+  if (newRule) newRule.disabled = !canEdit;
+  for (const id of ['dmh-blacklist-save', 'dmh-viewer-blacklist', 'dmh-blacklist-add']) {
+    const control = byId<HTMLButtonElement>(id);
+    if (control) control.disabled = !canEdit;
+  }
+  if (!state.blacklistAvailable) {
+    setText('dmh-blacklist-rule-list', '未能读取黑名单规则');
+  }
   const status = byId('dmh-blacklist-status');
   if (!status) return;
   status.classList.remove('dmh-error');
   status.textContent = !state.blacklistAvailable
-    ? '未能读取原站黑名单，请刷新原站后重试'
+    ? '未能读取黑名单，请关闭此窗口后重新打开以重试'
     : currentUserId() ? '' : '登录 Danbooru 后可修改';
 }
 
@@ -1353,9 +1372,6 @@ function renderBlacklistDraftRules(): void {
   const input = byId<HTMLTextAreaElement>('dmh-blacklist-rules');
   const list = byId('dmh-blacklist-rule-list');
   if (input && list) list.innerHTML = renderBlacklistRuleRows(input.value);
-  const confirmation = byId('dmh-blacklist-remove-confirm');
-  if (confirmation) confirmation.hidden = true;
-  setText('dmh-blacklist-remove-rule', '');
 }
 
 function addBlacklistDraftRule(): void {

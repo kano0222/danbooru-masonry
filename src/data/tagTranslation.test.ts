@@ -59,7 +59,7 @@ describe('tag translation store', () => {
     vi.stubGlobal('GM_xmlhttpRequest', undefined);
     vi.stubGlobal('fetch', createPreviewFetch({
       origin: 'https://preview.example', translations: { cat_girl: '猫娘' },
-      popular: [], saveBlacklist: vi.fn(),
+      popular: [], readBlacklist: () => '', saveBlacklist: vi.fn(),
     }));
     const store = new TagTranslationStore();
 

@@ -142,6 +142,7 @@ beforeEach(() => {
   });
   vi.stubGlobal('GM_getValue', (_key: string, fallback: unknown) => fallback);
   vi.spyOn(TagTranslationStore.prototype, 'load').mockResolvedValue(true);
+  vi.spyOn(userSettings, 'fetchBlacklistedTags').mockResolvedValue('');
   adapter = new DanbooruAdapter();
   vi.spyOn(adapter, 'getPosts').mockResolvedValue({ posts: [], hasSourcePosts: false });
   vi.spyOn(adapter, 'getPostCount').mockResolvedValue(41);
@@ -891,6 +892,52 @@ describe('search error display', () => {
   });
 });
 
+describe('account blacklist loading', () => {
+  it('loads saved account rules before filtering posts without a blacklist DOM', async () => {
+    document.body.dataset.currentUserId = '42';
+    vi.mocked(userSettings.fetchBlacklistedTags).mockResolvedValue('cat');
+    vi.mocked(adapter.getPosts).mockResolvedValue({
+      posts: [normalizePost({ id: 1, file_url: '/1.jpg', tag_string: 'cat' }, adapter.origin)],
+      hasSourcePosts: true,
+    });
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    expect(userSettings.fetchBlacklistedTags).toHaveBeenCalledWith(adapter.origin, '42');
+    expect(renderedState().blacklistAvailable).toBe(true);
+    expect(renderedState().blacklistText).toBe('cat');
+    expect(renderedState().posts).toEqual([]);
+    nodes.get('dmh-blacklist-editor-open')!.handlers.get('click')!.forEach(fn => fn({}));
+    expect(nodes.get('dmh-blacklist-rules')!.value).toBe('cat');
+  });
+
+  it('retries a failed read on editor open and restores filtering and editing', async () => {
+    document.body.dataset.currentUserId = '42';
+    vi.mocked(userSettings.fetchBlacklistedTags)
+      .mockRejectedValueOnce(new Error('network'))
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValue('cat');
+    vi.mocked(adapter.getPosts).mockResolvedValue({
+      posts: [normalizePost({ id: 1, file_url: '/1.jpg', tag_string: 'cat' }, adapter.origin)],
+      hasSourcePosts: true,
+    });
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    expect(renderedState().blacklistAvailable).toBe(false);
+    const open = () => nodes.get('dmh-blacklist-editor-open')!.handlers.get('click')!.forEach(fn => fn({}));
+    open();
+    await vi.waitFor(() => expect(nodes.get('dmh-blacklist-editor')!.showModal).toHaveBeenCalledOnce());
+    expect(nodes.get('dmh-blacklist-rule-list')!.textContent).toBe('未能读取黑名单规则');
+    expect(nodes.get('dmh-blacklist-rules')!.disabled).toBe(true);
+    expect(nodes.get('dmh-blacklist-save')!.disabled).toBe(true);
+    open();
+    await vi.waitFor(() => expect(renderedState().blacklistAvailable).toBe(true));
+    expect(nodes.get('dmh-blacklist-rules')!.value).toBe('cat');
+    expect(nodes.get('dmh-blacklist-rules')!.disabled).toBe(false);
+    expect(nodes.get('dmh-blacklist-save')!.disabled).toBe(false);
+    expect(renderedState().posts).toEqual([]);
+  });
+});
+
 describe('Chinese empty results and blacklist read failures', () => {
   it('shows a Chinese message for empty search results', async () => {
     boot(adapter);
@@ -1054,20 +1101,56 @@ describe('blacklist draft lifecycle', () => {
         }),
       );
     requestRemoval();
-    expect(input.value).toBe('original_rule\nnew_rule');
-    expect(nodes.get('dmh-blacklist-remove-confirm')!.hidden).toBe(false);
-    expect(nodes.get('dmh-blacklist-remove-rule')!.textContent).toBe('original_rule');
-
-    nodes.get('dmh-blacklist-remove-cancel')!.handlers.get('click')!
-      .forEach((handler) => handler({}));
-    expect(input.value).toBe('original_rule\nnew_rule');
-    expect(nodes.get('dmh-blacklist-remove-confirm')!.hidden).toBe(true);
-
-    requestRemoval();
-    nodes.get('dmh-blacklist-remove-confirm-button')!.handlers.get('click')!
-      .forEach((handler) => handler({}));
     expect(input.value).toBe('new_rule');
+    expect(nodes.get('dmh-blacklist-status')!.textContent).toBe('尚未保存');
+    expect(renderedState().blacklistText).toBe('original_rule');
     expect(save).not.toHaveBeenCalled();
+
+    nodes.get('dmh-blacklist-cancel')!.handlers.get('click')!.forEach(fn => fn({}));
+    nodes.get('dmh-blacklist-editor')!.handlers.get('close')!.forEach(fn => fn({}));
+    expect(input.value).toBe('original_rule');
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it.each([0, 1, 2])('focuses an adjacent remove button after deleting rule %i', async (index) => {
+    const input = await openDraft();
+    input.value = 'first\nsecond\nthird';
+    const buttons = [node(), node()];
+    vi.spyOn(document, 'querySelectorAll').mockImplementation((selector) =>
+      (selector === '#dmh-blacklist-rule-list button[data-blacklist-remove]'
+        ? buttons : []) as unknown as NodeListOf<Element>,
+    );
+    nodes.get('dmh-blacklist-rule-list')!.handlers.get('click')!.forEach(handler =>
+      handler({ target: { closest: () => ({ dataset: { blacklistRemove: String(index) } }) } }),
+    );
+    expect(input.value).toBe(['first', 'second', 'third'].filter((_, i) => i !== index).join('\n'));
+    expect(buttons[Math.min(index, 1)].focus).toHaveBeenCalledOnce();
+  });
+
+  it('focuses the add input after deleting the last rule and saves only on Save', async () => {
+    const save = vi.spyOn(userSettings, 'updateBlacklistedTags').mockResolvedValue();
+    const input = await openDraft();
+    const newRule = nodes.get('dmh-blacklist-new-rule')!;
+    newRule.focus.mockClear();
+    nodes.get('dmh-blacklist-rule-list')!.handlers.get('click')!.forEach(handler =>
+      handler({ target: { closest: () => ({ dataset: { blacklistRemove: '0' } }) } }),
+    );
+    expect(input.value).toBe('');
+    expect(newRule.focus).toHaveBeenCalledOnce();
+    expect(save).not.toHaveBeenCalled();
+    nodes.get('dmh-blacklist-save')!.handlers.get('click')!.forEach(fn => fn({}));
+    await vi.waitFor(() => expect(renderedState().blacklistSaving).toBe(false));
+    expect(save).toHaveBeenCalledExactlyOnceWith(adapter.origin, '42', '');
+    expect(renderedState().blacklistText).toBe('');
+  });
+
+  it('ignores rule removal while saving', async () => {
+    const input = await openDraft();
+    renderedState().blacklistSaving = true;
+    nodes.get('dmh-blacklist-rule-list')!.handlers.get('click')!.forEach(handler =>
+      handler({ target: { closest: () => ({ dataset: { blacklistRemove: '0' } }) } }),
+    );
+    expect(input.value).toBe('original_rule');
   });
 
 });

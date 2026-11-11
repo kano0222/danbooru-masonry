@@ -258,13 +258,6 @@ export function installStyles(): void {
     #dmh-app .dmh-blacklist-rule button { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: currentColor; cursor: pointer; opacity: .62; }
     #dmh-app .dmh-blacklist-rule button:hover, #dmh-app .dmh-blacklist-rule button:focus-visible { background: var(--dmh-surface-hover); color: var(--dmh-danger); opacity: 1; }
     .dmh-blacklist-rule button svg { width: 14px; height: 14px; }
-    .dmh-blacklist-remove-confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 10px; border: 1px solid var(--dmh-border-strong); border-radius: 6px; background: var(--dmh-surface-muted); color: var(--dmh-text-strong); font-size: 12px; }
-    .dmh-blacklist-remove-confirm[hidden] { display: none; }
-    .dmh-blacklist-remove-confirm > span { min-width: 0; overflow-wrap: anywhere; }
-    .dmh-blacklist-remove-confirm code { color: var(--dmh-danger); font: 600 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
-    .dmh-blacklist-remove-buttons { display: flex; flex: 0 0 auto; gap: 6px; }
-    #dmh-app .dmh-blacklist-remove-buttons button { min-height: 28px; padding: 0 10px; border: 1px solid var(--dmh-border); border-radius: 5px; background: var(--dmh-surface); color: var(--dmh-text-strong); font-size: 12px; cursor: pointer; }
-    #dmh-app .dmh-blacklist-remove-buttons .dmh-blacklist-remove-confirm-button { border-color: var(--dmh-danger); background: var(--dmh-danger); color: #fff; }
     .dmh-blacklist-empty { padding: 24px 12px; border: 1px dashed var(--dmh-border); border-radius: 6px; color: var(--dmh-text-muted); font-size: 13px; text-align: center; }
     .dmh-blacklist-raw { border-top: 1px solid var(--dmh-border-subtle); padding-top: 8px; }
     .dmh-blacklist-raw summary { color: var(--dmh-text-muted); font-size: 12px; font-weight: 700; cursor: pointer; user-select: none; }

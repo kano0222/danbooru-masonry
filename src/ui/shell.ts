@@ -248,27 +248,18 @@ ${cardSizeOptions}
             <div class="dmh-setting-stack">
               <form class="dmh-blacklist-composer" id="dmh-blacklist-composer">
                 <input id="dmh-blacklist-new-rule" type="text" autocomplete="off" spellcheck="false" placeholder="添加单个标签或多个标签组合规则" ${canSaveBlacklist ? '' : 'disabled'}>
-                <button type="submit" aria-label="添加规则" data-dmh-tooltip="添加规则" ${canSaveBlacklist ? '' : 'disabled'}>${icons.plus}</button>
+                <button id="dmh-blacklist-add" type="submit" aria-label="添加规则" data-dmh-tooltip="添加规则" ${canSaveBlacklist ? '' : 'disabled'}>${icons.plus}</button>
                 <div class="dmh-ac dmh-blacklist-ac" id="dmh-blacklist-ac" aria-hidden="true"></div>
               </form>
               <div class="dmh-blacklist-rule-list" id="dmh-blacklist-rule-list">
-                ${renderBlacklistRuleRows(state.blacklistText)}
-              </div>
-              <div class="dmh-blacklist-remove-confirm" id="dmh-blacklist-remove-confirm" role="alert" hidden>
-                <span>移除规则 <code id="dmh-blacklist-remove-rule"></code>？</span>
-                <div class="dmh-blacklist-remove-buttons">
-                  <button type="button" id="dmh-blacklist-remove-cancel">取消</button>
-                  <button class="dmh-blacklist-remove-confirm-button" id="dmh-blacklist-remove-confirm-button" type="button">
-                    移除
-                  </button>
-                </div>
+                ${state.blacklistAvailable ? renderBlacklistRuleRows(state.blacklistText) : '未能读取黑名单规则'}
               </div>
               <details class="dmh-blacklist-raw">
                 <summary>批量编辑</summary>
-                <textarea class="dmh-blacklist-rules" id="dmh-blacklist-rules" aria-labelledby="dmh-blacklist-editor-title" rows="7" spellcheck="false" ${canSaveBlacklist ? '' : 'readonly'}>${escapeHtml(state.blacklistText)}</textarea>
+                <textarea class="dmh-blacklist-rules" id="dmh-blacklist-rules" aria-labelledby="dmh-blacklist-editor-title" rows="7" spellcheck="false" ${canSaveBlacklist ? '' : 'disabled'}>${escapeHtml(state.blacklistText)}</textarea>
               </details>
               <div class="dmh-blacklist-actions">
-                <span class="dmh-blacklist-status" id="dmh-blacklist-status" role="status">${!state.blacklistAvailable ? '未能读取原站黑名单，请刷新原站后重试' : canSaveBlacklist ? '' : '登录 Danbooru 后可修改'}</span>
+                <span class="dmh-blacklist-status" id="dmh-blacklist-status" role="status">${!state.blacklistAvailable ? '未能读取黑名单，请关闭此窗口后重新打开以重试' : canSaveBlacklist ? '' : '登录 Danbooru 后可修改'}</span>
                 <div class="dmh-blacklist-buttons">
                   <button class="dmh-template-reset" id="dmh-blacklist-cancel" type="button">取消</button>
                   <button class="dmh-blacklist-save" id="dmh-blacklist-save" type="button" ${canSaveBlacklist ? '' : 'disabled'}>保存</button>

@@ -120,12 +120,27 @@ describe('search shortcuts', () => {
 });
 
 describe('blacklist editor', () => {
+  it('distinguishes unreadable rules from an empty saved blacklist and disables editing', () => {
+    const body = { dataset: { currentUserId: '42' }, innerHTML: '' };
+    vi.stubGlobal('location', { search: '' });
+    vi.stubGlobal('document', { body, title: '' });
+    const state = createState(new DanbooruAdapter());
+    renderShell(state);
+    expect(body.innerHTML).toContain('未能读取黑名单规则');
+    expect(body.innerHTML).not.toContain('尚无规则');
+    expect(body.innerHTML).toMatch(/id="dmh-blacklist-rules"[^>]*disabled/);
+    expect(body.innerHTML).toMatch(/id="dmh-blacklist-new-rule"[^>]*disabled/);
+    state.blacklistAvailable = true;
+    renderShell(state);
+    expect(body.innerHTML).toContain('尚无规则');
+    expect(body.innerHTML).not.toMatch(/id="dmh-blacklist-rules"[^>]*disabled/);
+  });
   it('renders structured controls with batch editing as a secondary option', () => {
     const html = renderWithUser({ currentUserId: '42' });
     expect(html).toContain('id="dmh-blacklist-composer"');
     expect(html).toContain('id="dmh-blacklist-ac"');
     expect(html).toContain('id="dmh-blacklist-rule-list"');
-    expect(html).toContain('id="dmh-blacklist-remove-confirm"');
+    expect(html).not.toContain('id="dmh-blacklist-remove-confirm"');
     expect(html).toContain('<summary>批量编辑</summary>');
   });
   it('renders one viewer blacklist entry with an explicit confirmation dialog', () => {

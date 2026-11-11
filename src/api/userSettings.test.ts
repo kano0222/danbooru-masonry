@@ -1,9 +1,29 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { updateBlacklistedTags } from './userSettings';
+import { fetchBlacklistedTags, updateBlacklistedTags } from './userSettings';
 
 describe('user settings API', () => {
   afterEach(() => vi.unstubAllGlobals());
+
+  it.each(['cat\ndog', ''])('reads saved rules including an empty blacklist', async text => {
+    const request = vi.fn().mockResolvedValue(Response.json({ id: 42, blacklisted_tags: text }));
+    vi.stubGlobal('fetch', request);
+    await expect(fetchBlacklistedTags('https://danbooru.donmai.us', '42')).resolves.toBe(text);
+    expect(request).toHaveBeenCalledWith('https://danbooru.donmai.us/users/42.json',
+      expect.objectContaining({ credentials: 'same-origin', cache: 'no-store' }));
+  });
+
+  it.each([{}, { id: 42 }, { id: 42, blacklisted_tags: null }, { id: 43, blacklisted_tags: 'cat' }])(
+    'rejects missing rules or a different account instead of treating them as empty', async data => {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json(data)));
+      await expect(fetchBlacklistedTags('https://danbooru.donmai.us', '42')).rejects.toThrow();
+    },
+  );
+
+  it('reports read errors without returning an empty blacklist', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({}, { status: 403 })));
+    await expect(fetchBlacklistedTags('https://danbooru.donmai.us', '42')).rejects.toThrow();
+  });
 
   it('updates only the current user blacklisted tags', async () => {
     vi.stubGlobal('document', {

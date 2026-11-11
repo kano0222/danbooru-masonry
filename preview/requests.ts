@@ -4,6 +4,7 @@ interface PreviewRequests {
   origin: string;
   translations: Record<string, string>;
   popular: [string, number][];
+  readBlacklist: () => string;
   saveBlacklist: (text: string) => void;
 }
 
@@ -18,6 +19,9 @@ export function createPreviewFetch(options: PreviewRequests): typeof fetch {
     if (url.origin === options.origin) {
       if (url.pathname === '/explore/posts/searches.json' && method === 'GET') {
         return Response.json(options.popular);
+      }
+      if (url.pathname === '/users/1.json' && method === 'GET') {
+        return Response.json({ id: 1, blacklisted_tags: options.readBlacklist() });
       }
       if (url.pathname === '/users/1.json' && method === 'PATCH') {
         const body = input instanceof Request && init?.body === undefined
