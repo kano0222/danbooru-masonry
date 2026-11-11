@@ -117,6 +117,11 @@ interface BootOptions {
 }
 
 export function boot(adapter: BooruAdapter, options: BootOptions = {}): void {
+  // Leave interstitial verification and its URL untouched until the host reloads.
+  if ('_cf_chl_opt' in window || document.querySelector(
+    '#challenge-form, #challenge-running, #cf-challenge-running, script[src*="/cdn-cgi/challenge-platform/"]',
+  )) return;
+
   const state = createState(adapter);
   const start = () => startMasonry(state, options);
   state.onViewerShown = (postId) => syncViewerHistory(state, postId);

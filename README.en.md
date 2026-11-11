@@ -52,6 +52,8 @@ Install a userscript manager (such as Tampermonkey) in your browser, then instal
 
 Once inside, click the gear button in the toolbar to adjust layouts, visible information, and viewer behavior.
 
+During Cloudflare verification, the script leaves the original verification page intact. After verification reloads the original site, the automatic entry setting applies again.
+
 ## Usage Guide
 
 ### Settings

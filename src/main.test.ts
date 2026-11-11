@@ -126,6 +126,7 @@ beforeEach(() => {
       return nodes.get(id);
     },
     createElement: () => node(),
+    querySelector: vi.fn(() => null),
     querySelectorAll: () => [],
     hasFocus: vi.fn(() => true),
     addEventListener: vi.fn(),
@@ -151,6 +152,44 @@ afterEach(() => {
 });
 
 describe('masonry launch and tag search', () => {
+  it.each(['?tags=old', '?tags=old&dmh=1', '?tags=old&dmh=0'])(
+    'leaves Cloudflare verification untouched for %s', async (search) => {
+      vi.stubGlobal('location', new URL(`https://danbooru.donmai.us/posts${search}`));
+      Object.assign(window, { _cf_chl_opt: {} });
+      boot(adapter);
+      await Promise.resolve();
+      expect(installLaunchButton).not.toHaveBeenCalled();
+      expect(renderShell).not.toHaveBeenCalled();
+      expect(TagTranslationStore.prototype.load).not.toHaveBeenCalled();
+      expect(adapter.getPosts).not.toHaveBeenCalled();
+      expect(history.replaceState).not.toHaveBeenCalled();
+      expect(window.addEventListener).not.toHaveBeenCalled();
+    },
+  );
+
+  it('leaves challenge markup untouched when the Cloudflare global is unavailable', async () => {
+    vi.mocked(document.querySelector).mockReturnValue({} as Element);
+    boot(adapter);
+    await Promise.resolve();
+    expect(installLaunchButton).not.toHaveBeenCalled();
+    expect(renderShell).not.toHaveBeenCalled();
+    expect(TagTranslationStore.prototype.load).not.toHaveBeenCalled();
+    expect(adapter.getPosts).not.toHaveBeenCalled();
+    expect(history.replaceState).not.toHaveBeenCalled();
+  });
+
+  it('automatically starts on the normal document after verification', async () => {
+    const query = vi.mocked(document.querySelector);
+    query.mockReturnValue({} as Element);
+    boot(adapter);
+    expect(renderShell).not.toHaveBeenCalled();
+    expect(history.replaceState).not.toHaveBeenCalled();
+    query.mockReturnValue(null);
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    expect(renderShell).toHaveBeenCalledOnce();
+  });
+
   it('keeps unrelated page paths inactive by default', async () => {
     vi.stubGlobal('location', new URL('https://danbooru.donmai.us/demo/index.html'));
     boot(adapter);
