@@ -17,7 +17,7 @@ export default defineConfig({
           en: 'Danbooru Masonry — Enhanced Browsing and Tag Translation',
         },
         namespace: 'https://github.com/kano0222',
-        version: '0.7.2',
+        version: '0.7.3',
         author: 'kano0222',
         license: 'MIT',
         description: {
@@ -35,7 +35,7 @@ export default defineConfig({
           'https://danbooru.donmai.us/',
           'https://danbooru.donmai.us/posts*',
         ],
-        grant: ['GM_openInTab', 'GM_download', 'GM_getValue', 'GM_setValue'],
+        grant: ['GM_openInTab', 'GM_download', 'GM_getValue', 'GM_setValue', 'GM_xmlhttpRequest'],
         connect: ['danbooru.donmai.us', 'cdn.jsdelivr.net', 'cdn.donmai.us', 'pbs.twimg.com', 'i.pximg.net'],
         'run-at': 'document-end',
       },

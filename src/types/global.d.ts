@@ -19,3 +19,15 @@ declare function GM_download(
 declare function GM_getValue<T = unknown>(name: string, defaultValue?: T): T;
 
 declare function GM_setValue(name: string, value: unknown): void;
+
+declare function GM_xmlhttpRequest(details: {
+  method: 'GET';
+  url: string;
+  timeout: number;
+  anonymous: boolean;
+  headers: Record<string, string>;
+  onload: (response: { status: number; responseText: string }) => void;
+  onerror: () => void;
+  ontimeout: () => void;
+  onabort: () => void;
+}): unknown;

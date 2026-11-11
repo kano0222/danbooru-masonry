@@ -40,6 +40,7 @@ const header = `// ==UserScript==\n\
 // @grant        GM_download\n\
 // @grant        GM_getValue\n\
 // @grant        GM_setValue\n\
+// @grant        GM_xmlhttpRequest\n\
 // @run-at       document-end\n\
 // ==/UserScript==\n\n`;
 writeFileSync(output, header + body, 'utf8');
