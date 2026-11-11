@@ -122,7 +122,7 @@ pnpm build
 1. 用户脚本在 `document-end` 运行，`userscript.ts` 调用 `resolveAdapter(location)`；没有匹配适配器则结束。当前只接受官方 origin，以及 `http://localhost:3000`、`http://127.0.0.1:3000` 上的 `/` 或 `/posts*` 路径。本地地址是外部 Danbooru 实例，不是演示服务器。
 2. `main.ts` 的 `boot()` 调用 `createState()` 读取 GM 存储中的偏好，绑定历史导航并开始加载翻译，尝试翻译原页面标签。在首页和帖子列表页安装启动按钮，按偏好或启动 URL 决定是否进入瀑布流。
 3. `startMasonry()` 等待翻译加载完成（失败可继续使用原文），已登录时通过账号接口读取保存的黑名单，未登录时从宿主页捕获规则，应用主题、样式和页面壳，绑定事件及布局监听，初始化历史并加载第一页。
-4. `loadNextPage()` 通过适配器获取帖子，Danbooru 实现委托 API 请求并将返回数据规范化为 `Post`。黑名单过滤后由 `ui/cards.ts` 渲染，`core/masonry.ts` 排列；过滤导致整页不可见时继续取后续页。总数量另行请求，用于计算总页数。
+4. `loadNextPage()` 每次通过适配器获取一页帖子，Danbooru 实现委托 API 请求并将返回数据规范化为 `Post`。黑名单过滤后由 `ui/cards.ts` 渲染，`core/masonry.ts` 排列；整页不可见时显示提示，等待用户继续滚动或切换页码。总数量另行请求，用于计算总页数。
 5. 点击卡片进入 `core/viewer.ts` 的查看器逻辑，更新 `ui/shell.ts` 创建的查看器元素，并衔接预加载、标签搜索及历史记录。后续滚动、搜索、页码跳转和前进后退由 `main.ts` 协调。
 
 适配器并未封装所有请求：热门搜索和黑名单保存等仍由应用直接调用 API；因此新增请求时也需检查演示的 `preview/requests.ts`。

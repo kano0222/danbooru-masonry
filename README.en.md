@@ -106,6 +106,8 @@ Sign in to Danbooru to add, remove, or batch-edit rules in Settings and save the
 
 Masonry blacklist filtering supports positive and negative tags, `*` wildcards, and `rating`, `score`, `status`, and `uploaderid` metatags; other rules are saved to Danbooru but do not apply in masonry mode.
 
+Loading pauses when an entire page is filtered out or cannot be displayed. Scroll down again or change the page number to load the next page.
+
 ## Supported Sites and Limitations
 
 The script supports only `https://danbooru.donmai.us` and local Danbooru instances at `http://localhost:3000` and `http://127.0.0.1:3000`. Adding user matches alone cannot enable other mirrors. See the [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/blob/main/docs/development.md#关键运行流程) for adapter details.

@@ -106,6 +106,8 @@
 
 瀑布流黑名单支持正负标签、`*` 通配符及 `rating`、`score`、`status`、`uploaderid` 元标签；其他规则仍会保存到 Danbooru，但不会在瀑布流中生效。
 
+整页内容被过滤或无法显示时会暂停加载；继续向下滚动或切换页码可加载下一页。
+
 ## 支持范围与限制
 
 脚本仅支持 `https://danbooru.donmai.us` 及 `http://localhost:3000`、`http://127.0.0.1:3000` 上的本地 Danbooru 实例。其他镜像不能仅通过添加用户匹配启用，开发适配说明见[开发指南](https://github.com/kano0222/danbooru-masonry/blob/main/docs/development.md#关键运行流程)。

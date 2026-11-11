@@ -636,40 +636,34 @@ async function loadNextPage(state: AppState): Promise<void> {
 
   try {
     const page = state.page;
-    let loadedPage = page;
-    let posts = [] as AppState['posts'];
-    while (true) {
-      const result = await state.adapter.getPosts({
-        tags: getRequestTags(state.tags, state.hideNsfw),
-        page: loadedPage,
-        pageUrlSearch: location.search,
-      });
-      if (requestToken !== state.requestToken) return;
-      if (!result.hasSourcePosts) {
-        state.done = true;
-        setText('dmh-status', `已加载 ${state.posts.length} 张`);
-        setText('dmh-message', state.posts.length ? '已经到底了，没有更多图片。' : '没有找到符合条件的图片。');
-        return;
-      }
-      state.sourcePosts.push(...result.posts);
-      for (const post of result.posts) {
-        state.postPages.set(post.id, loadedPage);
-      }
-      posts = filterBlacklistedPosts(result.posts, state.blacklist);
-      if (posts.length) break;
-      loadedPage += 1;
+    const result = await state.adapter.getPosts({
+      tags: getRequestTags(state.tags, state.hideNsfw),
+      page,
+      pageUrlSearch: location.search,
+    });
+    if (requestToken !== state.requestToken) return;
+    if (!result.hasSourcePosts) {
+      state.done = true;
+      setText('dmh-status', `已加载 ${state.posts.length} 张`);
+      setText('dmh-message', state.posts.length ? '已经到底了，没有更多图片。' : '没有找到符合条件的图片。');
+      return;
     }
+    state.sourcePosts.push(...result.posts);
+    for (const post of result.posts) {
+      state.postPages.set(post.id, page);
+    }
+    const posts = filterBlacklistedPosts(result.posts, state.blacklist);
     const startIndex = state.posts.length;
     state.posts.push(...posts);
     renderPosts(state, posts, startIndex, (index) => showViewer(state, index));
     layoutMasonry(state);
     scheduleScrollControlsUpdate(state);
-    state.page = loadedPage + 1;
-    state.loadedPage = loadedPage;
-    setPageInputValue(loadedPage);
-    updatePageParam(state, loadedPage);
+    state.page = page + 1;
+    state.loadedPage = page;
+    setPageInputValue(page);
+    updatePageParam(state, page);
     setText('dmh-status', `已加载 ${state.posts.length} 张`);
-    setText('dmh-message', '');
+    setText('dmh-message', posts.length ? '' : '本页内容已被过滤或无法显示，可继续向下滚动加载下一页，或切换页码。');
   } catch (error) {
     if (requestToken !== state.requestToken) return;
     const { message, upgrade } = getPostLoadError(error);

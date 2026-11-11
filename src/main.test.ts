@@ -12,6 +12,7 @@ import { TagTranslationStore } from './data/tagTranslation';
 import { normalizePost } from './core/normalizePost';
 import { closeAutocomplete } from './ui/autocomplete';
 import { showSearchPanel } from './ui/searchPanel';
+import { createBlacklistConfigFromText } from './core/blacklist';
 
 vi.mock('./ui/shell', () => ({
   installLaunchButton: vi.fn(),
@@ -764,6 +765,70 @@ describe('quick blacklist actions', () => {
   });
 });
 
+
+describe('filtered page loading', () => {
+  it('pauses after each fully blacklisted page and resumes at the next page on wheel input', async () => {
+    vi.stubGlobal('location', new URL('https://danbooru.donmai.us/posts?tags=user:AngryZapdos&dmh=1'));
+    vi.mocked(renderShell).mockImplementationOnce((state) => {
+      state.blacklist = createBlacklistConfigFromText('uploaderid:527891');
+    });
+    const blocked = normalizePost({ id: 1, uploader_id: 527891 }, adapter.origin);
+    const visible = normalizePost({ id: 2, uploader_id: 42 }, adapter.origin);
+    vi.mocked(adapter.getPosts)
+      .mockResolvedValueOnce({ posts: [blocked], hasSourcePosts: true })
+      .mockResolvedValueOnce({ posts: [blocked], hasSourcePosts: true })
+      .mockResolvedValueOnce({ posts: [visible], hasSourcePosts: true });
+    boot(adapter);
+    await vi.waitFor(() => expect(renderedState().loading).toBe(false));
+    const state = renderedState();
+    expect(adapter.getPosts).toHaveBeenCalledOnce();
+    expect(state.posts).toEqual([]);
+    expect(state.sourcePosts).toEqual([blocked]);
+    expect(state.done).toBe(false);
+    expect(state.page).toBe(2);
+    expect(state.loadedPage).toBe(1);
+    expect(nodes.get('dmh-page')!.value).toBe('1');
+    expect(nodes.get('dmh-message')!.textContent).toContain('本页内容已被过滤或无法显示');
+    expect(nodes.get('dmh-loading-progress')!.hidden).toBe(true);
+    expect(history.replaceState).toHaveBeenLastCalledWith(
+      expect.objectContaining({ dmh: expect.objectContaining({ loadedPage: 1 }) }),
+      '', adapter.getPostsPageUrl('user:AngryZapdos', 1),
+    );
+
+    Object.assign(document.documentElement, { scrollHeight: 600 });
+    Object.assign(window, { innerHeight: 800 });
+    const wheel = vi.mocked(window.addEventListener).mock.calls.find(([name]) => name === 'wheel')![1] as Handler;
+    wheel({ deltaY: -1 });
+    expect(adapter.getPosts).toHaveBeenCalledOnce();
+    wheel({ deltaY: 1 });
+    await vi.waitFor(() => expect(state.loading).toBe(false));
+    expect(adapter.getPosts).toHaveBeenCalledTimes(2);
+    expect(adapter.getPosts).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 }));
+    expect(state.page).toBe(3);
+    expect(state.done).toBe(false);
+
+    wheel({ deltaY: 1 });
+    await vi.waitFor(() => expect(state.loading).toBe(false));
+    expect(adapter.getPosts).toHaveBeenCalledTimes(3);
+    expect(state.posts).toEqual([visible]);
+    expect(state.postPages.get(visible.id)).toBe(3);
+    expect(nodes.get('dmh-message')!.textContent).toBe('');
+    await state.loadMore!();
+    expect(state.done).toBe(true);
+    await state.loadMore!();
+    expect(adapter.getPosts).toHaveBeenCalledTimes(4);
+  });
+
+  it('pauses when source posts exist but none can be displayed', async () => {
+    vi.mocked(adapter.getPosts).mockResolvedValueOnce({ posts: [], hasSourcePosts: true });
+    boot(adapter);
+    await vi.waitFor(() => expect(renderedState().loading).toBe(false));
+    expect(adapter.getPosts).toHaveBeenCalledOnce();
+    expect(renderedState().done).toBe(false);
+    expect(renderedState().page).toBe(2);
+    expect(nodes.get('dmh-message')!.textContent).toContain('本页内容已被过滤或无法显示');
+  });
+});
 
 describe('settings editors and content filtering', () => {
   it('focuses settings on open, wraps Tab, and returns focus on Escape', async () => {
