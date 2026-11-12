@@ -17,7 +17,7 @@ export default defineConfig({
           en: 'Danbooru Masonry — Enhanced Browsing and Tag Translation',
         },
         namespace: 'https://github.com/kano0222',
-        version: '0.7.5',
+        version: '0.7.6',
         author: 'kano0222',
         license: 'MIT',
         description: {

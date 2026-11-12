@@ -1,6 +1,6 @@
 {
   "name": "danbooru-masonry",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "Masonry browsing, tag translation, viewer, and favorites helper for Danbooru.",
   "type": "module",
   "private": true,
