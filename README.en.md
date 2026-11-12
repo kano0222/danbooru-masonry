@@ -49,17 +49,17 @@ Artist, character, and copyright tags are shown by default, with more tags avail
 
 [Install from GitHub Release](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.user.js)
 
-Install a userscript manager (such as Tampermonkey) in your browser, then install the script from one of the links above. Automatic entry is enabled by default on first installation. Open or refresh the Danbooru home page or post list to enter masonry mode. If you disable this option in Settings, use the button in the upper-right corner of the original page to enter manually. On narrow screens and touch devices, the button occupies its own row at the top of the page to keep the original controls accessible.
+Install a userscript manager (such as Tampermonkey) in your browser, then install the script from one of the links above. Automatic entry is enabled by default on first installation. Open or refresh the Danbooru home page or post list to enter masonry mode. If you disable this option in Settings, use the entry button on the original page: at the upper right on desktop, or at the top of the page on narrow screens and touch devices.
 
 Once inside, click the gear button in the toolbar to adjust layouts, visible information, and viewer behavior.
 
-During Cloudflare verification, the script leaves the original verification page intact. After verification reloads the original site, the automatic entry setting applies again.
+If Cloudflare verification appears, complete it and wait for the original site to reload.
 
 ## Usage Guide
 
 ### Settings
 
-Settings share one page, with two grouped columns on desktop and a scrollable single column on narrow screens. General options save immediately; blacklist rules and download filename templates open in separate dialogs and take effect after saving. Press Esc to close Settings and return focus to the gear button.
+General options save immediately; blacklist rules and download filename templates take effect after clicking Save. Press Esc to close Settings.
 
 - Masonry
   - Automatically enter masonry mode (enabled by default)
@@ -72,13 +72,11 @@ Settings share one page, with two grouped columns on desktop and a scrollable si
 - Search
   - Hide popular searches (disabled by default)
 - Viewer
-  - Toolbar position: top (default, original layout) or bottom; bottom mode mirrors the areas vertically and reverses the vertical order of ID, artist, and related tags
+  - Toolbar position: top (default) or bottom
   - Use the mouse wheel to navigate images (enabled by default)
   - Load original files (disabled by default)
   - Preload 0–5 following still images (default: 2; 0 disables preloading)
   - Tag click behavior: new-tab masonry (default) or current-tab masonry
-
-In bottom mode, the tag toggle moves to the upper left and its panel opens to the lower right. Position changes apply immediately and save automatically.
 
 The screenshot shows an example configuration; defaults are listed above.
 
@@ -101,9 +99,7 @@ For example, `{artist}_{postid}` combines the artist tag and Danbooru post ID. T
 
 ### Blacklist
 
-When signed in, saved rules are loaded from your account API independently of the search page. If loading fails, reopen the rule editor to retry.
-
-Sign in to Danbooru to add, remove, or batch-edit rules in Settings and save them to your account. You can also blacklist tags or the uploader of the current post through the viewer. The uploader is the account that uploaded the image and may differ from the artist; the option is hidden when uploader information is unavailable. Rule editing supports tag autocomplete, and rule removals take effect after clicking Save.
+Sign in to Danbooru to add, remove, or batch-edit rules in Settings and save them to your account. You can also blacklist tags or the uploader of the current post through the viewer. The uploader is the account that uploaded the image and may differ from the artist. Rule editing supports tag autocomplete, and rule removals take effect after clicking Save. If rules fail to load, reopen the editor to retry.
 
 Masonry blacklist filtering supports positive and negative tags, `*` wildcards, and `rating`, `score`, `status`, and `uploaderid` metatags; other rules are saved to Danbooru but do not apply in masonry mode.
 
@@ -119,7 +115,7 @@ For URLs supported by the adapter but absent from the default script matches, al
 
 ## About the Preview
 
-Try search, layouts, the viewer, favorites, and blacklist filtering in the [interactive preview](https://kano0222.github.io/danbooru-masonry/). It simulates a signed-in user with local sample images and illustrative tags, scores, ratings, uploader IDs, popular searches, and initial favorites. These operations do not access a Danbooru account or the online translation service.
+Try search, layouts, the viewer, favorites, and blacklist filtering in the [interactive preview](https://kano0222.github.io/danbooru-masonry/). It uses local sample images and simulated account data without accessing a Danbooru account or the online translation service.
 
 Settings, history, and blacklist rules use the preview site's browser storage; favorites reset on reload. Downloads save sample images, while source buttons open their original sources. To run or build the preview yourself, see the [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/blob/main/docs/development.md#本地演示与静态产物).
 
@@ -130,6 +126,7 @@ The [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/b
 Planned improvements:
 
 - Search sorting.
+- Internationalization.
 
 ## Data Sources and Credits
 
