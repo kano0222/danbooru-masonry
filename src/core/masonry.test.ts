@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { CARD_GAP, calculateLayout, findShortestColumn, getVisibleCardIndices } from './masonry';
+import { CARD_GAP, calculateLayout, findShortestColumn, getVisibleCardIndices, isCroppedLongImage } from './masonry';
 
 describe('masonry column selection', () => {
   it('prefers the leftmost column when height differences are visually negligible', () => {
@@ -31,6 +31,37 @@ describe('image list layouts', () => {
       { left: 212, top: 0, width: 200, height: 200 },
       { left: 0, top: 212, width: 200, height: 200 },
     ]);
+  });
+
+  it('caps long previews in both masonry layouts and places following cards below the cap', () => {
+    const images = [
+      { width: 100, height: 200 },
+      { width: 100, height: 201 },
+      { width: 100, height: 1333 },
+      { width: 100, height: 100 },
+    ];
+    for (const layout of ['masonry', 'virtual'] as const) {
+      for (const cardWidth of [120, 280]) {
+        const positions = calculateLayout(images, cardWidth, cardWidth, layout);
+        expect(positions.map((item) => item.height)).toEqual([
+          cardWidth * 2, cardWidth * 2, cardWidth * 2, cardWidth,
+        ]);
+        expect(positions[3].top).toBe(6 * cardWidth + 3 * CARD_GAP);
+      }
+      expect(images.map((post) => isCroppedLongImage(post.width, post.height, layout)))
+        .toEqual([false, true, true, false]);
+      expect(isCroppedLongImage(0, 1000, layout)).toBe(false);
+    }
+  });
+
+  it('preserves grid and justified geometry for long images without top-aligned cropping', () => {
+    const images = [{ width: 100, height: 1333 }];
+    expect(calculateLayout(images, 280, 280, 'grid')[0].height).toBe(280);
+    const justified = calculateLayout(images, 280, 280, 'justified')[0];
+    expect(justified.width / justified.height).toBeCloseTo(100 / 1333);
+    for (const layout of ['grid', 'justified'] as const) {
+      expect(isCroppedLongImage(100, 1333, layout)).toBe(false);
+    }
   });
 
   it('fills justified rows without cropping and leaves the final row unstretched', () => {

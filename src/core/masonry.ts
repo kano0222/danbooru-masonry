@@ -4,6 +4,7 @@ export const LOAD_OFFSET_PX = 900;
 export const CARD_WIDTH = 220;
 export const DEFAULT_CARD_WIDTH = 280;
 export const CARD_GAP = 12;
+const MAX_CARD_HEIGHT_RATIO = 2;
 export const LAYOUT_OPTIONS = [
   { key: 'masonry', label: '瀑布流' },
   { key: 'grid', label: '网格' },
@@ -22,6 +23,10 @@ export interface CardPosition {
   top: number;
   width: number;
   height: number;
+}
+
+export function isCroppedLongImage(width: number, height: number, layout: ListLayout): boolean {
+  return (layout === 'masonry' || layout === 'virtual') && width > 0 && height > width * MAX_CARD_HEIGHT_RATIO;
 }
 
 export function calculateLayout(
@@ -102,8 +107,14 @@ function updateLayoutCards(state: AppState, grid: HTMLElement, positions: CardPo
     : positions.map((_, index) => index);
   state.renderLayoutCards?.(indices);
   for (const card of grid.querySelectorAll<HTMLElement>('.dmh-card')) {
-    const position = positions[Number(card.dataset.index)];
+    const index = Number(card.dataset.index);
+    const position = positions[index];
     if (!position) continue;
+    const post = state.posts[index];
+    card.classList.toggle(
+      'dmh-long-image',
+      isCroppedLongImage(post.width, post.height, state.listLayout),
+    );
     card.style.width = `${position.width}px`;
     card.style.left = `${position.left}px`;
     card.style.top = `${position.top}px`;
@@ -148,5 +159,8 @@ export function findShortestColumn(
 
 function getCardHeight(width: number, height: number, cardWidth: number): number {
   if (!width || !height) return cardWidth;
-  return Math.max(80, Math.round((cardWidth * height) / width));
+  return Math.min(
+    cardWidth * MAX_CARD_HEIGHT_RATIO,
+    Math.max(80, Math.round((cardWidth * height) / width)),
+  );
 }

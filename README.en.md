@@ -11,6 +11,7 @@ Browse Danbooru with multiple image layouts, Chinese tag translations, search hi
 ### Browsing and Layouts
 
 - Choose masonry, grid, justified, or virtual masonry layouts.
+- In masonry and virtual masonry, images taller than 2:1 show a top-aligned preview capped at twice the card width. Click to view the full image in the viewer.
 - Load posts as you scroll or jump to a page, with adjustable thumbnail sizes.
 - Open sources and download files from thumbnails, with optional post IDs and dimensions.
 - Switch to dark mode and filter posts using your signed-in Danbooru account’s blacklist.
