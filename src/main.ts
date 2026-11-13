@@ -1,3 +1,4 @@
+import { getLanguage, initializeLanguage, setLanguage, refreshLocalizedDom, localizeText, t } from './ui/i18n';
 import { consumeMasonryLaunchUrl, shouldSearchInCurrentTab } from './core/viewerTags';
 import type { AppState } from './core/state';
 import type { BooruAdapter } from './adapters/types';
@@ -31,6 +32,7 @@ import { applyTheme, getNextThemeMode } from './ui/theme';
 import { installLaunchButton, renderBlacklistRuleRows, renderShell } from './ui/shell';
 import { renderPosts } from './ui/cards';
 import {
+  refreshAutocompleteLanguage,
   applyBlacklistAutocompleteTag,
   applySelectedBlacklistAutocomplete,
   closeBlacklistAutocomplete,
@@ -86,7 +88,7 @@ import {
   refreshViewerPreload,
   toggleZoomMode,
 } from './core/viewer';
-import { byId, setText } from './utils/dom';
+import { byId, preserveFocus, setText } from './utils/dom';
 import {
   bindScrollControls,
   scheduleScrollControlsUpdate,
@@ -122,6 +124,7 @@ export function boot(adapter: BooruAdapter, options: BootOptions = {}): void {
     '#challenge-form, #challenge-running, #cf-challenge-running, script[src*="/cdn-cgi/challenge-platform/"]',
   )) return;
 
+  initializeLanguage();
   const state = createState(adapter);
   const start = () => startMasonry(state, options);
   state.onViewerShown = (postId) => syncViewerHistory(state, postId);
@@ -155,7 +158,7 @@ async function startMasonry(state: AppState, options: BootOptions): Promise<void
   let shellAttempted = false;
   if (button) {
     button.disabled = true;
-    button.textContent = '加载中...';
+    localizeText(button, '加载中...');
   }
 
   try {
@@ -207,11 +210,11 @@ async function startMasonry(state: AppState, options: BootOptions): Promise<void
         location.replace(retryUrl.toString());
       });
       const retry = byId('dmh-launch');
-      if (retry) retry.textContent = '启动失败，点击重试';
+      if (retry) localizeText(retry, '启动失败，点击重试');
     }
     if (button) {
       button.disabled = false;
-      button.textContent = '瀑布流模式';
+      localizeText(button, '瀑布流模式');
     }
   } finally {
     state.starting = false;
@@ -282,6 +285,30 @@ function bindShellEvents(state: AppState): void {
     loadPopular: () => fetchPopularSearches(state.adapter.origin),
     hidePopular: state.hidePopularSearches,
   });
+  byId('dmh-language-toggle')?.addEventListener('click', () => {
+    setLanguage(getLanguage() === 'en' ? 'zh-CN' : 'en');
+    byId('dmh-language-toggle')?.setAttribute('aria-pressed', String(getLanguage() === 'en'));
+    const refresh = () => {
+      const app = byId('dmh-app');
+      preserveFocus(app, () => {
+        if (app) refreshLocalizedDom(app);
+        const tagsPanel = byId('dmh-viewer-tags-list');
+        const tagsScroll = tagsPanel?.scrollTop ?? 0;
+        refreshViewerTags(state);
+        if (tagsPanel) tagsPanel.scrollTop = tagsScroll;
+        searchLibrary.refreshLanguage();
+        // Reuse autocomplete results without making another request or losing selection.
+        refreshAutocompleteLanguage(state);
+        for (const input of document.querySelectorAll<HTMLInputElement>('[data-download-template]')) {
+          updateDownloadTemplatePreview(input, Boolean(input.validationMessage));
+        }
+      });
+    };
+    refresh();
+    if (getLanguage() === 'zh-CN') {
+      void state.translations.load().then(() => { refresh(); translateOriginalPageTags(state); });
+    }
+  });
   byId('dmh-search')?.addEventListener('submit', (event) => {
     event.preventDefault();
     const query = byId<HTMLInputElement>('dmh-tags')?.value || '';
@@ -335,7 +362,7 @@ function bindShellEvents(state: AppState): void {
     const confirm = byId<HTMLButtonElement>('dmh-viewer-blacklist-confirm');
     if (confirm) {
       confirm.disabled = true;
-      confirm.textContent = '确认加入';
+      localizeText(confirm, '确认加入');
     }
     dialog.showModal();
   });
@@ -353,8 +380,8 @@ function bindShellEvents(state: AppState): void {
     const confirm = byId<HTMLButtonElement>('dmh-viewer-blacklist-confirm');
     if (confirm) {
       confirm.disabled = viewerBlacklistSelection.size === 0;
-      confirm.textContent = viewerBlacklistSelection.size
-        ? `确认加入（${viewerBlacklistSelection.size}）` : '确认加入';
+      localizeText(confirm, viewerBlacklistSelection.size
+        ? `确认加入（${viewerBlacklistSelection.size}）` : '确认加入');
     }
   });
   const closeViewerBlacklistDialog = () =>
@@ -673,7 +700,7 @@ async function loadNextPage(state: AppState): Promise<void> {
       link.href = new URL('/upgrade', state.adapter.origin).toString();
       link.target = '_blank';
       link.rel = 'noreferrer';
-      link.textContent = ' 升级账号';
+      localizeText(link, ' 升级账号');
       byId('dmh-message')?.appendChild(link);
     }
     setText('dmh-status', `已加载 ${state.posts.length} 张`);
@@ -760,7 +787,7 @@ async function persistBlacklist(
   state.blacklistSaving = true;
   setBlacklistControlsDisabled(true);
   status?.classList.remove('dmh-error');
-  if (fromEditor && status) status.textContent = '保存中...';
+  if (fromEditor && status) localizeText(status, '保存中...');
   try {
     await updateBlacklistedTags(state.adapter.origin, userId, text);
     state.blacklistText = text;
@@ -769,7 +796,7 @@ async function persistBlacklist(
     if (input) input.value = text;
     renderBlacklistDraftRules();
     refreshPostsForBlacklist(state);
-    if (fromEditor && status) status.textContent = '已保存';
+    if (fromEditor && status) localizeText(status, '已保存');
     return true;
   } catch (error) {
     const message = error instanceof TypeError
@@ -777,7 +804,7 @@ async function persistBlacklist(
       : error instanceof Error ? error.message : '保存失败，请稍后重试。';
     if (fromEditor && status) {
       status.classList.add('dmh-error');
-      status.textContent = message;
+      localizeText(status, message);
     } else {
       showSnackbar(message);
     }
@@ -1236,7 +1263,7 @@ function resetDownloadFilenameTemplates(): void {
 
 function updateDownloadTemplatePreview(input: HTMLInputElement, validate = false): string {
   const error = validate ? validateDownloadFilenameTemplate(input.value.trim()) : '';
-  input.setCustomValidity(error);
+  input.setCustomValidity(t(error));
   setText('dmh-download-preview-' + input.dataset.downloadTemplate,
     error || '示例:' + previewDownloadFilenameTemplate(input.value.trim()));
   return error;
@@ -1357,15 +1384,18 @@ function restoreBlacklistDraft(state: AppState): void {
   const status = byId('dmh-blacklist-status');
   if (!status) return;
   status.classList.remove('dmh-error');
-  status.textContent = !state.blacklistAvailable
+  localizeText(status, !state.blacklistAvailable
     ? '未能读取黑名单，请关闭此窗口后重新打开以重试'
-    : currentUserId() ? '' : '登录 Danbooru 后可修改';
+    : currentUserId() ? '' : '登录 Danbooru 后可修改');
 }
 
 function renderBlacklistDraftRules(): void {
   const input = byId<HTMLTextAreaElement>('dmh-blacklist-rules');
   const list = byId('dmh-blacklist-rule-list');
-  if (input && list) list.innerHTML = renderBlacklistRuleRows(input.value);
+  if (input && list) {
+    delete list.dataset.i18n;
+    list.innerHTML = renderBlacklistRuleRows(input.value);
+  }
 }
 
 function addBlacklistDraftRule(): void {
@@ -1395,5 +1425,5 @@ function removeBlacklistDraftRule(index: number): void {
 function markBlacklistDraftChanged(): void {
   const status = byId('dmh-blacklist-status');
   status?.classList.remove('dmh-error');
-  if (status) status.textContent = '尚未保存';
+  if (status) localizeText(status, '尚未保存');
 }

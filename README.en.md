@@ -28,7 +28,7 @@ Click an empty search field to view history and popular searches. Select an entr
 
 - Submitting a search, selecting history or popular searches, or searching through viewer tags records the query. Empty searches, Hot and personal favorites shortcuts, page navigation, and refreshes do not add entries.
 - Up to 20 ordinary entries are kept, with recently used queries first. Use the pin to keep an entry at the top without counting toward the limit. Unpin it before deleting it. Deletion is immediate and cannot be undone.
-- History initially shows eight entries and can be expanded. Enabling “隐藏热门搜索” (hide popular searches) in Settings shows 16 entries by default and stops requesting popular searches.
+- History initially shows eight entries and can be expanded. Enabling “Hide popular searches” in Settings shows 16 entries by default and stops requesting popular searches.
 - History is stored locally in userscript storage and does not sync to your Danbooru account.
 
 Popular searches come from Danbooru's [Popular Searches](https://danbooru.donmai.us/explore/posts/searches), with up to 10 entries. They rank search queries, unlike Hot images. If today's data is empty, the previous day is tried using UTC dates. Missing data or a failed request hides this section without affecting history.
@@ -50,6 +50,8 @@ Artist, character, and copyright tags are shown by default, with more tags avail
 [Install from GitHub Release](https://github.com/kano0222/danbooru-masonry/releases/latest/download/danbooru-masonry.user.js)
 
 Install a userscript manager (such as Tampermonkey) in your browser, then install the script from one of the links above. Automatic entry is enabled by default on first installation. Open or refresh the Danbooru home page or post list to enter masonry mode. If you disable this option in Settings, use the entry button on the original page: at the upper right on desktop, or at the top of the page on narrow screens and touch devices.
+
+Use the language button in the toolbar to switch between Chinese and English instantly. The choice is remembered, with Chinese as the default. English mode hides Chinese translations on the original site, in the viewer, and in search, and does not load the Chinese translation resource on startup. Switching back to Chinese restores translations. Your browsing position, queries, blacklist rules, and custom filename templates are preserved.
 
 Once inside, click the gear button in the toolbar to adjust layouts, visible information, and viewer behavior.
 

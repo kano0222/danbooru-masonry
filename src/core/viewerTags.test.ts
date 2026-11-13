@@ -108,6 +108,7 @@ describe('viewer tag panel', () => {
         innerHTML: '',
         scrollTop: 25,
         textContent: '',
+        dataset: {},
         setAttribute: vi.fn(),
         focus: vi.fn(),
         classList: { contains: () => true },

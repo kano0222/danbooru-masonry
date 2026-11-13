@@ -1,14 +1,51 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createPreviewFetch } from '../../preview/requests';
+import { setLanguage } from '../ui/i18n';
 import { TAG_TRANSLATION_TIMEOUT_MS, TAG_TRANSLATION_URL, TagTranslationStore } from './tagTranslation';
 
 describe('tag translation store', () => {
   beforeEach(() => vi.stubGlobal('window', globalThis));
 
   afterEach(() => {
+    setLanguage('zh-CN');
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it('does not request translations in English and restores them when switching back', async () => {
+    const request = vi.fn((details: Parameters<typeof GM_xmlhttpRequest>[0]) => {
+      details.onload({ status: 200, responseText: '{"cat_girl":"猫娘"}' });
+    });
+    vi.stubGlobal('GM_xmlhttpRequest', request);
+    const store = new TagTranslationStore();
+    setLanguage('en');
+    expect(await store.load()).toBe(false);
+    expect(request).not.toHaveBeenCalled();
+    setLanguage('zh-CN');
+    expect(await store.load()).toBe(true);
+    expect(store.translate('cat_girl')).toBe('猫娘');
+    setLanguage('en');
+    expect(store.format('cat_girl')).toBe('cat_girl');
+    setLanguage('zh-CN');
+    expect(await store.load()).toBe(true);
+    expect(store.translate('cat_girl')).toBe('猫娘');
+    expect(request).toHaveBeenCalledOnce();
+  });
+
+  it('does not expose translations when an in-flight Chinese request completes in English', async () => {
+    let complete!: Parameters<typeof GM_xmlhttpRequest>[0]['onload'];
+    vi.stubGlobal('GM_xmlhttpRequest', (details: Parameters<typeof GM_xmlhttpRequest>[0]) => {
+      complete = details.onload;
+    });
+    const store = new TagTranslationStore();
+    const loading = store.load();
+    setLanguage('en');
+    complete({ status: 200, responseText: '{"cat":"猫"}' });
+    await loading;
+    expect(store.translate('cat')).toBe('');
+    setLanguage('zh-CN');
+    expect(store.translate('cat')).toBe('猫');
   });
 
   it('loads once through the userscript manager when page fetch is blocked', async () => {

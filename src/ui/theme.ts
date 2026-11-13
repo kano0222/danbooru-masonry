@@ -1,3 +1,4 @@
+import { localizeAttribute } from './i18n';
 import type { ThemeMode } from '../core/state';
 import { icons } from './icons';
 
@@ -8,8 +9,8 @@ export function applyTheme(themeMode: ThemeMode): void {
   if (!button) return;
   const label = getThemeToggleLabel(themeMode);
   button.innerHTML = getThemeToggleIcon(themeMode);
-  button.setAttribute('aria-label', label);
-  button.setAttribute('data-dmh-tooltip', label);
+  localizeAttribute(button, 'aria-label', label);
+  localizeAttribute(button, 'data-dmh-tooltip', label);
 }
 
 export function getNextThemeMode(themeMode: ThemeMode): ThemeMode {
