@@ -1,3 +1,4 @@
+import { t, attributeMarkup, textMarkup } from './i18n';
 import { SearchLibrary, type SearchLibraryData } from '../core/searchLibrary';
 import type { PopularSearch } from '../api/popularSearches';
 import { escapeAttr, escapeHtml } from '../utils/escape';
@@ -39,26 +40,26 @@ export function renderSearchLists(data: SearchLibraryData, translate: Translate,
   const visibleQueries = expanded ? queries : queries.slice(0, collapsedCount);
   return `<section aria-labelledby="dmh-search-history-title">
     <div class="dmh-search-history-heading">
-      <h3 id="dmh-search-history-title">搜索历史</h3>
+      <h3 id="dmh-search-history-title" data-i18n="搜索历史">${t("搜索历史")}</h3>
     </div>
     <div class="dmh-search-chips" id="dmh-search-history-items">${visibleQueries.length ? visibleQueries.map((query) => {
       const pinned = data.pinned.includes(query);
       return `<div class="dmh-search-entry${pinned ? ' dmh-search-entry-pinned' : ''}">
         <button type="button" class="dmh-search-query" data-search-action="search" data-query="${escapeAttr(query)}" title="${queryTitle(query, translate)}">${queryLabel(query, translate)}</button>
-        <button type="button" class="dmh-search-pin" data-search-action="pin" data-query="${escapeAttr(query)}" aria-pressed="${pinned}" aria-label="${pinned ? '取消固定' : '固定'}：${escapeAttr(query)}" title="${pinned ? '取消固定' : '固定'}">${icons.pin}</button>
-        ${pinned ? '' : `<button type="button" class="dmh-search-remove" data-search-action="remove" data-query="${escapeAttr(query)}" aria-label="删除搜索：${escapeAttr(query)}" title="删除">${icons.close}</button>`}
+        <button type="button" class="dmh-search-pin" data-search-action="pin" data-query="${escapeAttr(query)}" aria-pressed="${pinned}" ${attributeMarkup('aria-label', `${pinned ? '取消固定' : '固定'}：${query}`)} ${attributeMarkup('title', pinned ? '取消固定' : '固定')}>${icons.pin}</button>
+        ${pinned ? '' : `<button type="button" class="dmh-search-remove" data-search-action="remove" data-query="${escapeAttr(query)}" ${attributeMarkup('aria-label', `删除搜索：${query}`)} ${attributeMarkup("title", "删除")}>${icons.close}</button>`}
       </div>`;
-    }).join('') : '<p class="dmh-search-empty">尚无搜索历史</p>'}</div>
-    ${queries.length > collapsedCount ? `<button type="button" id="dmh-search-history-toggle" data-search-action="expand" aria-expanded="${expanded}" aria-controls="dmh-search-history-items">${expanded ? '收起' : '展开更多'}${icons.foldArrow}</button>` : ''}
+    }).join('') : `<p class="dmh-search-empty" data-i18n="尚无搜索历史">${t("尚无搜索历史")}</p>`}</div>
+    ${queries.length > collapsedCount ? `<button type="button" id="dmh-search-history-toggle" data-search-action="expand" aria-expanded="${expanded}" aria-controls="dmh-search-history-items">${textMarkup(expanded ? '收起' : '展开更多')}${icons.foldArrow}</button>` : ''}
   </section>`;
 }
 
 export function renderPopularSearches(items: PopularSearch[], translate: Translate): string {
   if (!items.length) return '';
   return `<section aria-labelledby="dmh-search-popular-title">
-    <h3 id="dmh-search-popular-title">热门搜索</h3>
+    <h3 id="dmh-search-popular-title" data-i18n="热门搜索">${t("热门搜索")}</h3>
     <div class="dmh-search-popular-grid">${items.map(({ query, count }, index) => `
-      <button type="button" data-search-action="search" data-query="${escapeAttr(query)}" title="${queryTitle(query, translate)} · ${count} 次搜索">
+      <button type="button" data-search-action="search" data-query="${escapeAttr(query)}" title="${queryTitle(query, translate)} · ${t(`${count} 次搜索`)}">
         <span class="dmh-search-rank">${index + 1}</span><span class="dmh-search-popular-query">${queryLabel(query, translate, true)}</span>
       </button>`).join('')}</div>
   </section>`;
@@ -183,5 +184,5 @@ export function bindSearchLibrary(options: SearchLibraryOptions) {
   });
   window.addEventListener('popstate', () => close());
   render();
-  return { record, close, open, setHidePopular };
+  return { record, close, open, setHidePopular, refreshLanguage: () => { render(); renderPopular(); } };
 }

@@ -1,18 +1,41 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AutocompleteItem, BooruAdapter } from '../adapters/types';
 import { createState, type AppState } from '../core/state';
+import { setLanguage } from './i18n';
 import {
   applyBlacklistAutocompleteTag,
   closeAutocomplete,
   openAutocomplete,
   openBlacklistAutocomplete,
   renderAutocomplete,
+  refreshAutocompleteLanguage,
   scheduleAutocomplete,
 } from './autocomplete';
 
 let state: AppState;
 let container: { innerHTML: string; classList: { add: ReturnType<typeof vi.fn>; remove: ReturnType<typeof vi.fn>; contains: () => boolean }; setAttribute: ReturnType<typeof vi.fn> };
 let resolveRequest: (items: AutocompleteItem[]) => void;
+
+it('omits both translated tags and built-in Chinese explanations in English', () => {
+  setLanguage('en');
+  renderAutocomplete(state, [{ value: 'order:rank', count: '', category: 'meta' }]);
+  expect(container.innerHTML).toContain('order:rank');
+  expect(container.innerHTML).not.toContain('排序');
+  expect(container.innerHTML).not.toContain('dmh-ac-cn');
+});
+
+it('refreshes cached suggestions without reopening a closed search panel', () => {
+  renderAutocomplete(state, [{ value: 'order:rank', count: '', category: 'meta' }]);
+  vi.stubGlobal('document', {
+    getElementById: (id: string) => id === 'dmh-ac' ? container : null,
+    querySelector: (selector: string) => selector === '#dmh-ac .dmh-ac-item' ? {} : null,
+  });
+  container.classList.add.mockClear();
+  setLanguage('en');
+  refreshAutocompleteLanguage(state);
+  expect(container.innerHTML).not.toContain('排序');
+  expect(container.classList.add).not.toHaveBeenCalled();
+});
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -31,6 +54,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  setLanguage('zh-CN');
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });

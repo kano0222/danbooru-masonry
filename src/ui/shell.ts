@@ -1,3 +1,4 @@
+import { getLanguage, localizeText, t, attributeMarkup, textMarkup } from './i18n';
 import { icons } from './icons';
 import { escapeAttr, escapeHtml } from '../utils/escape';
 import { DOWNLOAD_FILENAME_TEMPLATE_OPTIONS, type AppState } from '../core/state';
@@ -10,13 +11,13 @@ import { getBlacklistRuleSources } from '../core/blacklist';
 
 export function renderBlacklistRuleRows(text: string): string {
   const rules = getBlacklistRuleSources(text);
-  if (!rules.length) return '<div class="dmh-blacklist-empty">尚无规则</div>';
+  if (!rules.length) return `<div class="dmh-blacklist-empty" data-i18n="尚无规则">${t("尚无规则")}</div>`;
   return rules
     .map(
       (rule, index) => `
         <div class="dmh-blacklist-rule">
           <code>${escapeHtml(rule)}</code>
-          <button type="button" data-blacklist-remove="${index}" aria-label="删除规则 ${escapeAttr(rule)}">${icons.trash}</button>
+          <button type="button" data-blacklist-remove="${index}" ${attributeMarkup('aria-label', `删除规则 ${rule}`)}>${icons.trash}</button>
         </div>`,
     )
     .join('');
@@ -38,37 +39,37 @@ export function renderShell(state: AppState): void {
   const cardSize = CARD_SIZE_OPTIONS.find((option) => option.value === state.cardWidth)?.key || 'medium';
   const cardSizeOptions = CARD_SIZE_OPTIONS.map(
     (option) =>
-      `<option value="${option.key}"${option.value === state.cardWidth ? ' selected' : ''}>${option.label}</option>`,
+      `<option data-i18n="${option.label}" value="${option.key}"${option.value === state.cardWidth ? ' selected' : ''}>${t(option.label)}</option>`,
   ).join('');
   const themeToggleLabel = getThemeToggleLabel(state.themeMode);
   const downloadFilenameTemplateInputs = DOWNLOAD_FILENAME_TEMPLATE_OPTIONS.map(
     (option) => `
               <label class="dmh-download-template-row" for="dmh-download-template-${option.key}">
                 <span class="dmh-download-template-heading">
-                  <span class="dmh-download-template-label">${option.label}</span>
+                  <span class="dmh-download-template-label" data-i18n="${option.label}">${t(option.label)}</span>
                   <span class="dmh-setting-help dmh-download-preview" id="dmh-download-preview-${option.key}"></span>
                 </span>
                 <input class="dmh-download-template-input" id="dmh-download-template-${option.key}" type="text" data-download-template="${option.key}" value="${escapeAttr(state.downloadFilenameTemplates[option.key])}" aria-describedby="dmh-download-preview-${option.key}">
               </label>`,
   ).join('');
   document.body.innerHTML = `
-    <div id="dmh-app" data-card-size="${cardSize}" data-show-thumbnail-info="${state.showThumbnailInfo}" data-show-thumbnail-buttons="${state.showThumbnailButtons}">
+    <div id="dmh-app" lang="${getLanguage()}" data-card-size="${cardSize}" data-show-thumbnail-info="${state.showThumbnailInfo}" data-show-thumbnail-buttons="${state.showThumbnailButtons}">
       <header class="dmh-topbar" id="dmh-topbar">
         <div class="dmh-toolbar-content">
           <div class="dmh-brand">
-            <button class="dmh-title" id="dmh-title-exit" type="button" aria-label="退出瀑布流">danbooru</button>
+            <button class="dmh-title" id="dmh-title-exit" type="button" ${attributeMarkup("aria-label", "退出瀑布流")}>danbooru</button>
             <div class="dmh-page-group">
-              <span class="dmh-page-label">页码</span>
-              <label class="dmh-page-control" title="页码" aria-label="页码">
+              <span class="dmh-page-label" data-i18n="页码">${t("页码")}</span>
+              <label class="dmh-page-control" ${attributeMarkup("title", "页码")} ${attributeMarkup("aria-label", "页码")}>
                 <input class="dmh-page-input" id="dmh-page" type="text" inputmode="numeric" pattern="[0-9]*" size="1" value="${state.page}">
               </label>
-              <span class="dmh-page-total" aria-label="总页数">/ <span id="dmh-total-pages">${state.totalPages ?? '…'}</span></span>
+              <span class="dmh-page-total" ${attributeMarkup("aria-label", "总页数")}>/ <span id="dmh-total-pages">${state.totalPages ?? '…'}</span></span>
             </div>
           </div>
           <div class="dmh-search">
             <form class="dmh-search-form" id="dmh-search">
-              <input id="dmh-tags" type="search" autocomplete="off" placeholder="搜索标签" aria-label="搜索标签" aria-expanded="false" aria-controls="dmh-search-panel" value="${escapeAttr(state.tags)}">
-              <button class="dmh-button dmh-icon-button" type="submit" data-dmh-tooltip="搜索" aria-label="搜索">${icons.search}</button>
+              <input id="dmh-tags" type="search" autocomplete="off" ${attributeMarkup("placeholder", "搜索标签")} ${attributeMarkup("aria-label", "搜索标签")} aria-expanded="false" aria-controls="dmh-search-panel" value="${escapeAttr(state.tags)}">
+              <button class="dmh-button dmh-icon-button" type="submit" ${attributeMarkup("data-dmh-tooltip", "搜索")} ${attributeMarkup("aria-label", "搜索")}>${icons.search}</button>
               <div class="dmh-search-panel" id="dmh-search-panel" hidden>
                 <div class="dmh-search-library" id="dmh-search-library" hidden>
                   <div id="dmh-search-lists"></div>
@@ -77,39 +78,40 @@ export function renderShell(state: AppState): void {
                 <div class="dmh-ac" id="dmh-ac" aria-hidden="true" hidden></div>
               </div>
             </form>
-            <button class="dmh-button dmh-icon-button dmh-hot-button" id="dmh-hot-search" type="button" data-dmh-tooltip="热门" aria-label="热门">${icons.hot}</button>
-            <button class="dmh-button dmh-icon-button" id="dmh-favorites-search" type="button" data-dmh-tooltip="${canSearchFavorites ? '我的收藏' : '登录后可查看收藏'}" aria-label="我的收藏" ${canSearchFavorites ? '' : 'disabled'}>${icons.favoriteStar}</button>
+            <button class="dmh-button dmh-icon-button dmh-hot-button" id="dmh-hot-search" type="button" ${attributeMarkup("data-dmh-tooltip", "热门")} ${attributeMarkup("aria-label", "热门")}>${icons.hot}</button>
+            <button class="dmh-button dmh-icon-button" id="dmh-favorites-search" type="button" ${attributeMarkup('data-dmh-tooltip', canSearchFavorites ? '我的收藏' : '登录后可查看收藏')} ${attributeMarkup("aria-label", "我的收藏")} ${canSearchFavorites ? '' : 'disabled'}>${icons.favoriteStar}</button>
           </div>
           <div class="dmh-toolbar-actions">
-            <div class="dmh-status" id="dmh-status">已加载 0 张</div>
-            <button class="dmh-theme-button dmh-icon-button" id="dmh-theme-toggle" type="button" data-dmh-tooltip="${themeToggleLabel}" aria-label="${themeToggleLabel}">${getThemeToggleIcon(state.themeMode)}</button>
-            <button class="dmh-settings-button dmh-icon-button" id="dmh-settings-toggle" type="button" data-dmh-tooltip="设置" aria-label="设置" aria-expanded="false" aria-controls="dmh-settings-panel">${icons.settings}</button>
-            <button class="dmh-exit-button dmh-icon-button" id="dmh-exit" type="button" data-dmh-tooltip="退出瀑布流" aria-label="退出瀑布流">${icons.exit}</button>
+            <div class="dmh-status" id="dmh-status" data-i18n="已加载 0 张">${t("已加载 0 张")}</div>
+            <button class="dmh-theme-button dmh-icon-button" id="dmh-theme-toggle" type="button" ${attributeMarkup('data-dmh-tooltip', themeToggleLabel)} ${attributeMarkup('aria-label', themeToggleLabel)}>${getThemeToggleIcon(state.themeMode)}</button>
+            <button class="dmh-language-button dmh-icon-button" id="dmh-language-toggle" type="button" ${attributeMarkup('aria-label', '切换语言')} ${attributeMarkup('data-dmh-tooltip', '切换语言')} aria-pressed="${getLanguage() === 'en'}">${icons.language}</button>
+            <button class="dmh-settings-button dmh-icon-button" id="dmh-settings-toggle" type="button" ${attributeMarkup("data-dmh-tooltip", "设置")} ${attributeMarkup("aria-label", "设置")} aria-expanded="false" aria-controls="dmh-settings-panel">${icons.settings}</button>
+            <button class="dmh-exit-button dmh-icon-button" id="dmh-exit" type="button" ${attributeMarkup("data-dmh-tooltip", "退出瀑布流")} ${attributeMarkup("aria-label", "退出瀑布流")}>${icons.exit}</button>
           </div>
         </div>
-        <div class="dmh-loading-progress" id="dmh-loading-progress" role="progressbar" aria-label="正在加载瀑布流" aria-hidden="true" hidden>
+        <div class="dmh-loading-progress" id="dmh-loading-progress" role="progressbar" ${attributeMarkup("aria-label", "正在加载瀑布流")} aria-hidden="true" hidden>
           <div class="dmh-loading-progress-bar"></div>
         </div>
       </header>
       <main class="dmh-grid" id="dmh-grid"></main>
       <div class="dmh-message" id="dmh-message"></div>
-      <div class="dmh-scrollbar" id="dmh-scrollbar" role="scrollbar" aria-label="瀑布流滚动位置" aria-controls="dmh-grid" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+      <div class="dmh-scrollbar" id="dmh-scrollbar" role="scrollbar" ${attributeMarkup("aria-label", "瀑布流滚动位置")} aria-controls="dmh-grid" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
         <div class="dmh-scrollbar-thumb" id="dmh-scrollbar-thumb"></div>
       </div>
-      <button class="dmh-back-to-top" id="dmh-back-to-top" type="button" aria-label="回到顶部" title="回到顶部">${icons.arrowUp}</button>
+      <button class="dmh-back-to-top" id="dmh-back-to-top" type="button" ${attributeMarkup("aria-label", "回到顶部")} ${attributeMarkup("title", "回到顶部")}>${icons.arrowUp}</button>
       <div class="dmh-settings-overlay" id="dmh-settings-overlay" aria-hidden="true"></div>
       <aside class="dmh-settings-panel" id="dmh-settings-panel" role="dialog" aria-modal="true" aria-labelledby="dmh-settings-title" aria-hidden="true" inert>
         <div class="dmh-settings-header">
-          <h2 id="dmh-settings-title">设置</h2>
-          <button class="dmh-settings-close" id="dmh-settings-close" type="button" aria-label="关闭设置">${icons.close}</button>
+          <h2 id="dmh-settings-title" data-i18n="设置">${t("设置")}</h2>
+          <button class="dmh-settings-close" id="dmh-settings-close" type="button" ${attributeMarkup("aria-label", "关闭设置")}>${icons.close}</button>
         </div>
         <div class="dmh-settings-content">
           <section class="dmh-settings-group dmh-settings-group-masonry" aria-labelledby="dmh-settings-masonry-title">
-            <h3 class="dmh-settings-group-title" id="dmh-settings-masonry-title">瀑布流</h3>
+            <h3 class="dmh-settings-group-title" id="dmh-settings-masonry-title" data-i18n="瀑布流">${t("瀑布流")}</h3>
             <section class="dmh-setting-section">
               <div class="dmh-setting-row">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">自动进入瀑布流</span><span class="dmh-setting-help">打开原站图片列表页时自动使用瀑布流浏览</span></span>
-                <label class="dmh-setting-switch" aria-label="自动进入瀑布流">
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="自动进入瀑布流">${t("自动进入瀑布流")}</span><span class="dmh-setting-help" data-i18n="打开原站图片列表页时自动使用瀑布流浏览">${t("打开原站图片列表页时自动使用瀑布流浏览")}</span></span>
+                <label class="dmh-setting-switch" ${attributeMarkup("aria-label", "自动进入瀑布流")}>
                   <input id="dmh-auto-enter-masonry" type="checkbox" ${state.autoEnterMasonry ? 'checked' : ''}>
                   <span class="dmh-setting-switch-track" aria-hidden="true"></span>
                 </label>
@@ -117,15 +119,15 @@ export function renderShell(state: AppState): void {
             </section>
             <section class="dmh-setting-section">
               <label class="dmh-setting-row" for="dmh-list-layout">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">图片列表布局</span><span class="dmh-setting-help">选择图片列表的排列方式</span></span>
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="图片列表布局">${t("图片列表布局")}</span><span class="dmh-setting-help" data-i18n="选择图片列表的排列方式">${t("选择图片列表的排列方式")}</span></span>
                 <select class="dmh-setting-select" id="dmh-list-layout">
-${LAYOUT_OPTIONS.map((option) => `<option value="${option.key}" ${state.listLayout === option.key ? 'selected' : ''}>${option.label}</option>`).join('')}
+${LAYOUT_OPTIONS.map((option) => `<option data-i18n="${option.label}" value="${option.key}" ${state.listLayout === option.key ? 'selected' : ''}>${t(option.label)}</option>`).join('')}
                 </select>
               </label>
             </section>
             <section class="dmh-setting-section">
               <label class="dmh-setting-row" for="dmh-card-size">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">缩略图大小</span><span class="dmh-setting-help">调整卡片宽度，等高排列时调整行高</span></span>
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="缩略图大小">${t("缩略图大小")}</span><span class="dmh-setting-help" data-i18n="调整卡片宽度，等高排列时调整行高">${t("调整卡片宽度，等高排列时调整行高")}</span></span>
                 <select class="dmh-setting-select" id="dmh-card-size">
 ${cardSizeOptions}
                 </select>
@@ -133,8 +135,8 @@ ${cardSizeOptions}
             </section>
             <section class="dmh-setting-section">
               <div class="dmh-setting-row">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">显示 NSFW</span><span class="dmh-setting-help">包含敏感、限制级内容</span></span>
-                <label class="dmh-setting-switch" aria-label="显示 NSFW">
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="显示 NSFW">${t("显示 NSFW")}</span><span class="dmh-setting-help" data-i18n="包含敏感、限制级内容">${t("包含敏感、限制级内容")}</span></span>
+                <label class="dmh-setting-switch" ${attributeMarkup("aria-label", "显示 NSFW")}>
                   <input id="dmh-show-nsfw" type="checkbox" ${!state.hideNsfw ? 'checked' : ''}>
                   <span class="dmh-setting-switch-track" aria-hidden="true"></span>
                 </label>
@@ -142,8 +144,8 @@ ${cardSizeOptions}
             </section>
             <section class="dmh-setting-section">
               <div class="dmh-setting-row">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">显示缩略图操作按钮</span><span class="dmh-setting-help">在图片卡片上显示收藏和下载按钮</span></span>
-                <label class="dmh-setting-switch" aria-label="显示缩略图操作按钮">
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="显示缩略图操作按钮">${t("显示缩略图操作按钮")}</span><span class="dmh-setting-help" data-i18n="在图片卡片上显示收藏和下载按钮">${t("在图片卡片上显示收藏和下载按钮")}</span></span>
+                <label class="dmh-setting-switch" ${attributeMarkup("aria-label", "显示缩略图操作按钮")}>
                   <input id="dmh-show-thumbnail-buttons" type="checkbox" ${state.showThumbnailButtons ? 'checked' : ''}>
                   <span class="dmh-setting-switch-track" aria-hidden="true"></span>
                 </label>
@@ -151,8 +153,8 @@ ${cardSizeOptions}
             </section>
             <section class="dmh-setting-section">
               <div class="dmh-setting-row">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">显示缩略图信息</span><span class="dmh-setting-help">在图片卡片上显示作品信息</span></span>
-                <label class="dmh-setting-switch" aria-label="显示缩略图信息">
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="显示缩略图信息">${t("显示缩略图信息")}</span><span class="dmh-setting-help" data-i18n="在图片卡片上显示作品信息">${t("在图片卡片上显示作品信息")}</span></span>
+                <label class="dmh-setting-switch" ${attributeMarkup("aria-label", "显示缩略图信息")}>
                   <input id="dmh-show-thumbnail-info" type="checkbox" ${state.showThumbnailInfo ? 'checked' : ''}>
                   <span class="dmh-setting-switch-track" aria-hidden="true"></span>
                 </label>
@@ -160,8 +162,8 @@ ${cardSizeOptions}
             </section>
             <section class="dmh-setting-section">
               <div class="dmh-setting-row">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">显示瀑布流滚动条</span><span class="dmh-setting-help">在页面右侧显示滚动条</span></span>
-                <label class="dmh-setting-switch" aria-label="显示瀑布流滚动条">
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="显示瀑布流滚动条">${t("显示瀑布流滚动条")}</span><span class="dmh-setting-help" data-i18n="在页面右侧显示滚动条">${t("在页面右侧显示滚动条")}</span></span>
+                <label class="dmh-setting-switch" ${attributeMarkup("aria-label", "显示瀑布流滚动条")}>
                   <input id="dmh-show-scrollbar" type="checkbox" ${state.showScrollbar ? 'checked' : ''}>
                   <span class="dmh-setting-switch-track" aria-hidden="true"></span>
                 </label>
@@ -169,11 +171,11 @@ ${cardSizeOptions}
             </section>
           </section>
           <section class="dmh-settings-group" aria-labelledby="dmh-settings-search-title">
-            <h3 class="dmh-settings-group-title" id="dmh-settings-search-title">搜索</h3>
+            <h3 class="dmh-settings-group-title" id="dmh-settings-search-title" data-i18n="搜索">${t("搜索")}</h3>
             <section class="dmh-setting-section">
               <div class="dmh-setting-row">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">隐藏热门搜索</span><span class="dmh-setting-help">隐藏后搜索历史默认显示 16 条</span></span>
-                <label class="dmh-setting-switch" aria-label="隐藏热门搜索">
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="隐藏热门搜索">${t("隐藏热门搜索")}</span><span class="dmh-setting-help" data-i18n="隐藏后搜索历史默认显示 16 条">${t("隐藏后搜索历史默认显示 16 条")}</span></span>
+                <label class="dmh-setting-switch" ${attributeMarkup("aria-label", "隐藏热门搜索")}>
                   <input id="dmh-hide-popular-searches" type="checkbox" ${state.hidePopularSearches ? 'checked' : ''}>
                   <span class="dmh-setting-switch-track" aria-hidden="true"></span>
                 </label>
@@ -181,14 +183,14 @@ ${cardSizeOptions}
             </section>
           </section>
           <section class="dmh-settings-group" aria-labelledby="dmh-settings-viewer-title">
-            <h3 class="dmh-settings-group-title" id="dmh-settings-viewer-title">详情页</h3>
+            <h3 class="dmh-settings-group-title" id="dmh-settings-viewer-title" data-i18n="详情页">${t("详情页")}</h3>
             <section class="dmh-setting-section">
               ${renderViewerLayoutSettings(state.viewerLayout)}
             </section>
             <section class="dmh-setting-section">
               <div class="dmh-setting-row">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">使用滚轮切换图片</span><span class="dmh-setting-help">在详情查看器中滚动切换上一张或下一张</span></span>
-                <label class="dmh-setting-switch" aria-label="使用滚轮切换图片">
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="使用滚轮切换图片">${t("使用滚轮切换图片")}</span><span class="dmh-setting-help" data-i18n="在详情查看器中滚动切换上一张或下一张">${t("在详情查看器中滚动切换上一张或下一张")}</span></span>
+                <label class="dmh-setting-switch" ${attributeMarkup("aria-label", "使用滚轮切换图片")}>
                   <input id="dmh-viewer-wheel-navigation" type="checkbox" ${state.viewerWheelNavigation ? 'checked' : ''}>
                   <span class="dmh-setting-switch-track" aria-hidden="true"></span>
                 </label>
@@ -196,8 +198,8 @@ ${cardSizeOptions}
             </section>
             <section class="dmh-setting-section">
               <div class="dmh-setting-row">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">加载原图</span><span class="dmh-setting-help">打开详情页时直接加载高质量原图</span></span>
-                <label class="dmh-setting-switch" aria-label="加载原图">
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="加载原图">${t("加载原图")}</span><span class="dmh-setting-help" data-i18n="打开详情页时直接加载高质量原图">${t("打开详情页时直接加载高质量原图")}</span></span>
+                <label class="dmh-setting-switch" ${attributeMarkup("aria-label", "加载原图")}>
                   <input id="dmh-viewer-use-original" type="checkbox" ${state.viewerUseOriginal ? 'checked' : ''}>
                   <span class="dmh-setting-switch-track" aria-hidden="true"></span>
                 </label>
@@ -205,15 +207,15 @@ ${cardSizeOptions}
             </section>
             <section class="dmh-setting-section">
               <label class="dmh-setting-row" for="dmh-viewer-preload-count">
-                <span class="dmh-setting-copy"><span class="dmh-setting-label">预加载数量</span><span class="dmh-setting-help">提前加载后续图片；设为 0 可关闭</span></span>
+                <span class="dmh-setting-copy"><span class="dmh-setting-label" data-i18n="预加载数量">${t("预加载数量")}</span><span class="dmh-setting-help" data-i18n="提前加载后续图片；设为 0 可关闭">${t("提前加载后续图片；设为 0 可关闭")}</span></span>
                 <select class="dmh-setting-select" id="dmh-viewer-preload-count">
-                  ${[0, 1, 2, 3, 4, 5].map((count) => `<option value="${count}" ${state.viewerPreloadCount === count ? 'selected' : ''}>${count === 0 ? '0（关闭）' : count}</option>`).join('')}
+                  ${[0, 1, 2, 3, 4, 5].map((count) => `<option data-i18n="${count === 0 ? '0（关闭）' : count}" value="${count}" ${state.viewerPreloadCount === count ? 'selected' : ''}>${t(count === 0 ? '0（关闭）' : String(count))}</option>`).join('')}
                 </select>
               </label>
             </section>
             <section class="dmh-setting-section">
               <div class="dmh-setting-row">
-                <label class="dmh-setting-copy" for="dmh-tag-click-behavior"><span class="dmh-setting-label">标签点击行为</span><span class="dmh-setting-help">选择点击详情标签后的搜索方式</span></label>
+                <label class="dmh-setting-copy" for="dmh-tag-click-behavior"><span class="dmh-setting-label" data-i18n="标签点击行为">${t("标签点击行为")}</span><span class="dmh-setting-help" data-i18n="选择点击详情标签后的搜索方式">${t("选择点击详情标签后的搜索方式")}</span></label>
                 <select class="dmh-setting-select dmh-tag-click-select" id="dmh-tag-click-behavior">
                   ${[
                     ['masonry-current-tab', '当前页瀑布流搜索'],
@@ -221,7 +223,7 @@ ${cardSizeOptions}
                   ]
                     .map(
                       ([value, label]) =>
-                        `<option value="${value}"${state.tagClickBehavior === value ? ' selected' : ''}>${label}</option>`,
+                        `<option data-i18n="${label}" value="${value}"${state.tagClickBehavior === value ? ' selected' : ''}>${t(label)}</option>`,
                     )
                     .join('')}
                 </select>
@@ -229,40 +231,40 @@ ${cardSizeOptions}
             </section>
           </section>
           <section class="dmh-settings-group" aria-labelledby="dmh-settings-other-title">
-            <h3 class="dmh-settings-group-title" id="dmh-settings-other-title">其他</h3>
-            <button class="dmh-setting-editor-button" id="dmh-blacklist-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-blacklist-editor"><span class="dmh-setting-copy"><span>Danbooru 黑名单规则</span><span class="dmh-setting-help">编辑用于过滤图片的原站规则</span></span><span aria-hidden="true">›</span></button>
-            <button class="dmh-setting-editor-button" id="dmh-download-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-download-editor"><span class="dmh-setting-copy"><span>下载文件名模板</span><span class="dmh-setting-help">按图片来源自定义下载文件名</span></span><span aria-hidden="true">›</span></button>
+            <h3 class="dmh-settings-group-title" id="dmh-settings-other-title" data-i18n="其他">${t("其他")}</h3>
+            <button class="dmh-setting-editor-button" id="dmh-blacklist-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-blacklist-editor"><span class="dmh-setting-copy"><span data-i18n="Danbooru 黑名单规则">${t("Danbooru 黑名单规则")}</span><span class="dmh-setting-help" data-i18n="编辑用于过滤图片的原站规则">${t("编辑用于过滤图片的原站规则")}</span></span><span aria-hidden="true">›</span></button>
+            <button class="dmh-setting-editor-button" id="dmh-download-editor-open" type="button" aria-haspopup="dialog" aria-controls="dmh-download-editor"><span class="dmh-setting-copy"><span data-i18n="下载文件名模板">${t("下载文件名模板")}</span><span class="dmh-setting-help" data-i18n="按图片来源自定义下载文件名">${t("按图片来源自定义下载文件名")}</span></span><span aria-hidden="true">›</span></button>
           </section>
         </div>
         <div class="dmh-settings-footer">
-          <a class="dmh-settings-github" href="https://github.com/kano0222/danbooru-masonry" target="_blank" rel="noreferrer" aria-label="打开 GitHub 仓库" title="GitHub">${icons.github}</a>
+          <a class="dmh-settings-github" href="https://github.com/kano0222/danbooru-masonry" target="_blank" rel="noreferrer" ${attributeMarkup("aria-label", "打开 GitHub 仓库")} title="GitHub">${icons.github}</a>
         </div>
       </aside>
       <dialog class="dmh-settings-editor" id="dmh-blacklist-editor" aria-labelledby="dmh-blacklist-editor-title">
         <div class="dmh-settings-header">
-          <h2 id="dmh-blacklist-editor-title">Danbooru 黑名单规则</h2>
-          <button class="dmh-settings-close" id="dmh-blacklist-editor-close" type="button" aria-label="关闭Danbooru 黑名单规则" autofocus>${icons.close}</button>
+          <h2 id="dmh-blacklist-editor-title" data-i18n="Danbooru 黑名单规则">${t("Danbooru 黑名单规则")}</h2>
+          <button class="dmh-settings-close" id="dmh-blacklist-editor-close" type="button" ${attributeMarkup("aria-label", "关闭Danbooru 黑名单规则")} autofocus>${icons.close}</button>
         </div>
         <div class="dmh-settings-editor-content">
           <section class="dmh-setting-section">
             <div class="dmh-setting-stack">
               <form class="dmh-blacklist-composer" id="dmh-blacklist-composer">
-                <input id="dmh-blacklist-new-rule" type="text" autocomplete="off" spellcheck="false" placeholder="添加单个标签或多个标签组合规则" ${canSaveBlacklist ? '' : 'disabled'}>
-                <button id="dmh-blacklist-add" type="submit" aria-label="添加规则" data-dmh-tooltip="添加规则" ${canSaveBlacklist ? '' : 'disabled'}>${icons.plus}</button>
+                <input id="dmh-blacklist-new-rule" type="text" autocomplete="off" spellcheck="false" ${attributeMarkup("placeholder", "添加单个标签或多个标签组合规则")} ${canSaveBlacklist ? '' : 'disabled'}>
+                <button id="dmh-blacklist-add" type="submit" ${attributeMarkup("aria-label", "添加规则")} ${attributeMarkup("data-dmh-tooltip", "添加规则")} ${canSaveBlacklist ? '' : 'disabled'}>${icons.plus}</button>
                 <div class="dmh-ac dmh-blacklist-ac" id="dmh-blacklist-ac" aria-hidden="true"></div>
               </form>
               <div class="dmh-blacklist-rule-list" id="dmh-blacklist-rule-list">
-                ${state.blacklistAvailable ? renderBlacklistRuleRows(state.blacklistText) : '未能读取黑名单规则'}
+                ${state.blacklistAvailable ? renderBlacklistRuleRows(state.blacklistText) : textMarkup('未能读取黑名单规则')}
               </div>
               <details class="dmh-blacklist-raw">
-                <summary>批量编辑</summary>
+                <summary data-i18n="批量编辑">${t("批量编辑")}</summary>
                 <textarea class="dmh-blacklist-rules" id="dmh-blacklist-rules" aria-labelledby="dmh-blacklist-editor-title" rows="7" spellcheck="false" ${canSaveBlacklist ? '' : 'disabled'}>${escapeHtml(state.blacklistText)}</textarea>
               </details>
               <div class="dmh-blacklist-actions">
-                <span class="dmh-blacklist-status" id="dmh-blacklist-status" role="status">${!state.blacklistAvailable ? '未能读取黑名单，请关闭此窗口后重新打开以重试' : canSaveBlacklist ? '' : '登录 Danbooru 后可修改'}</span>
+                <span class="dmh-blacklist-status" id="dmh-blacklist-status" role="status">${textMarkup(!state.blacklistAvailable ? '未能读取黑名单，请关闭此窗口后重新打开以重试' : canSaveBlacklist ? '' : '登录 Danbooru 后可修改')}</span>
                 <div class="dmh-blacklist-buttons">
-                  <button class="dmh-template-reset" id="dmh-blacklist-cancel" type="button">取消</button>
-                  <button class="dmh-blacklist-save" id="dmh-blacklist-save" type="button" ${canSaveBlacklist ? '' : 'disabled'}>保存</button>
+                  <button class="dmh-template-reset" id="dmh-blacklist-cancel" type="button" data-i18n="取消">${t("取消")}</button>
+                  <button class="dmh-blacklist-save" id="dmh-blacklist-save" type="button" ${canSaveBlacklist ? '' : 'disabled'} data-i18n="保存">${t("保存")}</button>
                 </div>
               </div>
             </div>
@@ -271,8 +273,8 @@ ${cardSizeOptions}
       </dialog>
       <dialog class="dmh-settings-editor" id="dmh-download-editor" aria-labelledby="dmh-download-editor-title">
         <div class="dmh-settings-header">
-          <h2 id="dmh-download-editor-title">下载文件名模板</h2>
-          <button class="dmh-settings-close" id="dmh-download-editor-close" type="button" aria-label="关闭下载文件名模板" autofocus>${icons.close}</button>
+          <h2 id="dmh-download-editor-title" data-i18n="下载文件名模板">${t("下载文件名模板")}</h2>
+          <button class="dmh-settings-close" id="dmh-download-editor-close" type="button" ${attributeMarkup("aria-label", "关闭下载文件名模板")} autofocus>${icons.close}</button>
         </div>
         <div class="dmh-settings-editor-content">
           <section class="dmh-setting-section">
@@ -281,20 +283,20 @@ ${cardSizeOptions}
 ${downloadFilenameTemplateInputs}
               </div>
               <div class="dmh-template-help">
-                <div><code>{original}</code> 原文件名，不含后缀</div>
-                <div><code>{artist}</code> Danbooru 作者标签</div>
-                <div><code>{username}</code> 来源 URL 可解析到的用户名，缺失时回退到作者标签</div>
-                <div><code>{userid}</code> 来源 URL 可解析到的用户 ID</div>
-                <div><code>{id}</code> 来源作品 ID，缺失时回退到 Danbooru ID</div>
+                <div><code>{original}</code> ${textMarkup("原文件名，不含后缀")}</div>
+                <div><code>{artist}</code> ${textMarkup("Danbooru 作者标签")}</div>
+                <div><code>{username}</code> ${textMarkup("来源 URL 可解析到的用户名，缺失时回退到作者标签")}</div>
+                <div><code>{userid}</code> ${textMarkup("来源 URL 可解析到的用户 ID")}</div>
+                <div><code>{id}</code> ${textMarkup("来源作品 ID，缺失时回退到 Danbooru ID")}</div>
                 <div><code>{postid}</code> Danbooru ID</div>
-                <div>关闭窗口或取消会放弃未保存修改。</div>
+                <div data-i18n="关闭窗口或取消会放弃未保存修改。">${t("关闭窗口或取消会放弃未保存修改。")}</div>
               </div>
               <div class="dmh-download-template-actions">
                 <span class="dmh-download-template-status" id="dmh-download-template-status" role="status" aria-live="polite"></span>
                 <div class="dmh-download-template-buttons">
-                  <button class="dmh-template-reset" id="dmh-download-template-reset" type="button">恢复默认</button>
-                  <button class="dmh-template-reset" id="dmh-download-cancel" type="button">取消</button>
-                  <button class="dmh-blacklist-save" id="dmh-download-save" type="button">保存</button>
+                  <button class="dmh-template-reset" id="dmh-download-template-reset" type="button" data-i18n="恢复默认">${t("恢复默认")}</button>
+                  <button class="dmh-template-reset" id="dmh-download-cancel" type="button" data-i18n="取消">${t("取消")}</button>
+                  <button class="dmh-blacklist-save" id="dmh-download-save" type="button" data-i18n="保存">${t("保存")}</button>
                 </div>
               </div>
             </div>
@@ -303,48 +305,48 @@ ${downloadFilenameTemplateInputs}
       </dialog>
       <div class="dmh-viewer" id="dmh-viewer" aria-hidden="true">
         <div class="dmh-viewer-tags" id="dmh-viewer-tags" hidden>
-          <section class="dmh-viewer-tags-panel" id="dmh-viewer-tags-panel" aria-label="图片标签" hidden>
+          <section class="dmh-viewer-tags-panel" id="dmh-viewer-tags-panel" ${attributeMarkup("aria-label", "图片标签")} hidden>
             <div class="dmh-viewer-tags-list" id="dmh-viewer-tags-list"></div>
           </section>
-          <button class="dmh-info-pill dmh-pill-id" id="dmh-viewer-tags-toggle" type="button" aria-expanded="false" aria-controls="dmh-viewer-tags-panel">显示标签</button>
+          <button class="dmh-info-pill dmh-pill-id" id="dmh-viewer-tags-toggle" type="button" aria-expanded="false" aria-controls="dmh-viewer-tags-panel" data-i18n="显示标签">${t("显示标签")}</button>
         </div>
         <div class="dmh-viewer-info" id="dmh-viewer-info"></div>
-        <div class="dmh-viewer-actions" id="dmh-viewer-actions" role="group" aria-label="图片操作">
-          <button class="dmh-viewer-button" id="dmh-open-source" type="button" data-dmh-tooltip="来源" aria-label="来源">${icons.external}</button>
-          <button class="dmh-viewer-button" id="dmh-favorite" type="button" data-dmh-tooltip="收藏" aria-label="收藏">${icons.heart}</button>
-          <button class="dmh-viewer-button" id="dmh-viewer-blacklist" type="button" data-dmh-tooltip="加入黑名单" aria-label="加入黑名单" ${canSaveBlacklist ? '' : 'disabled'}>${icons.ban}</button>
-          <button class="dmh-viewer-button" id="dmh-zoom-toggle" type="button" data-dmh-tooltip="查看大图" aria-label="查看大图">${icons.zoom}</button>
-          <button class="dmh-viewer-button" id="dmh-open-post" type="button" data-dmh-tooltip="详情" aria-label="详情">${icons.info}</button>
-          <button class="dmh-viewer-button" id="dmh-download" type="button" data-dmh-tooltip="下载原图" aria-label="下载原图">${icons.download}</button>
-          <button class="dmh-viewer-button" id="dmh-close" type="button" data-dmh-tooltip="关闭" aria-label="关闭">${icons.close}</button>
+        <div class="dmh-viewer-actions" id="dmh-viewer-actions" role="group" ${attributeMarkup("aria-label", "图片操作")}>
+          <button class="dmh-viewer-button" id="dmh-open-source" type="button" ${attributeMarkup("data-dmh-tooltip", "来源")} ${attributeMarkup("aria-label", "来源")}>${icons.external}</button>
+          <button class="dmh-viewer-button" id="dmh-favorite" type="button" ${attributeMarkup("data-dmh-tooltip", "收藏")} ${attributeMarkup("aria-label", "收藏")}>${icons.heart}</button>
+          <button class="dmh-viewer-button" id="dmh-viewer-blacklist" type="button" ${attributeMarkup("data-dmh-tooltip", "加入黑名单")} ${attributeMarkup("aria-label", "加入黑名单")} ${canSaveBlacklist ? '' : 'disabled'}>${icons.ban}</button>
+          <button class="dmh-viewer-button" id="dmh-zoom-toggle" type="button" ${attributeMarkup("data-dmh-tooltip", "查看大图")} ${attributeMarkup("aria-label", "查看大图")}>${icons.zoom}</button>
+          <button class="dmh-viewer-button" id="dmh-open-post" type="button" ${attributeMarkup("data-dmh-tooltip", "详情")} ${attributeMarkup("aria-label", "详情")}>${icons.info}</button>
+          <button class="dmh-viewer-button" id="dmh-download" type="button" ${attributeMarkup("data-dmh-tooltip", "下载原图")} ${attributeMarkup("aria-label", "下载原图")}>${icons.download}</button>
+          <button class="dmh-viewer-button" id="dmh-close" type="button" ${attributeMarkup("data-dmh-tooltip", "关闭")} ${attributeMarkup("aria-label", "关闭")}>${icons.close}</button>
         </div>
-        <button class="dmh-viewer-nav dmh-viewer-prev" id="dmh-prev" type="button" aria-label="上一张">${icons.prev}</button>
-        <button class="dmh-viewer-nav dmh-viewer-next" id="dmh-next" type="button" aria-label="下一张">${icons.next}</button>
+        <button class="dmh-viewer-nav dmh-viewer-prev" id="dmh-prev" type="button" ${attributeMarkup("aria-label", "上一张")}>${icons.prev}</button>
+        <button class="dmh-viewer-nav dmh-viewer-next" id="dmh-next" type="button" ${attributeMarkup("aria-label", "下一张")}>${icons.next}</button>
         <img id="dmh-viewer-img" alt="" draggable="true">
         <video id="dmh-viewer-video" controls autoplay loop playsinline hidden></video>
         <div class="img_detail_loading" id="dmh-viewer-loading" hidden aria-hidden="true">
-          <div class="v-progress-circular" id="dmh-viewer-progress" role="status" aria-label="正在加载图片"></div>
+          <div class="v-progress-circular" id="dmh-viewer-progress" role="status" ${attributeMarkup("aria-label", "正在加载图片")}></div>
           <div class="dmh-viewer-error" id="dmh-viewer-error" hidden>
             <div class="sc-13hg6mj-1 bsMYYv">
               <svg viewBox="0 0 24 24" size="72" class="sc-11csm01-0 fieitW"><path d="M10,6 C10,4.8954305 10.8954305,4 12,4 C13.1045695,4 14,4.8954305 14,6 L14,12.5 C14,13.6045695 13.1045695,14.5 12,14.5 C10.8954305,14.5 10,13.6045695 10,12.5 L10,6 Z M12,20 C10.7573593,20 9.75,18.9926407 9.75,17.75 C9.75,16.5073593 10.7573593,15.5 12,15.5 C13.2426407,15.5 14.25,16.5073593 14.25,17.75 C14.25,18.9926407 13.2426407,20 12,20 Z" transform=""></path></svg>
             </div>
-            <h1>加载失败</h1>
+            <h1 data-i18n="加载失败">${t("加载失败")}</h1>
           </div>
         </div>
       </div>
       <dialog class="dmh-viewer-blacklist-dialog" id="dmh-viewer-blacklist-dialog" aria-labelledby="dmh-viewer-blacklist-title">
         <div class="dmh-settings-header">
-          <h2 id="dmh-viewer-blacklist-title">加入黑名单</h2>
-          <button class="dmh-settings-close" id="dmh-viewer-blacklist-close" type="button" aria-label="关闭加入黑名单">${icons.close}</button>
+          <h2 id="dmh-viewer-blacklist-title" data-i18n="加入黑名单">${t("加入黑名单")}</h2>
+          <button class="dmh-settings-close" id="dmh-viewer-blacklist-close" type="button" ${attributeMarkup("aria-label", "关闭加入黑名单")}>${icons.close}</button>
         </div>
         <div class="dmh-viewer-blacklist-content">
-          <p>选择要屏蔽的标签或上传者。确认后保存到 Danbooru 账号，匹配图片将从当前瀑布流中隐藏。上传者是上传图片的账号，可能与作者不同。</p>
-          <div class="dmh-viewer-blacklist-choices" id="dmh-viewer-blacklist-choices" role="group" aria-label="当前图片标签与上传者"></div>
+          <p data-i18n="选择要屏蔽的标签或上传者。确认后保存到 Danbooru 账号，匹配图片将从当前瀑布流中隐藏。上传者是上传图片的账号，可能与作者不同。">${t("选择要屏蔽的标签或上传者。确认后保存到 Danbooru 账号，匹配图片将从当前瀑布流中隐藏。上传者是上传图片的账号，可能与作者不同。")}</p>
+          <div class="dmh-viewer-blacklist-choices" id="dmh-viewer-blacklist-choices" role="group" ${attributeMarkup("aria-label", "当前图片标签与上传者")}></div>
           <div class="dmh-viewer-blacklist-footer">
             <span id="dmh-viewer-blacklist-status" role="status" aria-live="polite"></span>
             <div class="dmh-blacklist-buttons">
-              <button class="dmh-template-reset" id="dmh-viewer-blacklist-cancel" type="button">取消</button>
-              <button class="dmh-blacklist-save" id="dmh-viewer-blacklist-confirm" type="button" disabled>确认加入</button>
+              <button class="dmh-template-reset" id="dmh-viewer-blacklist-cancel" type="button" data-i18n="取消">${t("取消")}</button>
+              <button class="dmh-blacklist-save" id="dmh-viewer-blacklist-confirm" type="button" disabled data-i18n="确认加入">${t("确认加入")}</button>
             </div>
           </div>
         </div>
@@ -359,7 +361,7 @@ export function installLaunchButton(onStart: () => void): void {
   const button = document.createElement('button');
   button.id = 'dmh-launch';
   button.type = 'button';
-  button.textContent = '瀑布流模式';
+  localizeText(button, '瀑布流模式');
   if (!document.getElementById('dmh-launch-style')) {
     const style = document.createElement('style');
     style.id = 'dmh-launch-style';

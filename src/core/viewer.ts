@@ -1,3 +1,4 @@
+import { t, localizeText, localizeAttribute, textMarkup } from '../ui/i18n';
 import { getPostUploaderId } from './blacklist';
 import { getViewerTags, getTagSearchUrl } from './viewerTags';
 import type { Post } from '../adapters/types';
@@ -420,8 +421,8 @@ function updateFavoriteButton(state: AppState, post: Post, title = '收藏'): vo
   button.classList.toggle('dmh-favorited', favorited);
   button.disabled = state.favoriteLoading;
   const label = normalizeFavoriteLabel(title, favorited);
-  button.dataset.dmhTooltip = label;
-  button.setAttribute('aria-label', label);
+  localizeAttribute(button, 'data-dmh-tooltip', label);
+  localizeAttribute(button, 'aria-label', label);
   button.removeAttribute('title');
 }
 
@@ -467,8 +468,8 @@ function updateButtonTooltip(id: string, label: string): void {
   const button = byId<HTMLButtonElement>(id);
   if (!button) return;
   button.removeAttribute('title');
-  button.dataset.dmhTooltip = label;
-  button.setAttribute('aria-label', label);
+  localizeAttribute(button, 'data-dmh-tooltip', label);
+  localizeAttribute(button, 'aria-label', label);
 }
 
 function normalizeFavoriteLabel(title: string, favorited: boolean): string {
@@ -482,7 +483,7 @@ export function showSnackbar(message: string): void {
   if (!snackbar) return;
   snackbar.innerHTML = '';
   const label = document.createElement('span');
-  label.textContent = message;
+  localizeText(label, message);
   snackbar.appendChild(label);
   snackbar.classList.add('dmh-open');
   window.clearTimeout(Number(snackbar.dataset.timer || 0));
@@ -857,7 +858,7 @@ function renderViewerInfo(state: AppState, post: Post): string {
   for (const type of ['artist', 'copyright', 'character'] as const) {
     for (const tag of post.tagGroups[type]) {
       const translated = state.translations.translate(tag);
-      const label = `[ ${labels[type]} ] ${tag}${translated ? ` [ ${translated} ]` : ''}`;
+      const label = `[ ${t(labels[type])} ] ${tag}${translated ? ` [ ${translated} ]` : ''}`;
       pills.push(renderViewerTag(state, tag, label, `dmh-pill-${type}`));
     }
   }
@@ -874,7 +875,7 @@ export function setViewerTagsOpen(state: AppState, open: boolean, restoreFocus =
   if (panel) panel.hidden = !state.viewerTagsOpen;
   const toggle = byId('dmh-viewer-tags-toggle');
   toggle?.setAttribute('aria-expanded', String(state.viewerTagsOpen));
-  if (toggle) toggle.textContent = state.viewerTagsOpen ? '隐藏标签' : '显示标签';
+  if (toggle) localizeText(toggle, state.viewerTagsOpen ? '隐藏标签' : '显示标签');
   if (restoreFocus) byId('dmh-viewer-tags-toggle')?.focus();
 }
 
@@ -898,7 +899,7 @@ export function refreshViewerTags(state: AppState): void {
     .join('');
   list.scrollTop = 0;
   const toggle = byId('dmh-viewer-tags-toggle');
-  if (toggle) toggle.textContent = state.viewerTagsOpen ? '隐藏标签' : '显示标签';
+  if (toggle) localizeText(toggle, state.viewerTagsOpen ? '隐藏标签' : '显示标签');
 }
 
 export function renderViewerBlacklistChoices(state: AppState): string {
@@ -912,7 +913,7 @@ export function renderViewerBlacklistChoices(state: AppState): string {
   ];
   const uploaderId = getPostUploaderId(post);
   const uploaderChoice = uploaderId
-    ? `<button class="dmh-viewer-blacklist-choice dmh-pill-id" type="button" data-blacklist-choice="uploaderid:${uploaderId}" aria-pressed="false">上传者 ID：${uploaderId}</button>`
+    ? `<button class="dmh-viewer-blacklist-choice dmh-pill-id" type="button" data-blacklist-choice="uploaderid:${uploaderId}" aria-pressed="false">${textMarkup(`上传者 ID：${uploaderId}`)}</button>`
     : '';
   const seen = new Set<string>();
   return uploaderChoice + entries
@@ -935,7 +936,7 @@ export function validateDownloadFilenameTemplate(template: string): string {
 
 export function previewDownloadFilenameTemplate(template: string): string {
   return renderDownloadFilenameTemplate(template, {
-    platform: 'danbooru', original: '原文件名', artist: '作者名称',
-    username: '用户名', userid: '123456', id: '12345', postid: '67890', ext: 'png',
+    platform: 'danbooru', original: t('原文件名'), artist: t('作者名称'),
+    username: t('用户名'), userid: '123456', id: '12345', postid: '67890', ext: 'png',
   });
 }

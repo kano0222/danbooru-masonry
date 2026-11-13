@@ -25,7 +25,7 @@ describe('launch button', () => {
     const mount = vi.fn((node: { id: string }) => nodes.set(node.id, node));
     vi.stubGlobal('document', {
       getElementById: (id: string) => nodes.get(id),
-      createElement: () => ({ addEventListener: vi.fn() }),
+      createElement: () => ({ addEventListener: vi.fn(), dataset: {} }),
       head: { appendChild: mount },
       body: { prepend: mount },
     });
@@ -70,7 +70,7 @@ describe('theme settings', () => {
   it('renders the saved list layout in a labeled native select', () => {
     const html = renderWithUser({}, new Map([['danbooru-masonry.listLayout', 'justified']]));
     expect(html).toContain('for="dmh-list-layout"');
-    expect(html).toContain('<option value="justified" selected>等高排列</option>');
+    expect(html).toContain('<option data-i18n="等高排列" value="justified" selected>等高排列</option>');
     for (const layout of ['masonry', 'grid', 'virtual']) expect(html).toContain(`value="${layout}"`);
   });
   it('renders a toolbar action for the saved theme', () => {
@@ -87,7 +87,7 @@ describe('viewer position settings', () => {
   it('renders one saved toolbar position control for swapping the two groups', () => {
     const html = renderWithUser({}, new Map([['danbooru-masonry.viewerLayout', 'bottom']]));
     expect(html).toContain('for="dmh-viewer-toolbar-position"');
-    expect(html).toContain('<option value="bottom" selected>底部</option>');
+    expect(html).toContain('<option value="bottom" selected data-i18n="底部">底部</option>');
     expect(html).toContain('选择底部时，上下翻转详情布局');
     expect(html).not.toContain('dmh-viewer-tags-position');
     expect(html).not.toContain('dmh-viewer-info-position');
@@ -99,7 +99,7 @@ describe('search shortcuts', () => {
   it('renders the total page count to the right of the page input', () => {
     const html = renderWithUser({});
     expect(html.indexOf('id="dmh-page"')).toBeLessThan(html.indexOf('id="dmh-total-pages"'));
-    expect(html).toContain('class="dmh-page-total" aria-label="总页数">/ <span id="dmh-total-pages">…</span>');
+    expect(html).toContain('aria-label="总页数">/ <span id="dmh-total-pages">…</span>');
   });
 
   it('keeps original shortcuts outside the shared search panel without new toolbar actions', () => {
@@ -141,7 +141,7 @@ describe('blacklist editor', () => {
     expect(html).toContain('id="dmh-blacklist-ac"');
     expect(html).toContain('id="dmh-blacklist-rule-list"');
     expect(html).not.toContain('id="dmh-blacklist-remove-confirm"');
-    expect(html).toContain('<summary>批量编辑</summary>');
+    expect(html).toContain('<summary data-i18n="批量编辑">批量编辑</summary>');
   });
   it('renders one viewer blacklist entry with an explicit confirmation dialog', () => {
     const html = renderWithUser({ currentUserId: '42' });

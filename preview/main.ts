@@ -1,4 +1,5 @@
 import { boot } from '../src/main';
+import { localizeText, localizeAttribute, t } from '../src/ui/i18n';
 import { showSnackbar, showViewer } from '../src/core/viewer';
 import { PreviewAdapter } from './adapter';
 import { createPreviewPosts, popularSearches, translations } from './fixtures';
@@ -59,10 +60,12 @@ const observer = new MutationObserver(() => {
     const label = document.createElement('span');
     label.id = 'dmh-preview-label';
     label.className = 'dmh-page-label';
-    label.textContent = '演示';
-    label.title = '模拟已登录状态；标签、评分与分级为演示数据，操作仅影响本地预览。';
+    localizeText(label, '演示');
+    localizeAttribute(label, 'title', '模拟已登录状态；标签、评分与分级为演示数据，操作仅影响本地预览。');
     brand.appendChild(label);
-    document.title = 'Danbooru Masonry · 演示预览';
+    const updateTitle = () => { document.title = `Danbooru Masonry · ${t('演示预览')}`; };
+    updateTitle();
+    document.getElementById('dmh-language-toggle')?.addEventListener('click', updateTitle);
   }
   if (brand) observer.disconnect();
 });

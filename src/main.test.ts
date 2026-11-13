@@ -10,7 +10,7 @@ import { installLaunchButton, renderShell } from './ui/shell';
 import { closeViewer, showViewer } from './core/viewer';
 import { TagTranslationStore } from './data/tagTranslation';
 import { normalizePost } from './core/normalizePost';
-import { closeAutocomplete } from './ui/autocomplete';
+import { closeAutocomplete, renderAutocomplete } from './ui/autocomplete';
 import { showSearchPanel } from './ui/searchPanel';
 import { createBlacklistConfigFromText } from './core/blacklist';
 
@@ -60,6 +60,8 @@ function node() {
       handlers.set(name, [...(handlers.get(name) || []), handler]),
     classList: { contains: () => false, add: vi.fn(), remove: vi.fn(), toggle: vi.fn() },
     setAttribute: vi.fn(),
+    getAttribute: () => null,
+    querySelectorAll: () => [],
     setCustomValidity: vi.fn(),
     reportValidity: vi.fn(),
     dataset: {} as Record<string, string>,
@@ -154,6 +156,90 @@ afterEach(() => {
 });
 
 describe('masonry launch and tag search', () => {
+  it.each(['dmh-search-lists', 'dmh-viewer-info', 'dmh-viewer-tags-list', 'dmh-ac', 'dmh-tags'])(
+    'preserves keyboard focus in %s when delayed translations arrive', async (id) => {
+      vi.stubGlobal('GM_getValue', (key: string, fallback: unknown) => {
+        if (key === 'danbooru-masonry.language') return 'en';
+        if (key === 'danbooru-masonry.searchLibrary') return { pinned: ['cat'], recent: [] };
+        return fallback;
+      });
+      const started = vi.fn();
+      boot(adapter, { onStarted: started });
+      await vi.waitFor(() => expect(started).toHaveBeenCalledOnce());
+      const state = renderedState();
+      state.posts = [normalizePost({ id: 42, tag_string_general: 'cat', tag_string_artist: 'artist' }, adapter.origin)];
+      state.viewerIndex = 0;
+      const translate = vi.spyOn(state.translations, 'translate').mockReturnValue('');
+      if (id === 'dmh-ac') {
+        renderAutocomplete(state, [{ value: 'cat', category: 'general', count: '' }]);
+        vi.mocked(document.querySelector).mockImplementation((selector) =>
+          selector === '#dmh-ac .dmh-ac-item' ? {} as Element : null,
+        );
+      }
+
+      let complete!: (loaded: boolean) => void;
+      vi.mocked(state.translations.load).mockReturnValueOnce(new Promise((resolve) => { complete = resolve; }));
+      nodes.get('dmh-language-toggle')!.handlers.get('click')![0]({});
+
+      // Model the browser dropping focus when innerHTML removes the focused control.
+      const original = id === 'dmh-tags' ? nodes.get(id)! : node();
+      const replacement = node();
+      let focused: unknown = original;
+      let replaced = false;
+      const app = nodes.get('dmh-app')!;
+      app.contains.mockImplementation(() => !replaced);
+      Object.defineProperty(document, 'activeElement', { configurable: true, get: () => focused });
+      Object.defineProperty(app, 'querySelectorAll', {
+        value: (selector: string) => selector.startsWith('a[href]') ? [replaced ? replacement : original] : [],
+      });
+      replacement.focus.mockImplementation(() => { focused = replacement; });
+      const container = nodes.get(id)!;
+      let html = container.innerHTML;
+      if (id !== 'dmh-tags') {
+        Object.defineProperty(container, 'innerHTML', {
+          get: () => html,
+          set: (value: string) => { html = value; replaced = true; focused = document.body; },
+        });
+      }
+      translate.mockReturnValue('猫');
+      complete(true);
+      await vi.waitFor(() => expect(app).toHaveProperty('lang', 'zh-CN'));
+      if (id === 'dmh-tags') {
+        expect(focused).toBe(original);
+        expect(original.focus).not.toHaveBeenCalled();
+        expect(replacement.focus).not.toHaveBeenCalled();
+      } else {
+        expect(html).toContain('猫');
+        expect(focused).toBe(replacement);
+        expect(replacement.focus).toHaveBeenCalledWith({ preventScroll: true });
+      }
+    },
+  );
+
+  it('switches language in place without resetting the query, page, viewer, or media', async () => {
+    const save = vi.fn();
+    vi.stubGlobal('GM_setValue', save);
+    boot(adapter);
+    await vi.waitFor(() => expect(adapter.getPosts).toHaveBeenCalledOnce());
+    const state = renderedState();
+    const posts = [normalizePost({ id: 42, tag_string_general: 'cat' }, adapter.origin)];
+    Object.assign(state, { tags: 'cat score:>10', page: 8, posts, viewerIndex: 0, zoomScale: 2 });
+    const media = nodes.get('dmh-viewer-img')!;
+    media.value = 'current-image';
+    const toggle = nodes.get('dmh-language-toggle')!;
+    toggle.handlers.get('click')![0]({});
+    expect(save).toHaveBeenCalledWith('danbooru-masonry.language', 'en');
+    expect(state.tags).toBe('cat score:>10');
+    expect(state.page).toBe(8);
+    expect(state.posts).toBe(posts);
+    expect(state.viewerIndex).toBe(0);
+    expect(state.zoomScale).toBe(2);
+    expect(nodes.get('dmh-viewer-img')).toBe(media);
+    expect(media.value).toBe('current-image');
+    expect(renderShell).toHaveBeenCalledOnce();
+    expect(adapter.getPosts).toHaveBeenCalledOnce();
+    expect(closeViewer).not.toHaveBeenCalled();
+  });
   it.each(['?tags=old', '?tags=old&dmh=1', '?tags=old&dmh=0'])(
     'leaves Cloudflare verification untouched for %s', async (search) => {
       vi.stubGlobal('location', new URL(`https://danbooru.donmai.us/posts${search}`));
@@ -998,6 +1084,7 @@ describe('account blacklist loading', () => {
     await vi.waitFor(() => expect(renderedState().blacklistAvailable).toBe(true));
     expect(nodes.get('dmh-blacklist-rules')!.value).toBe('cat');
     expect(nodes.get('dmh-blacklist-rules')!.disabled).toBe(false);
+    expect(nodes.get('dmh-blacklist-rule-list')!.dataset.i18n).toBeUndefined();
     expect(nodes.get('dmh-blacklist-save')!.disabled).toBe(false);
     expect(renderedState().posts).toEqual([]);
   });

@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from '../utils/fetch';
+import { getLanguage } from '../ui/i18n';
 
 export const TAG_TRANSLATION_URL =
   'https://cdn.jsdelivr.net/gh/kano0222/danbooru-tag-zh@main/artifacts/ffdkj/zh-hans.min.json';
@@ -44,11 +45,13 @@ export class TagTranslationStore {
   loaded = false;
 
   load(): Promise<boolean> {
+    if (getLanguage() === 'en') return Promise.resolve(false);
     if (!this.loading) this.loading = this.loadOnce();
     return this.loading;
   }
 
   translate(tag: string): string {
+    if (getLanguage() === 'en') return '';
     for (const key of this.lookupKeys(tag)) {
       const value = this.data[key];
       if (value) return value;
@@ -70,6 +73,7 @@ export class TagTranslationStore {
       console.warn('[Danbooru Masonry] tag translation load failed:', error);
       this.data = {};
       this.loaded = false;
+      this.loading = null;
       return false;
     }
   }

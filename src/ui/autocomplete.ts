@@ -1,9 +1,27 @@
+import { getLanguage, textMarkup } from './i18n';
 import type { AutocompleteItem } from '../adapters/types';
 import type { AppState } from '../core/state';
 import { escapeAttr, escapeHtml } from '../utils/escape';
 import { closeSearchPanel, showSearchPanel } from './searchPanel';
 
 export const AUTOCOMPLETE_DEBOUNCE_MS = 200;
+const suggestions = new WeakMap<AppState, { search?: AutocompleteItem[]; blacklist?: AutocompleteItem[] }>();
+
+export function refreshAutocompleteLanguage(state: AppState): void {
+  const cached = suggestions.get(state);
+  const searchIndex = state.autocompleteIndex;
+  const blacklistIndex = state.blacklistAutocompleteIndex;
+  if (cached?.search && document.querySelector('#dmh-ac .dmh-ac-item')) {
+    renderAutocomplete(state, cached.search, false);
+    state.autocompleteIndex = searchIndex;
+    updateAutocompleteSelection(state);
+  }
+  if (cached?.blacklist && document.querySelector('#dmh-blacklist-ac .dmh-ac-item')) {
+    renderBlacklistAutocomplete(state, cached.blacklist, false);
+    state.blacklistAutocompleteIndex = blacklistIndex;
+    updateBlacklistAutocompleteSelection(state);
+  }
+}
 
 const DEFAULT_AUTOCOMPLETE_LABELS: Record<string, string> = {
   'order:rank': '排序：综合排名',
@@ -67,7 +85,8 @@ export function applyAutocompleteTag(state: AppState, tag: string): void {
   closeAutocomplete(state);
 }
 
-export function renderAutocomplete(state: AppState, items: AutocompleteItem[]): void {
+export function renderAutocomplete(state: AppState, items: AutocompleteItem[], reveal = true): void {
+  suggestions.set(state, { ...suggestions.get(state), search: items });
   const container = document.getElementById('dmh-ac');
   if (!container) return;
   if (!items.length) {
@@ -76,7 +95,7 @@ export function renderAutocomplete(state: AppState, items: AutocompleteItem[]): 
   }
   container.innerHTML = items
     .map((item, index) => {
-      const cn = state.translations.translate(item.value) || DEFAULT_AUTOCOMPLETE_LABELS[item.value] || '';
+      const cn = state.translations.translate(item.value) || (getLanguage() === 'zh-CN' ? DEFAULT_AUTOCOMPLETE_LABELS[item.value] : '') || '';
       return `
         <button class="dmh-ac-item" type="button" data-tag="${escapeAttr(item.value)}" data-index="${index}">
           <span class="dmh-ac-name dmh-ac-${autocompleteCategory(item.category)}">${escapeHtml(item.value)}${cn ? ` <span class="dmh-ac-cn">[ ${escapeHtml(cn)} ]</span>` : ''}</span>
@@ -84,9 +103,11 @@ export function renderAutocomplete(state: AppState, items: AutocompleteItem[]): 
     })
     .join('');
   state.autocompleteIndex = -1;
-  container.classList.add('dmh-open');
-  container.setAttribute('aria-hidden', 'false');
-  showSearchPanel('suggestions');
+  if (reveal) {
+    container.classList.add('dmh-open');
+    container.setAttribute('aria-hidden', 'false');
+    showSearchPanel('suggestions');
+  }
   updateAutocompleteSelection(state);
 }
 
@@ -95,7 +116,7 @@ function renderAutocompleteMessage(state: AppState, message: string): void {
   if (!container) return;
   state.autocompleteIndex = -1;
   container.classList.remove('dmh-open');
-  container.innerHTML = `<div class="dmh-search-empty" role="status">${escapeHtml(message)}</div>`;
+  container.innerHTML = `<div class="dmh-search-empty" role="status">${textMarkup(message)}</div>`;
   showSearchPanel('suggestions');
 }
 
@@ -191,7 +212,9 @@ export function applyBlacklistAutocompleteTag(state: AppState, tag: string): voi
 export function renderBlacklistAutocomplete(
   state: AppState,
   items: AutocompleteItem[],
+  reveal = true,
 ): void {
+  suggestions.set(state, { ...suggestions.get(state), blacklist: items });
   const container = document.getElementById('dmh-blacklist-ac');
   if (!container || !items.length) {
     closeBlacklistAutocomplete(state);
@@ -207,8 +230,10 @@ export function renderBlacklistAutocomplete(
     })
     .join('');
   state.blacklistAutocompleteIndex = -1;
-  container.classList.add('dmh-open');
-  container.setAttribute('aria-hidden', 'false');
+  if (reveal) {
+    container.classList.add('dmh-open');
+    container.setAttribute('aria-hidden', 'false');
+  }
   updateBlacklistAutocompleteSelection(state);
 }
 

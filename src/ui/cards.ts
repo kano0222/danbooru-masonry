@@ -1,3 +1,4 @@
+import { t, attributeMarkup } from './i18n';
 import type { Post } from '../adapters/types';
 import type { AppState } from '../core/state';
 import { scheduleLayoutMasonry } from '../core/masonry';
@@ -58,7 +59,7 @@ function appendCards(
       <img loading="lazy" alt="" src="${escapeAttr(getPostThumbnailUrl(post))}">
       <div class="dmh-card-error" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10,6 C10,4.8954305 10.8954305,4 12,4 C13.1045695,4 14,4.8954305 14,6 L14,12.5 C14,13.6045695 13.1045695,14.5 12,14.5 C10.8954305,14.5 10,13.6045695 10,12.5 L10,6 Z M12,20 C10.7573593,20 9.75,18.9926407 9.75,17.75 C9.75,16.5073593 10.7573593,15.5 12,15.5 C13.2426407,15.5 14.25,16.5073593 14.25,17.75 C14.25,18.9926407 13.2426407,20 12,20 Z"></path></svg>
-        <span>加载失败</span>
+        <span data-i18n="加载失败">${t("加载失败")}</span>
       </div>
       ${post.isVideo ? '<div class="dmh-video-badge">video</div>' : ''}
       <div class="dmh-card-meta">
@@ -66,8 +67,8 @@ function appendCards(
         <span>${escapeHtml(post.width)} x ${escapeHtml(post.height)}</span>
       </div>
       <div class="dmh-card-actions">
-        <button class="dmh-card-action dmh-card-source-button" type="button" data-card-action="source" aria-label="打开来源">${icons.external}</button>
-        <button class="dmh-card-action dmh-card-download-button" type="button" data-card-action="download" aria-label="下载原图">${icons.download}</button>
+        <button class="dmh-card-action dmh-card-source-button" type="button" data-card-action="source" ${attributeMarkup("aria-label", "打开来源")}>${icons.external}</button>
+        <button class="dmh-card-action dmh-card-download-button" type="button" data-card-action="download" ${attributeMarkup("aria-label", "下载原图")}>${icons.download}</button>
       </div>
     `;
     card.addEventListener('click', () => onOpen(postIndex));

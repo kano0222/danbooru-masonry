@@ -99,7 +99,7 @@ describe('search history panel', () => {
     const expanded = renderSearchLists(data, translate, true);
     expect(expanded.match(/data-search-action="search"/g)).toHaveLength(10);
     expect(expanded).toContain('aria-expanded="true"');
-    expect(expanded).toContain('>收起<svg');
+    expect(expanded).toContain('>收起</span><svg');
     expect(renderSearchLists({ pinned: [], recent: data.recent.slice(0, 8) }, translate))
       .not.toContain('data-search-action="expand"');
   });
