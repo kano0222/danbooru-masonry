@@ -70,18 +70,21 @@ describe('tag translation store', () => {
   });
 
   it.each(['http', 'json', 'error', 'timeout', 'abort', 'throw'] as const)(
-    'keeps original tags after a userscript request failure: %s', async (failure) => {
+    'retries after switching back to Chinese following a userscript request failure: %s', async (failure) => {
       vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const fetchMock = vi.fn();
       vi.stubGlobal('fetch', fetchMock);
-      vi.stubGlobal('GM_xmlhttpRequest', (details: Parameters<typeof GM_xmlhttpRequest>[0]) => {
+      const request = vi.fn<(details: Parameters<typeof GM_xmlhttpRequest>[0]) => void>().mockImplementationOnce((details) => {
         if (failure === 'http') details.onload({ status: 403, responseText: '{}' });
         else if (failure === 'json') details.onload({ status: 200, responseText: '<html>blocked</html>' });
         else if (failure === 'error') details.onerror();
         else if (failure === 'timeout') details.ontimeout();
         else if (failure === 'abort') details.onabort();
         else throw new Error('Request unavailable');
+      }).mockImplementation((details) => {
+        details.onload({ status: 200, responseText: '{"cat_girl":"猫娘"}' });
       });
+      vi.stubGlobal('GM_xmlhttpRequest', request);
       const store = new TagTranslationStore();
 
       await expect(store.load()).resolves.toBe(false);
@@ -89,8 +92,43 @@ describe('tag translation store', () => {
       expect(store.loaded).toBe(false);
       expect(store.format('cat_girl')).toBe('cat_girl');
       expect(fetchMock).not.toHaveBeenCalled();
+      expect(request).toHaveBeenCalledOnce();
+
+      setLanguage('en');
+      await expect(store.load()).resolves.toBe(false);
+      expect(request).toHaveBeenCalledOnce();
+      setLanguage('zh-CN');
+      const retry = store.load();
+      expect(store.load()).toBe(retry);
+      await expect(retry).resolves.toBe(true);
+      expect(store.loaded).toBe(true);
+      expect(store.translate('cat_girl')).toBe('猫娘');
+      await expect(store.load()).resolves.toBe(true);
+      expect(request).toHaveBeenCalledTimes(2);
     },
   );
+
+  it('retries a failed preview fetch while sharing concurrent loads and caching success', async () => {
+    vi.stubGlobal('GM_xmlhttpRequest', undefined);
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const fetchMock = vi.fn().mockRejectedValueOnce(new Error('network error'))
+      .mockImplementation(async () => Response.json({ cat_girl: '猫娘' }));
+    vi.stubGlobal('fetch', fetchMock);
+    const store = new TagTranslationStore();
+
+    await expect(Promise.all([store.load(), store.load()])).resolves.toEqual([false, false]);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    setLanguage('en');
+    await expect(store.load()).resolves.toBe(false);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    setLanguage('zh-CN');
+    const retry = store.load();
+    expect(store.load()).toBe(retry);
+    await expect(retry).resolves.toBe(true);
+    expect(store.translate('cat_girl')).toBe('猫娘');
+    await expect(store.load()).resolves.toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 
   it('loads local preview translations without a userscript manager', async () => {
     vi.stubGlobal('GM_xmlhttpRequest', undefined);

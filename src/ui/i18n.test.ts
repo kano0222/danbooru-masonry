@@ -37,7 +37,7 @@ describe('interface language', () => {
   it('covers every declared parameterized message without changing inserted values', () => {
     setLanguage('en');
     for (const [source, translated] of Object.entries(english)) {
-      const fill = (value: string) => value.replace(/\{\w+\}/g, '用户原文$&');
+      const fill = (value: string) => value.replace(/\{\w+\}/g, () => '用户原文$&');
       // Parameter values are opaque, including Chinese and replacement syntax.
       expect(t(fill(source))).toBe(fill(translated));
     }

@@ -73,6 +73,7 @@ export class TagTranslationStore {
       console.warn('[Danbooru Masonry] tag translation load failed:', error);
       this.data = {};
       this.loaded = false;
+      this.loading = null;
       return false;
     }
   }

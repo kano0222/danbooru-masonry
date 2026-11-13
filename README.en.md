@@ -128,7 +128,6 @@ The [development guide (Chinese)](https://github.com/kano0222/danbooru-masonry/b
 Planned improvements:
 
 - Search sorting.
-- Internationalization.
 
 ## Data Sources and Credits
 
