@@ -342,6 +342,17 @@ export function installStyles(): void {
     #dmh-app .dmh-search-entry .dmh-search-remove { right: 3px; opacity: 0; pointer-events: none; }
     #dmh-app .dmh-search-entry-pinned .dmh-search-pin { color: var(--dmh-accent); }
     #dmh-app .dmh-search-entry-pinned .dmh-search-pin svg { fill: currentColor; }
+    #dmh-app .dmh-search-entry .dmh-search-drag, #dmh-app .dmh-search-entry .dmh-search-drag:hover, #dmh-app .dmh-search-entry .dmh-search-drag:focus, #dmh-app .dmh-search-entry .dmh-search-drag:active { position: absolute; top: calc(50% - 14px); right: 2px; display: grid; place-items: center; width: 28px; min-width: 0; height: 28px; min-height: 0; margin: 0; padding: 5px; border: 0; border-radius: 4px; outline: 0; background: transparent; color: var(--dmh-text-muted); box-shadow: none; filter: none; transform: none; appearance: none; cursor: grab; touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; opacity: .6; transition: color .12s ease, opacity .12s ease; }
+    #dmh-app .dmh-search-entry:hover .dmh-search-drag, #dmh-app .dmh-search-entry .dmh-search-drag:hover, #dmh-app .dmh-search-entry .dmh-search-drag:focus-visible { color: var(--dmh-accent); opacity: 1; }
+    #dmh-app .dmh-search-entry .dmh-search-drag:focus-visible { outline: 2px solid var(--dmh-focus-ring); outline-offset: -2px; }
+    #dmh-app .dmh-search-entry .dmh-search-drag svg { width: 16px; height: 16px; }
+    #dmh-app .dmh-search-entry.dmh-search-dragging, #dmh-app .dmh-search-entry.dmh-search-dragging:hover { background: var(--dmh-accent-soft); outline: 1px dashed var(--dmh-accent-muted); outline-offset: -1px; }
+    #dmh-app .dmh-search-entry.dmh-search-dragging > * { opacity: 0 !important; }
+    #dmh-app .dmh-search-entry.dmh-search-drag-preview { position: fixed; z-index: 1000; margin: 0; pointer-events: none; background: var(--dmh-surface); outline: 1px solid var(--dmh-border); box-shadow: 0 8px 24px var(--dmh-shadow); opacity: .98; will-change: transform; }
+    #dmh-app .dmh-search-drag-preview button { font: inherit; box-shadow: none; }
+    #dmh-app .dmh-search-drag-preview .dmh-search-query { color: var(--dmh-text); }
+    #dmh-app .dmh-search-drag-preview .dmh-search-drag { color: var(--dmh-accent); opacity: 1; }
+    #dmh-app.dmh-search-sorting, #dmh-app.dmh-search-sorting * { cursor: grabbing !important; user-select: none; }
     #dmh-app .dmh-search-entry svg { width: 14px; height: 14px; }
     #dmh-app .dmh-search-entry .dmh-search-pin svg { width: 16px; height: 16px; }
     #dmh-app .dmh-search-remove svg { fill: currentColor; }

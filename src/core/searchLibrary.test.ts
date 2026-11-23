@@ -13,6 +13,29 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('search history', () => {
+  it('persists fixed order without changing recent searches and ignores invalid or unchanged moves', () => {
+    storage = { pinned: ['a', 'b', 'c'], recent: ['recent'] };
+    const library = new SearchLibrary();
+    const save = vi.spyOn(globalThis, 'GM_setValue');
+    library.movePinnedBefore('c', 'a');
+    expect(new SearchLibrary().data).toEqual({ pinned: ['c', 'a', 'b'], recent: ['recent'] });
+    library.movePinnedBefore('c', null);
+    expect(library.data.pinned).toEqual(['a', 'b', 'c']);
+    save.mockClear();
+    library.movePinnedBefore('a', 'b');
+    library.movePinnedBefore('a', 'a');
+    library.movePinnedBefore('missing', null);
+    library.movePinnedBefore('a', 'recent');
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('preserves changes from another tab when reordering', () => {
+    storage = { pinned: ['a', 'b'], recent: [] };
+    const library = new SearchLibrary();
+    storage = { pinned: ['a', 'b', 'new'], recent: ['latest'] };
+    library.movePinnedBefore('b', 'a');
+    expect(library.data).toEqual({ pinned: ['b', 'a', 'new'], recent: ['latest'] });
+  });
   it('retains the newest twenty saved searches without limiting pinned entries', () => {
     const pinned = Array.from({ length: 25 }, (_, i) => `pinned_${i}`);
     storage = { pinned, recent: Array.from({ length: 30 }, (_, i) => `recent_${i}`) };

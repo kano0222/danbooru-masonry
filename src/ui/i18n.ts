@@ -142,6 +142,8 @@ export const english: Record<string, string> = {
   '固定': 'Pin',
   '取消固定：{value}': 'Unpin: {value}',
   '固定：{value}': 'Pin: {value}',
+  '调整固定顺序：{value}': 'Reorder pinned search: {value}',
+  '按住拖动排序，或用方向键调整': 'Drag to reorder, or use arrow keys',
   '删除搜索：{value}': 'Remove search: {value}',
   '删除': 'Remove',
   '尚无搜索历史': 'No search history yet',

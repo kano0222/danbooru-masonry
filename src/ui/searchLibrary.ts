@@ -5,6 +5,7 @@ import { escapeAttr, escapeHtml } from '../utils/escape';
 import { byId } from '../utils/dom';
 import { icons } from './icons';
 import { closeSearchPanel, showSearchPanel } from './searchPanel';
+import { bindPinnedSearchSort } from './searchSort';
 
 type Translate = (tag: string) => string;
 const POPULAR_CACHE_MS = 5 * 60 * 1000;
@@ -44,10 +45,10 @@ export function renderSearchLists(data: SearchLibraryData, translate: Translate,
     </div>
     <div class="dmh-search-chips" id="dmh-search-history-items">${visibleQueries.length ? visibleQueries.map((query) => {
       const pinned = data.pinned.includes(query);
-      return `<div class="dmh-search-entry${pinned ? ' dmh-search-entry-pinned' : ''}">
+      return `<div class="dmh-search-entry${pinned ? ' dmh-search-entry-pinned' : ''}" data-query="${escapeAttr(query)}">
         <button type="button" class="dmh-search-query" data-search-action="search" data-query="${escapeAttr(query)}" title="${queryTitle(query, translate)}">${queryLabel(query, translate)}</button>
         <button type="button" class="dmh-search-pin" data-search-action="pin" data-query="${escapeAttr(query)}" aria-pressed="${pinned}" ${attributeMarkup('aria-label', `${pinned ? '取消固定' : '固定'}：${query}`)} ${attributeMarkup('title', pinned ? '取消固定' : '固定')}>${icons.pin}</button>
-        ${pinned ? '' : `<button type="button" class="dmh-search-remove" data-search-action="remove" data-query="${escapeAttr(query)}" ${attributeMarkup('aria-label', `删除搜索：${query}`)} ${attributeMarkup("title", "删除")}>${icons.close}</button>`}
+        ${pinned ? `<button type="button" class="dmh-search-drag" data-query="${escapeAttr(query)}" ${attributeMarkup('aria-label', `调整固定顺序：${query}`)} ${attributeMarkup('title', '按住拖动排序，或用方向键调整')}>${icons.dragHandle}</button>` : `<button type="button" class="dmh-search-remove" data-search-action="remove" data-query="${escapeAttr(query)}" ${attributeMarkup('aria-label', `删除搜索：${query}`)} ${attributeMarkup("title", "删除")}>${icons.close}</button>`}
       </div>`;
     }).join('') : `<p class="dmh-search-empty" data-i18n="尚无搜索历史">${t("尚无搜索历史")}</p>`}</div>
     ${queries.length > collapsedCount ? `<button type="button" id="dmh-search-history-toggle" data-search-action="expand" aria-expanded="${expanded}" aria-controls="dmh-search-history-items">${textMarkup(expanded ? '收起' : '展开更多')}${icons.foldArrow}</button>` : ''}
@@ -84,8 +85,10 @@ export function bindSearchLibrary(options: SearchLibraryOptions) {
   let lastFetch = -Infinity;
   let expanded = false;
   let hidePopular = options.hidePopular ?? false;
+  const sort = bindPinnedSearchSort(lists, panel, library, render);
 
   function close(restoreFocus = false): void {
+    if (sort.cancel()) render();
     if (restoreFocus) input?.focus();
     options.onClose();
     closeSearchPanel();
@@ -94,6 +97,7 @@ export function bindSearchLibrary(options: SearchLibraryOptions) {
   }
 
   function render(): void {
+    sort.cancel();
     if (lists) lists.innerHTML = renderSearchLists(library.data, options.translate, expanded, hidePopular);
   }
 

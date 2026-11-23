@@ -134,11 +134,14 @@ describe('search history panel', () => {
     expect(pinned).not.toContain('dmh-search-label-inline');
     expect(pinned).toContain('>蓝发</span>');
     expect(pinned).not.toContain('常用搜索');
+    expect(pinned).toContain('class="dmh-search-drag"');
+    expect(pinned).toContain('调整固定顺序：blue_hair');
     const html = renderSearchLists({ pinned: [], recent: ['<img onerror="bad">'] }, translate);
     expect(html).not.toContain('<img');
     expect(html).toContain('&lt;img');
     expect(html).toContain('aria-pressed="false"');
     expect(html).toContain('class="dmh-search-remove"');
+    expect(html).not.toContain('class="dmh-search-drag"');
   });
 
   it('translates known tags without rewriting the complete search expression', () => {

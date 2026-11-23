@@ -22,7 +22,7 @@ Typing a tag shows autocomplete suggestions; selecting one inserts the tag. Quer
 
 ### Search History and Popular Searches
 
-Click an empty search field to view history and popular searches. Select an entry to run its complete query from page 1. Pin searches you use often, or delete entries you no longer need.
+Click an empty search field to view history and popular searches. Select an entry to run its complete query from page 1. Pin searches you use often, then drag the handle on the right to reorder them, or focus the handle and use arrow keys. Delete ordinary entries you no longer need.
 
 <img src="docs/images/search-history.png" alt="Search history, pinned queries, and popular searches" width="600">
 

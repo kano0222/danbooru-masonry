@@ -70,6 +70,17 @@ export class SearchLibrary {
     this.persist();
   }
 
+  movePinnedBefore(query: string, before: string | null): void {
+    this.refresh();
+    const index = this.data.pinned.indexOf(query);
+    if (index < 0 || query === before || (before !== null && !this.data.pinned.includes(before))) return;
+    const pinned = this.data.pinned.filter((item) => item !== query);
+    pinned.splice(before === null ? pinned.length : pinned.indexOf(before), 0, query);
+    if (pinned.every((item, i) => item === this.data.pinned[i])) return;
+    this.data.pinned = pinned;
+    this.persist();
+  }
+
   remove(query: string): void {
     this.refresh();
     if (!this.data.recent.includes(query)) return;
